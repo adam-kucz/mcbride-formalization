@@ -11,14 +11,17 @@ infixr 100 _$_ -- Foundation.Function.Equivalence
 
 -- Types (60 - 50)
 
-infix 55 _,_ -- Foundation.Type.Sum
-infix 50 _×_ -- Foundation.Type.Sum
+infix 57 _×_ -- Foundation.Type.Sum
+infix 55 _+_ -- Foundation.Type.Sum
+infix 51 _,_ -- Foundation.Type.Sum
 
 -- Logic formers (40 - 30)
 
 infix 35 _<_ -- Foundation.Data.Nat.Order
 infix 35 _≤_ -- Foundation.Data.Nat.Order
 infix 35 _<ₜ_ -- Foundation.Data.Nat.Order
+infix 35 _<ₛ_ -- Foundation.Data.FinNat.Order
+infix 35 _≤ₛ_ -- Foundation.Data.FinNat.Order
 
 -- Descriptive properties (20)
 

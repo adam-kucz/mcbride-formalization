@@ -1,20 +1,13 @@
 {-# OPTIONS --exact-split --safe --prop #-}
-module Foundation.Data.Nat.Proof where
+module Foundation.Data.FinNat.Proof where
 
 open import Foundation.PropUniverses
 open import Foundation.Prop'.Identity hiding (refl)
-open import Foundation.Data.Nat.Order
+open import Foundation.Data.FinNat
+open import Foundation.Data.FinNat.Order renaming (_<ₛ_ to _<_; _≤ₛ_ to _≤_)
 open import Foundation.Logic
-
-open import Foundation.Data.Nat.Defintion
-
-open import Foundation.Prop'.Identity.Instances
 open import Foundation.Relation.Binary.Instances
-open import Foundation.Operation.Binary.Instances
-
 open import Foundation.Proof
-open import Foundation.Prop'.Proof
-open import Foundation.Function.Proof
 
 open Composable ⦃ ... ⦄ public
 
@@ -59,41 +52,15 @@ instance
   compose ⦃ comp-≤-< ⦄ (∨right a<b) b<c = trans a<b b<c
   compose ⦃ comp-≤-< ⦄ (∨left (Idₚ.refl _)) b<c = b<c
 
-  Commutative-min : Commutative min
-  comm ⦃ Commutative-min ⦄ = commutative-min
-
-  Relating-min-right : ∀ {n} → Relating (min n) _≤_ _≤_
-  rel-preserv ⦃ Relating-min-right {n} ⦄ (∨left (Idₚ.refl x)) = refl (min n x)
-  rel-preserv ⦃ Relating-min-right {zero} ⦄ (∨right x) = refl 0
-  rel-preserv ⦃ Relating-min-right {suc n} ⦄ (∨right z<s) = ∨right z<s
-  rel-preserv ⦃ Relating-min-right {suc n} ⦄ {suc m} {suc m'} (∨right (s<s m<m')) =
-    have
-      min n m ≤ min n m' :from: rel-preserv ⦃ Relating-min-right {n} ⦄ (∨right m<m')
-      ⟶ suc (min n m) ≤ suc (min n m') :by: ⟶ -≤-↔s≤s
-
-  Relating-min-left : ∀ {n} → Relating (λ m → min m n) _≤_ _≤_
-  rel-preserv ⦃ Relating-min-left {n} ⦄ {a} {b} a≤b =
-    proof min a n
-      〉 _==_ 〉 min n a :by: comm a n
-      〉 _≤_ 〉 min n b :by: rel-preserv a≤b
-      〉 _==_ 〉 min b n :by: comm n b
-    qed
-
-  Relating-pred-≤ : Relating pred _≤_ _≤_
-  rel-preserv ⦃ Relating-pred-≤ ⦄ (∨left (Idₚ.refl x)) = refl (pred x)
-  rel-preserv ⦃ Relating-pred-≤ ⦄ (∨right (z<s {0})) = ∨left (refl 0)
-  rel-preserv ⦃ Relating-pred-≤ ⦄ (∨right (z<s {suc n})) = ∨right z<s
-  rel-preserv ⦃ Relating-pred-≤ ⦄ (∨right (s<s q)) = ∨right q
-
-  Relating-suc-≤ : Relating suc _≤_ _≤_
-  rel-preserv ⦃ Relating-suc-≤ ⦄ (∨left (Idₚ.refl x)) = ?
-  rel-preserv ⦃ Relating-suc-≤ ⦄ (∨right a<b) = ∨right (ap suc a<b)
+-- Relating-suc-≤ : Relating suc _≤_ _≤_
+-- rel-preserv ⦃ Relating-suc-≤ ⦄ (refl ∨∅) = rflx
+-- rel-preserv ⦃ Relating-suc-≤ ⦄ (∅∨ a<b) = ∅∨ (suc ` a<b)
 
 --   Postfix+- : Postfix (b +_) _≤_
 --   postfix ⦃ Postfix+- {zero} ⦄ = rflx
 --   postfix ⦃ Postfix+- {suc b} ⦄ {a} =
 --     proof a
---       〉 _≤_ 〉 suc a     :by: ∨right self<s
+--       〉 _≤_ 〉 suc a     :by: ∅∨ self<s
 --       〉 _≤_ 〉 b + suc a :by: postfix
 --       〉 _==_ 〉 suc b + a :by: +suc
 --     qed

@@ -1,13 +1,14 @@
 {-# OPTIONS --exact-split --safe --prop #-}
 module Foundation.Data.FinNat where
 
-open import Foundation.Data.Nat as Nat hiding (injective-suc)
+open import Foundation.Universes
+open import Foundation.Data.Nat hiding (Injective-suc)
 open import Foundation.Data.Nat.Order
 open import Foundation.Prop'.Decidable
 open import Foundation.Prop'.Identity using (_==_; refl; ap)
 open import Foundation.Function using (_$_; _∘_)
 open import Foundation.Prop'.Function renaming (_$_ to _$'_) using ()
-open import Foundation.Function.Properties using (injective)
+open import Foundation.Function.Properties using (Injective; inj)
 open import Foundation.Logic
 
 private
@@ -15,7 +16,7 @@ private
     n m : ℕ
 
 -- types of natural numbers less than index
-data Finℕ : (n : ℕ) → Set where
+data Finℕ : (n : ℕ) → 𝒰₀ ˙ where
   zero : Finℕ (suc n)
   suc : (x : Finℕ n) → Finℕ (suc n)
 
@@ -23,18 +24,14 @@ private
   variable
     a b c : Finℕ n
 
-data _<ₛ_ : Finℕ n → Finℕ m → Prop where
-  z<ₛs : zero {n} <ₛ suc a
-  s<ₛs : (a<ₛb : a <ₛ b) → suc a <ₛ suc b
-
 instance
   NatFinℕ : Nat (Finℕ n)
   Nat.Constraint (NatFinℕ {n}) m = m <ₜ n
   Nat.fromℕ (NatFinℕ {suc n}) zero = zero
   Nat.fromℕ (NatFinℕ {suc n}) (suc m) = suc $ Nat.fromℕ (NatFinℕ {n}) m
 
-  injective-suc : injective (Finℕ.suc {n})
-  injective-suc (refl (suc x)) = refl x
+  Injective-suc : Injective (Finℕ.suc {n})
+  inj ⦃ Injective-suc ⦄ (refl (suc x)) = refl x
 
   Decidable==Finℕ : {a b : Finℕ n} → Decidable (a == b)
   Decidable==Finℕ {a = zero} {zero} = true (refl 0)
@@ -54,10 +51,10 @@ toℕ< {a = zero} = z<s
 toℕ< {a = suc a} = s<s (toℕ< {a = a})
 
 instance
-  injective-toℕ : injective (toℕ {n})
-  injective-toℕ {x = zero} {zero} _ = refl zero
-  injective-toℕ {x = suc x} {suc y} fx==fy = 
-    ap Finℕ.suc $' injective-toℕ $' Nat.injective-suc fx==fy
+  Injective-toℕ : Injective (toℕ {n})
+  inj ⦃ Injective-toℕ ⦄ {x = zero} {zero} _ = refl zero
+  inj ⦃ Injective-toℕ ⦄ {x = suc x} {suc y} fx==fy = 
+    ap Finℕ.suc $' inj ⦃ Injective-toℕ ⦄ $' inj fx==fy
 
 maxFinℕ : Finℕ (suc n)
 maxFinℕ {zero} = zero

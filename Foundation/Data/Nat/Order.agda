@@ -2,7 +2,7 @@
 module Foundation.Data.Nat.Order where
 
 open import Foundation.PropUniverses
-open import Foundation.Data.Nat
+open import Foundation.Data.Nat.Definition
 
 open import Foundation.Prop'.Identity using (_==_; refl; ap)
 open import Foundation.Prop'.Decidable
@@ -33,13 +33,17 @@ self<s {suc _} = s<s self<s
 s<s→-<- : (p : suc n < suc m) → n < m
 s<s→-<- (s<s p) = p
 
-<irrefl : ∀ n → ¬ n < n
+<irrefl : irreflexive _<_
 <irrefl 0 = λ ()
 <irrefl (suc n) sn<sn = <irrefl n (s<s→-<- sn<sn)
 
-<asym : a < b → ¬ b < a
+<asym : asymmetric _<_
 <asym z<s = λ ()
 <asym (s<s a<b) = λ where (s<s b<a) → <asym b<a a<b
+
+<transitive : transitive _<_
+<transitive z<s (s<s _) = z<s
+<transitive (s<s a<b) (s<s b<c) = s<s (<transitive a<b b<c)
 
 infix 35 _≤_
 _≤_ : ℕ → ℕ → Prop
@@ -50,10 +54,6 @@ a ≤ b = a == b ∨ a < b
 ⟶ -≤-↔s≤s (∨right a<b) = ∨right $ s<s a<b
 ⟵ -≤-↔s≤s (∨left (refl (suc a))) = ∨left $ refl a
 ⟵ -≤-↔s≤s (∨right sa<sb) = ∨right $ s<s→-<- sa<sb
-
-<transitive : transitive _<_
-<transitive z<s (s<s _) = z<s
-<transitive (s<s a<b) (s<s b<c) = s<s (<transitive a<b b<c)
 
 instance
   <Decidable : Decidable (m < n)
@@ -127,7 +127,7 @@ _ <ₜ 0 = ⊥
 0 <ₜ suc _ = ⊤
 suc n <ₜ suc m = n <ₜ m
 
-min : ℕ → ℕ → ℕ
+min : (x y : ℕ) → ℕ
 min zero _ = zero
 min (suc _) zero = zero
 min (suc x) (suc y) = suc (min x y)
@@ -137,24 +137,6 @@ commutative-min zero zero = refl 0
 commutative-min zero (suc b) = refl 0
 commutative-min (suc a) zero = refl 0
 commutative-min (suc a) (suc b) = ap suc $ commutative-min a b
-
--- instance
---   Relating-min-right : Relating (min n) _≤_ _≤_
---   rel-preserv ⦃ Relating-min-right ⦄ (refl ∨∅) = rflx
---   rel-preserv ⦃ Relating-min-right {zero} ⦄ (∅∨ _) = rflx
---   rel-preserv ⦃ Relating-min-right {suc n} ⦄ (∅∨ z<s) = ∅∨ z<s
---   rel-preserv ⦃ Relating-min-right {suc n} ⦄ {suc m} {suc m'} (∅∨ s<s m<m') =
---     have
---       min n m ≤ min n m' :from: rel-preserv ⦃ Relating-min-right {n} ⦄ (∅∨ m<m')
---     -→ suc (min n m) ≤ suc (min n m') :by: _↔_.-→ -≤-↔s≤s
-
---   Relating-min-left : Relating (λ m → min m n) _≤_ _≤_
---   rel-preserv ⦃ Relating-min-left {n} ⦄ {a} {b} a≤b =
---     proof min a n
---       〉 _==_ 〉 min n a :by: +comm {a = a}
---       〉 _≤_ 〉 min n b :by: rel-preserv a≤b
---       〉 _==_ 〉 min b n :by: +comm {a = n}
---     qed
 
 min<s : min m n < suc m
 min<s {zero} = self<s

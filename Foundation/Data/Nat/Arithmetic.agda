@@ -2,8 +2,8 @@
 module Foundation.Data.Nat.Arithmetic where
 
 open import Foundation.PropUniverses
+open import Foundation.Data.Nat.Arithmetic.Definition public
 open import Foundation.Data.Nat
-open import Foundation.Function renaming (_$_ to _$ₜ_) using ()
 open import Foundation.Prop'.Function using (_$_)
 
 open import Foundation.Operation.Binary.Instances using (Commutative; comm)
@@ -14,16 +14,6 @@ open import Foundation.Structure.Hemiring
 open import Foundation.Prop'.Identity hiding (refl)
 open import Foundation.Prop'.Identity.Instances
 open import Foundation.Proof
-
-infixl 130 _+_
-_+_ : ℕ → ℕ → ℕ
-zero  + b = b
-suc a + b = suc $ₜ a + b
-
-infixl 140 _*_
-_*_ : ℕ → ℕ → ℕ
-zero  * b = 0
-suc a * b = b + a * b
 
 private
   variable

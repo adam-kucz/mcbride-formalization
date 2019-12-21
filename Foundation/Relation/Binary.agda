@@ -2,7 +2,7 @@
 module Foundation.Relation.Binary where
 
 open import Foundation.PropUniverses
-open import Foundation.Prop'.Identity using (_==_; _≠_)
+open import Foundation.Prop'.Identity.Definition using (_==_; _≠_)
 open import Foundation.Logic using (¬_; _∨_; _∧_)
 
 Rel : (𝒰 : Universe) (X : 𝒱 ˙) (Y : 𝒲 ˙) → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ˙

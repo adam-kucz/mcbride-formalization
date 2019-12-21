@@ -1,7 +1,7 @@
 {-# OPTIONS --exact-split --safe --prop #-}
 module Foundation.Data.FinNat.Arithmetic where
 
-open import Foundation.Data.Nat as Nat hiding (injective-suc)
+open import Foundation.Data.Nat as Nat hiding (Injective-suc)
 open import Foundation.Data.Nat.Arithmetic
 open import Foundation.Data.Nat.Order
 open import Foundation.Data.FinNat
@@ -9,6 +9,12 @@ open import Foundation.Prop'.Identity using (_==_; refl; ap)
 open import Foundation.Prop'.Function renaming (_$_ to _$'_) using ()
 open import Foundation.Function using (_∘_; _$_)
 open import Foundation.Logic
+
+open import Foundation.Operation.Binary.Instances using (Commutative; comm)
+open import Foundation.Structure.Semigroup using (Semigroup; assoc)
+open import Foundation.Structure.Monoid using (Monoid; e; right-unit; left-unit; swap)
+open import Foundation.Structure.Hemiring
+  using (Hemiring; *0; 0*; *[+]==*+*; [+]*==*+*)
 
 open import Foundation.Proof
 open import Foundation.Data.Nat.Proof
@@ -143,117 +149,113 @@ infixl 21 _*ₛ_
 _*ₛ_ : (x : Finℕ n) (y : Finℕ n) → Finℕ n
 _*ₛ_ {suc n} x y = cap n $ toℕ x * toℕ y
 
--- instance
---   CommutativeFinℕ+ : Commutative (Finℕ n) _+ₛ_
---   comm ⦃ CommutativeFinℕ+ {suc n} ⦄ {a} = cap n ` +comm {a = toℕ a}
+instance
+  CommutativeFinℕ+ : Commutative (_+ₛ_ {n})
+  comm ⦃ CommutativeFinℕ+ {suc n} ⦄ a b = ap (cap n) $' comm (toℕ a) (toℕ b)
 
---   SemigroupFinℕ+ : Semigroup (Finℕ n) _+ₛ_
---   +assoc ⦃ SemigroupFinℕ+ {suc n} ⦄ {a} {b} {c} = 
---     proof a +ₛ (b +ₛ c)
---       〉 _==_ 〉 cap n $ toℕ a + toℕ (cap n $ toℕ b + toℕ c) :by: refl
---       〉 _==_ 〉 cap n $ toℕ a + (toℕ b + toℕ c)
---         :by: cap-thm (toℕ a +_) postfix
---       〉 _==_ 〉 cap n $ (toℕ a + toℕ b) + toℕ c
---         :by: cap n ` +assoc {a = toℕ a}
---       〉 _==_ 〉 cap n $ toℕ (cap n $ toℕ a + toℕ b) + toℕ c
---         :by: ← cap-thm (_+ toℕ c) postfix 
---       〉 _==_ 〉 a +ₛ b +ₛ c :by: refl
---     qed
+  SemigroupFinℕ+ : Semigroup (_+ₛ_ {n})
+  assoc ⦃ SemigroupFinℕ+ {suc n} ⦄ a b c = 
+    proof a +ₛ (b +ₛ c)
+      〉 _==_ 〉 cap n $ toℕ a + toℕ (cap n $ toℕ b + toℕ c) :by: refl (a +ₛ (b +ₛ c))
+      〉 _==_ 〉 cap n $ toℕ a + (toℕ b + toℕ c)
+        :by: cap-thm (toℕ a +_) {!!} -- postfix
+      〉 _==_ 〉 cap n $ (toℕ a + toℕ b) + toℕ c
+        :by: ap (cap n) $' assoc (toℕ a) (toℕ b) (toℕ c)
+      〉 _==_ 〉 cap n $ toℕ (cap n $ toℕ a + toℕ b) + toℕ c
+        :by: sym $' cap-thm (_+ toℕ c) {!!} -- postfix 
+      〉 _==_ 〉 a +ₛ b +ₛ c :by: refl (a +ₛ b +ₛ c)
+    qed
   
---   MonoidFinℕ+ : Monoid (Finℕ (suc n)) _+ₛ_
---   Monoid.zero MonoidFinℕ+ = 0
---   +zero ⦃ MonoidFinℕ+ {n} ⦄ {a} = proof
---     cap n (toℕ a + 0)
---       〉 _==_ 〉 cap n (toℕ a) :by: cap n ` +zero {a = toℕ a}
---       〉 _==_ 〉 a             :by: cap-toℕ
---   zero+ ⦃ MonoidFinℕ+ ⦄ = cap-toℕ
+  MonoidFinℕ+ : Monoid (_+ₛ_ {suc n})
+  e ⦃ MonoidFinℕ+ ⦄ = 0
+  right-unit ⦃ MonoidFinℕ+ {n} ⦄ a = proof
+    cap n (toℕ a + 0)
+      〉 _==_ 〉 cap n (toℕ a) :by: ap (cap n) $' right-unit (toℕ a)
+      〉 _==_ 〉 a             :by: cap-toℕ
+  left-unit ⦃ MonoidFinℕ+ ⦄ a = cap-toℕ
 
---   MagmaFinℕ* : Magma (Finℕ n) _*ₛ_
---   MagmaFinℕ* = record {}
+  CommutativeFinℕ* : Commutative (_*ₛ_ {n})
+  comm ⦃ CommutativeFinℕ* {suc n} ⦄ a b = ap (cap n) $' comm (toℕ a) (toℕ b)
 
---   CommutativeFinℕ* : Commutative (Finℕ n) _*ₛ_
---   +comm ⦃ CommutativeFinℕ* {suc n} ⦄ {a} = cap n ` +comm {a = toℕ a}
-
---   SemigroupFinℕ* : Semigroup (Finℕ n) _*ₛ_
---   +assoc ⦃ SemigroupFinℕ* {suc n} ⦄ {zero} {b} {c} =
---     proof cap n zero
---       〉 _==_ 〉 cap n (toℕ (Finℕ.zero {n}) * toℕ c) :by: refl
---       〉 _==_ 〉 cap n (toℕ (cap n zero) * toℕ c)
---         :by: (λ x → cap n (toℕ x * toℕ c)) ` ← cap-n-zero==zero {n}
---     qed
---     where 
---   +assoc ⦃ SemigroupFinℕ* {suc n} ⦄ {suc a} {b} {zero} = cap n `
---     (proof toℕ (suc a) * toℕ (cap n (toℕ b * 0))
---       〉 _==_ 〉 toℕ (suc a) * toℕ (cap n 0)
---         :by: (λ x → toℕ (suc a) * toℕ (cap n x)) ` *0 {a = toℕ b}
---       〉 _==_ 〉 toℕ (suc a) * 0
---         :by: (λ x → toℕ (suc a) * toℕ x) ` cap-n-zero==zero {n}
---       〉 _==_ 〉 0                    :by: *0 {a = toℕ (suc a)}
---       〉 _==_ 〉 toℕ (suc a *ₛ b) * 0 :by: ← *0 {a = toℕ (suc a *ₛ b)}
---     qed)
---   +assoc ⦃ SemigroupFinℕ* {suc n} ⦄ {suc a} {b} {suc c} =
---     proof suc a *ₛ (b *ₛ suc c)
---       〉 _==_ 〉 cap n $ suc (toℕ a) * toℕ (cap n $ toℕ b * suc (toℕ c))
---         :by: refl
---       〉 _==_ 〉 cap n $ suc (toℕ a) * (toℕ b * suc (toℕ c))
---         :by: cap-thm (suc (toℕ a) *_) (postfix ⦃ Postfix*- {toℕ a} ⦄)
---       〉 _==_ 〉 cap n $ (suc (toℕ a) * toℕ b) * suc (toℕ c)
---         :by: cap n ` +assoc {a = suc (toℕ a)} {b = toℕ b}
---       〉 _==_ 〉 cap n $ toℕ (cap n $ suc (toℕ a) * toℕ b) * suc (toℕ c)
---         :by: ← cap-thm (_* suc (toℕ c)) postfix
---       〉 _==_ 〉 suc a *ₛ b *ₛ suc c
---         :by: refl
---     qed
+  SemigroupFinℕ* : Semigroup (_*ₛ_ {n})
+  assoc ⦃ SemigroupFinℕ* {suc n} ⦄ zero b c =
+    proof cap n zero
+      〉 _==_ 〉 cap n (toℕ (Finℕ.zero {n}) * toℕ c) :by: refl (cap n zero)
+      〉 _==_ 〉 cap n (toℕ (cap n zero) * toℕ c)
+        :by: ap (λ – → cap n (toℕ – * toℕ c)) $' sym $' cap-n-zero==zero {n}
+    qed
+    where 
+  assoc ⦃ SemigroupFinℕ* {suc n} ⦄ (suc a) b zero = ap (cap n) $'
+    (proof toℕ (suc a) * toℕ (cap n (toℕ b * 0))
+      〉 _==_ 〉 toℕ (suc a) * toℕ (cap n 0)
+        :by: ap (λ – → toℕ (suc a) * toℕ (cap n –)) $' *0 (toℕ b)
+      〉 _==_ 〉 toℕ (suc a) * 0
+        :by: ap (λ – → toℕ (suc a) * toℕ –) $' cap-n-zero==zero {n}
+      〉 _==_ 〉 0                    :by: *0 (toℕ $ suc a)
+      〉 _==_ 〉 toℕ (suc a *ₛ b) * 0 :by: sym $' *0 (toℕ $ suc a *ₛ b)
+    qed)
+  assoc ⦃ SemigroupFinℕ* {suc n} ⦄ (suc a) b (suc c) =
+    proof suc a *ₛ (b *ₛ suc c)
+      〉 _==_ 〉 cap n $ suc (toℕ a) * toℕ (cap n $ toℕ b * suc (toℕ c))
+        :by: refl (suc a *ₛ (b *ₛ suc c))
+      〉 _==_ 〉 cap n $ suc (toℕ a) * (toℕ b * suc (toℕ c))
+        :by: cap-thm (suc (toℕ a) *_) {!!} -- (postfix ⦃ Postfix*- {toℕ a} ⦄)
+      〉 _==_ 〉 cap n $ (suc (toℕ a) * toℕ b) * suc (toℕ c)
+        :by: ap (cap n) $' assoc (suc $ toℕ a) (toℕ b) (suc $ toℕ c)
+      〉 _==_ 〉 cap n $ toℕ (cap n $ suc (toℕ a) * toℕ b) * suc (toℕ c)
+        :by: sym $' cap-thm (_* suc (toℕ c)) {!!} -- postfix
+      〉 _==_ 〉 suc a *ₛ b *ₛ suc c
+        :by: refl (suc a *ₛ b *ₛ suc c)
+    qed
   
---   MonoidFinℕ* : Monoid (Finℕ (suc n)) _*ₛ_
---   Monoid.zero (MonoidFinℕ* {zero}) = 0
---   Monoid.zero (MonoidFinℕ* {suc n}) = 1
---   +zero ⦃ MonoidFinℕ* {zero} ⦄ {zero} = refl
---   +zero ⦃ MonoidFinℕ* {suc n} ⦄ {a} =
---     proof cap (suc n) (toℕ a * 1)
---       〉 _==_ 〉 cap (suc n) (toℕ a) :by: cap (suc n) ` +zero
---       〉 _==_ 〉 a                   :by: cap-toℕ
---     qed
---   zero+ ⦃ MonoidFinℕ* ⦄ {a} =
---     proof (Monoid.zero MonoidFinℕ*) *ₛ a
---       〉 _==_ 〉 a *ₛ Monoid.zero MonoidFinℕ*
---         :by: +comm {a = Monoid.zero MonoidFinℕ*} {b = a}
---       〉 _==_ 〉 a :by: +zero
---     qed
+  MonoidFinℕ* : Monoid (_*ₛ_ {suc n})
+  e ⦃ MonoidFinℕ* {zero} ⦄ = 0
+  e ⦃ MonoidFinℕ* {suc n} ⦄ = 1
+  right-unit ⦃ MonoidFinℕ* {zero} ⦄ zero = refl 0
+  right-unit ⦃ MonoidFinℕ* {suc n} ⦄ a =
+    proof cap (suc n) (toℕ a * 1)
+      〉 _==_ 〉 cap (suc n) (toℕ a) :by: ap (cap (suc n)) $' right-unit (toℕ a)
+      〉 _==_ 〉 a                   :by: cap-toℕ
+    qed
+  left-unit ⦃ MonoidFinℕ* ⦄ a =
+    proof e *ₛ a
+      〉 _==_ 〉 a *ₛ e :by: comm e a
+      〉 _==_ 〉 a :by: right-unit a
+    qed
 
---   HemiringFinℕ+* : Hemiring (Finℕ $ suc n) _+ₛ_ _*ₛ_
---   Hemiring.monoid+ HemiringFinℕ+* = MonoidFinℕ+
---   0* ⦃ HemiringFinℕ+* ⦄ = cap-n-zero==zero
---   *0 ⦃ HemiringFinℕ+* ⦄ {a} =
---     proof a *ₛ 0
---       〉 _==_ 〉 0 *ₛ a :by: +comm {a = a}
---       〉 _==_ 〉 0     :by: 0* {a = a}
---     qed
---   *[+]==*+* ⦃ HemiringFinℕ+* {n} ⦄ {zero} {b} {c} = cap n ` ←
---     (proof toℕ (cap n zero) + toℕ (cap n zero)
---       〉 _==_ 〉 toℕ (cap n zero)
---         :by: (λ x → toℕ x + toℕ (cap n zero)) ` cap-n-zero==zero {n}
---       〉 _==_ 〉 zero :by: toℕ ` cap-n-zero==zero {n}
---     qed)
---   *[+]==*+* ⦃ HemiringFinℕ+* {n} ⦄ {suc a} {b} {c} =
---     proof suc a *ₛ (b +ₛ c)
---       〉 _==_ 〉 cap n (suc (toℕ a) * toℕ (cap n $ toℕ b + toℕ c))
---         :by: refl
---       〉 _==_ 〉 cap n (suc (toℕ a) * (toℕ b + toℕ c))
---         :by: cap-thm (suc (toℕ a) *_) (postfix ⦃ Postfix*- {b = toℕ a} ⦄)
---       〉 _==_ 〉 cap n (suc (toℕ a) * toℕ b + suc (toℕ a) * toℕ c)
---         :by: cap n ` *[+]==*+* {a = suc (toℕ a)} {b = toℕ b}
---       〉 _==_ 〉 cap n (toℕ (cap n $ suc (toℕ a) * toℕ b) + suc (toℕ a) * toℕ c)
---         :by: ← cap-thm (_+ suc (toℕ a) * toℕ c) postfix
---       〉 _==_ 〉 cap n (toℕ (suc a *ₛ b) + toℕ (cap n $ suc (toℕ a) * toℕ c))
---         :by: ← cap-thm (toℕ (suc a *ₛ b) +_) postfix
---       〉 _==_ 〉 suc a *ₛ b +ₛ suc a *ₛ c :by: refl
---     qed
---   [+]*==*+* ⦃ HemiringFinℕ+* ⦄ {a} {b} {c} =
---     proof
---       (a +ₛ b) *ₛ c
---         〉 _==_ 〉 c *ₛ (a +ₛ b) :by: +comm {a = a +ₛ b} {b = c}
---         〉 _==_ 〉 c *ₛ a +ₛ c *ₛ b :by: *[+]==*+* {a = c} {a} {b}
---         〉 _==_ 〉 c *ₛ a +ₛ b *ₛ c :by: c *ₛ a +ₛ_ ` +comm {a = c} {b = b}
---         〉 _==_ 〉 a *ₛ c +ₛ b *ₛ c :by: _+ₛ b *ₛ c ` +comm {a = c} {b = a}
---     qed
+  HemiringFinℕ+* : Hemiring (_+ₛ_ {suc n}) _*ₛ_
+  Hemiring.monoid+ HemiringFinℕ+* = MonoidFinℕ+
+  0* ⦃ HemiringFinℕ+* ⦄ _ = cap-n-zero==zero
+  *0 ⦃ HemiringFinℕ+* ⦄ a =
+    proof a *ₛ 0
+      〉 _==_ 〉 0 *ₛ a :by: comm a 0
+      〉 _==_ 〉 0     :by: 0* a
+    qed
+  *[+]==*+* ⦃ HemiringFinℕ+* {n} ⦄ zero b c = ap (cap n) $' sym $'
+    (proof toℕ (cap n zero) + toℕ (cap n zero)
+      〉 _==_ 〉 toℕ (cap n zero)
+        :by: ap (λ – → toℕ – + toℕ (cap n zero)) $' cap-n-zero==zero {n}
+      〉 _==_ 〉 zero :by: ap toℕ $' cap-n-zero==zero {n}
+    qed)
+  *[+]==*+* ⦃ HemiringFinℕ+* {n} ⦄ (suc a) b c =
+    proof suc a *ₛ (b +ₛ c)
+      〉 _==_ 〉 cap n (suc (toℕ a) * toℕ (cap n $ toℕ b + toℕ c))
+        :by: refl (suc a *ₛ (b +ₛ c))
+      〉 _==_ 〉 cap n (suc (toℕ a) * (toℕ b + toℕ c))
+        :by: cap-thm (suc (toℕ a) *_) {!!} -- (postfix ⦃ Postfix*- {b = toℕ a} ⦄)
+      〉 _==_ 〉 cap n (suc (toℕ a) * toℕ b + suc (toℕ a) * toℕ c)
+        :by: ap (cap n) $' *[+]==*+* (suc $ toℕ a) (toℕ b) (toℕ c)
+      〉 _==_ 〉 cap n (toℕ (cap n $ suc (toℕ a) * toℕ b) + suc (toℕ a) * toℕ c)
+        :by: sym $' cap-thm (_+ suc (toℕ a) * toℕ c) {!!} -- postfix
+      〉 _==_ 〉 cap n (toℕ (suc a *ₛ b) + toℕ (cap n $ suc (toℕ a) * toℕ c))
+        :by: sym $' cap-thm (toℕ (suc a *ₛ b) +_) {!!} -- postfix
+      〉 _==_ 〉 suc a *ₛ b +ₛ suc a *ₛ c :by: refl (suc a *ₛ b +ₛ suc a *ₛ c)
+    qed
+  [+]*==*+* ⦃ HemiringFinℕ+* ⦄ a b c =
+    proof
+      (a +ₛ b) *ₛ c
+        〉 _==_ 〉 c *ₛ (a +ₛ b) :by: comm (a +ₛ b) c
+        〉 _==_ 〉 c *ₛ a +ₛ c *ₛ b :by: *[+]==*+* c a b
+        〉 _==_ 〉 c *ₛ a +ₛ b *ₛ c :by: ap (c *ₛ a +ₛ_) $' comm c b
+        〉 _==_ 〉 a *ₛ c +ₛ b *ₛ c :by: ap (_+ₛ b *ₛ c) $' comm c a
+    qed
