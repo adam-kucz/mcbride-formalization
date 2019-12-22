@@ -1,5 +1,5 @@
 {-# OPTIONS --exact-split --safe --prop #-}
-module Foundation.Function.Properties where
+module Foundation.Function.Property where
 
 open import Foundation.PropUniverses
 open import Foundation.Prop'.Identity.Definition using (_==_; refl)

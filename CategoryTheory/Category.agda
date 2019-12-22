@@ -1,7 +1,6 @@
 {-# OPTIONS --prop  #-}
 module CategoryTheory.Category where
 
-open import Foundations.Univ using (_⊔_; 𝑙; 𝑚)
 open import Foundations.Equality.Core using (_==_; proof_)
 open import Foundations.Algebra.Relations.Classes using (_qed; _〉_〉_:by:_)
 open import Foundations.Functions.Classes using (_`_)

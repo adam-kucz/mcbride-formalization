@@ -4,7 +4,7 @@ module Foundation.Function.Proof where
 open import Foundation.PropUniverses
 open import Foundation.Prop'.Identity.Definition using (_==_; refl)
 open import Foundation.Logic
-open import Foundation.Relation.Binary using (Rel)
+open import Foundation.Relation.Binary.Definition using (Rel)
 
 record Relating {X : 𝒰 ˙} {A : (x : X) → 𝒱 ˙}
     (f : (x : X) → A x)
@@ -17,46 +17,104 @@ record Relating {X : 𝒰 ˙} {A : (x : X) → 𝒱 ˙}
     rel-preserv :
       {a b : X}
       (rab : r a b)
-      → -------------
+      → --------------
       r' (f a) (f b)
 
 open Relating ⦃ ... ⦄ public
 
-Congruence :
-  {I : 𝒰 ˙} {F : (i : I) → 𝒱 ˙} {j : (i : I) → I}
+ap :
+  (f : (x : X) → A x)
+  {r : Rel 𝒰 X X}
+  {r' : ∀ {a b} → Rel 𝒱 (A a) (A b)}
+  ⦃ _ : Relating f r r' ⦄
+  {a b : X}
+  (rab : r a b)
+  → ----------------
+  r' (f a) (f b)
+ap f = rel-preserv
+
+apₚ :
+  (𝐴 : (x : X) → 𝒰 ᵖ)
+  {B : (x : X) (p : 𝐴 x) → 𝒱 ˙}
+  (f : (x : X) (p : 𝐴 x) → B x p)
+  {x y : X}
+  (q : x == y)
+  {p : 𝐴 x} {p' : 𝐴 y}
+  → --------------------------------
+  f x p == f y p'
+apₚ 𝐴 f (refl x) {p} = refl (f x p)
+
+record ReindexingRelating
+  {I : 𝒰 ˙} (F : (i : I) → 𝒱 ˙) {j : (i : I) → I}
   (f : ∀ {i} → F i → F (j i))
   (r : ∀ {i} → Rel 𝒲 (F i) (F i))
-  → --------------------
+  : --------------------
   𝒰 ⊔ 𝒱 ⊔ 𝒲 ᵖ
-Congruence f r = ∀ i → Relating (f {i}) (r {i}) r
+    where
+  field
+    reindexed : ∀ i → Relating (f {i}) (r {i}) (r {j i})
 
--- TODO: allow heterogenous `a` and `b`
-cong : {I : 𝒰 ˙} {F : (i : I) → 𝒱 ˙} {i' : (i : I) → I}
-  (f : ∀ {i} (x : F i) → F (i' i))
-  {r : ∀ {i} → Rel 𝒲 (F i) (F i)}
-  {cng : Congruence {F = F} f r}
-  {i : I}
-  {a b : F i}
-  (rab : r a b)
-  → ------------
-  r (f a) (f b)
-cong f {cng = cong} {i} rab = rel-preserv ⦃ cong i ⦄ rab
+open ReindexingRelating ⦃ ... ⦄ public
 
-ap : {I : 𝒰 ˙} {F : (i : I) → 𝒱 ˙} {i' : (i : I) → I}
-  (f : ∀ {i} (x : F i) → F (i' i))
+ap' :
+  {I : 𝒰 ˙}  {j : (i : I) → I}
+  (F : (i : I) → 𝒱 ˙)
+  (f : ∀ {i} → F i → F (j i))
   {r : ∀ {i} → Rel 𝒲 (F i) (F i)}
-  {cng : Congruence {F = F} f r}
+  ⦃ rr : ReindexingRelating F f r ⦄
   {i : I}
   {a b : F i}
   (rab : r a b)
   → ----------------
   r (f a) (f b)
-ap = cong
+ap' F f ⦃ rr ⦄ {i} = rel-preserv
+  where instance _ = reindexed ⦃ rr ⦄ i
+
+record UniversalPostfix {X : 𝒰 ˙} {Y : 𝒱 ˙}
+    (f : (x : X) → Y)
+    (_⊑_ : Rel 𝒲 X Y)
+    : --------------------
+    𝒰 ⊔ 𝒲 ᵖ where
+  field
+    postfix : ∀ x → x ⊑ f x
+
+postfix :
+  (f : (x : X) → Y)
+  {_⊑_ : Rel 𝒲 X Y}
+  ⦃ post : UniversalPostfix f _⊑_ ⦄
+  (x : X)
+  → --------------------------------
+  x ⊑ f x
+postfix f ⦃ post ⦄ = UniversalPostfix.postfix post
+
+record UniversalPrefix {X : 𝒰 ˙} {Y : 𝒱 ˙}
+    (f : (x : X) → Y)
+    (_⊑_ : Rel 𝒲 Y X)
+    : --------------------
+    𝒰 ⊔ 𝒲 ᵖ where
+  field
+    prefix : ∀ x → f x ⊑ x
+
+prefix :
+  (f : (x : X) → Y)
+  {_⊑_ : Rel 𝒲 Y X}
+  ⦃ post : UniversalPrefix f _⊑_ ⦄
+  (x : X)
+  → --------------------------------
+  f x ⊑ x
+prefix f ⦃ pre ⦄ = UniversalPrefix.prefix pre
 
 instance
   Relating-all-== : {f : (x : X) → A x} → Relating f _==_ _==_
   rel-preserv ⦃ Relating-all-== {f = f} ⦄ (refl x) = refl (f x)
 
+  RRelating-all-== :
+    {I : 𝒰 ˙} {F : (i : I) → 𝒱 ˙} {j : (i : I) → I}
+    {f : ∀ {i} → F i → F (j i)}
+    → ----------------------------
+    ReindexingRelating F f _==_
+  reindexed ⦃ RRelating-all-== {f = f} ⦄ i = Relating-all-==
+  
   -- TODO (low priority): think of a different approach, this produces too many choice points
   -- Relating-∧-intro :
   --   {A : Set 𝑙₀}

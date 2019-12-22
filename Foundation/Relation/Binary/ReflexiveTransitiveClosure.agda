@@ -2,8 +2,8 @@
 module Foundation.Relation.Binary.ReflexiveTransitiveClosure where
 
 open import Foundation.PropUniverses
-open import Foundation.Relation.Binary using (Rel)
-open import Foundation.Relation.Binary.Instances
+open import Foundation.Relation.Binary.Definition using (Rel)
+open import Foundation.Relation.Binary.Property
   using (Reflexive; refl; Transitive; trans)
 
 data refl-trans-close {X : 𝒰 ˙} (R : Rel 𝒱 X X) : (a b : X) → 𝒰 ⊔ 𝒱 ᵖ where

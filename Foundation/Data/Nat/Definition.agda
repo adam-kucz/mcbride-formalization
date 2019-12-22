@@ -24,3 +24,7 @@ instance
   Natℕ : Nat ℕ
   Nat.Constraint Natℕ _ = ⊤
   Nat.fromℕ Natℕ n = n
+
+pred : (m : ℕ) → ℕ
+pred zero    = zero
+pred (suc m) = m

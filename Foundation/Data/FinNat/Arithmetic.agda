@@ -2,36 +2,30 @@
 module Foundation.Data.FinNat.Arithmetic where
 
 open import Foundation.Data.Nat as Nat hiding (Injective-suc)
-open import Foundation.Data.Nat.Arithmetic
-open import Foundation.Data.Nat.Order
-open import Foundation.Data.FinNat
-open import Foundation.Prop'.Identity using (_==_; refl; ap)
+open import Foundation.Data.FinNat.Definition
+open import Foundation.Data.FinNat.Property
 open import Foundation.Prop'.Function renaming (_$_ to _$'_) using ()
 open import Foundation.Function using (_∘_; _$_)
 open import Foundation.Logic
 
-open import Foundation.Operation.Binary.Instances using (Commutative; comm)
+open import Foundation.Relation.Binary.Property using (sym; refl)
+open import Foundation.Operation.Binary.Property
 open import Foundation.Structure.Semigroup using (Semigroup; assoc)
-open import Foundation.Structure.Monoid using (Monoid; e; right-unit; left-unit; swap)
+open import Foundation.Structure.Monoid using (Monoid; unit; e)
 open import Foundation.Structure.Hemiring
   using (Hemiring; *0; 0*; *[+]==*+*; [+]*==*+*)
 
 open import Foundation.Proof
+open import Foundation.Function.Proof
+open import Foundation.Function.Property using (inj)
 open import Foundation.Data.Nat.Proof
 open import Foundation.Prop'.Decidable using (decide; true; false)
-open import Foundation.Prop'.Identity.Instances renaming (refl to rflx)
-
-private
-  variable
-    n m : ℕ
+open import Foundation.Prop'.Identity renaming (Idₚ to Id) using (_==_)
 
 -- return n if n fits in Finℕ (m + 1) [i.e. when n ≤ m]
 -- otherwise return the largest element of Finℕ (m + 1)
 cap : (m n : ℕ) → Finℕ (suc m)
-cap m n = toFinℕ {suc m} (min m n) min<s
-
--- _≤ₛ_ : Finℕ n → Finℕ n → Prop
--- a ≤ₛ b = a == b ∨ a <ₛ b
+cap m n = toFinℕ {suc m} (min m n) (min<s m n)
 
 -- instance
 --   Relating-maxFinℕ : Relating (λ n → maxFinℕ {n}) _<_ _<ₛ_
@@ -57,19 +51,20 @@ cap m n = toFinℕ {suc m} (min m n) min<s
 --     qed
 
 cap== : ∀ {l m n} → m == n → cap l m == cap l n
-cap== {l} (refl m) = refl (cap l m)
+cap== {l} (Id.refl m) = Id.refl (cap l m)
 
-cap-n-zero==zero : ∀ {n} → cap n zero == Finℕ.zero
+cap-n-zero==zero : ∀ {n} → cap n zero == Finℕ.zero {n}
 cap-n-zero==zero {n} = 
   proof cap n zero
-    〉 _==_ 〉 toFinℕ (min n zero) min<s :by: refl (cap n zero)
-    〉 _==_ 〉 toFinℕ zero z<s
-      :by: {!!} -- congₚ {b' = z<s} toFinℕ min-zero (ap (_< suc n) min-zero)
-    〉 _==_ 〉 zero :by: refl zero
+    〉 _==_ 〉 toFinℕ (min n 0) (min<s n 0) :by: refl (cap n zero)
+    〉 _==_ 〉 toFinℕ zero z<s    :by: apₚ (_< suc n) toFinℕ min-zero {p' = z<s}
+    〉 _==_ 〉 zero               :by: refl zero
   qed
-  where min-zero : ∀ {n} → min n 0 == 0
-        min-zero {zero} = refl 0
-        min-zero {suc n} = refl 0
+  where min-zero : min n 0 == 0
+        min-zero = go n
+          where go : ∀ n → min n 0 == 0
+                go 0 = refl 0
+                go (suc n) = refl 0
 
 cap-suc== :
   ∀ {l m n} →
@@ -78,28 +73,28 @@ cap-suc== :
   cap l m == cap l n
 cap-suc== {l} {zero} {zero} eq = refl (cap l 0)
 cap-suc== {zero} {suc m} {suc n} eq = refl zero
-cap-suc== {suc l} {suc m} {suc n} eq = ap suc $' cap-suc== {l} {m} {n} {!!} -- (inj eq)
+cap-suc== {suc l} {suc m} {suc n} eq = ap Finℕ.suc $' cap-suc== {l} {m} {n} (inj eq)
   
-cap-toℕ : {a : Finℕ (suc n)} → cap n (toℕ a) == a
+cap-toℕ : ∀ {n} {a : Finℕ (suc n)} → cap n (toℕ a) == a
 cap-toℕ {zero} {zero} = refl 0
 cap-toℕ {suc n} {zero} = refl 0
-cap-toℕ {suc n} {suc a} = ap suc $' cap-toℕ {n} {a}
+cap-toℕ {suc n} {suc a} = ap Finℕ.suc $' cap-toℕ {n} {a}
 
-toℕ-cap-fit : (n<sm : n < suc m) → toℕ (cap m n) == n
+toℕ-cap-fit : ∀ {m n} (n<sm : n < suc m) → toℕ (cap m n) == n
 toℕ-cap-fit {zero} {zero} _ = refl 0
-toℕ-cap-fit {zero} {suc _} _ = refl 0
-toℕ-cap-fit {suc _} {zero} (s<s ())
-toℕ-cap-fit {suc n} {suc m} (s<s n<sm) = ap suc $' toℕ-cap-fit n<sm
+toℕ-cap-fit {suc _} {zero} _ = refl 0
+toℕ-cap-fit {zero} {suc _} (s<s ())
+toℕ-cap-fit {suc m} {suc n} (s<s n<sm) = ap suc $' toℕ-cap-fit n<sm
 
-toℕ-cap-overflow : (¬n<sm : ¬ n < suc m) → toℕ (cap m n) == m
-toℕ-cap-overflow {zero} ¬n<sm = ⊥-recursion _ (¬n<sm z<s)
-toℕ-cap-overflow {suc _} {zero} _ = refl 0
-toℕ-cap-overflow {suc n} {suc m} ¬n<sm =
+toℕ-cap-overflow : ∀ {m n} (¬n<sm : ¬ n < suc m) → toℕ (cap m n) == m
+toℕ-cap-overflow {m} {zero} ¬n<sm = ⊥-recursion _ (¬n<sm z<s)
+toℕ-cap-overflow {zero} {suc _} _ = refl 0
+toℕ-cap-overflow {suc m} {suc n} ¬n<sm =
   ap suc $' toℕ-cap-overflow λ n<sm → ¬n<sm (s<s n<sm)
 
-cap-thm :
+cap-thm : ∀ {m n}
   (f : ℕ → ℕ)
-  (x<fx : ∀ {x} → x ≤ f x)
+  (x≤fx : ∀ x → x ≤ f x)
   → --------------------------------
   cap m (f (toℕ (cap m n))) == cap m (f n)
 cap-thm {zero} {zero} _ _ = refl 0
@@ -111,73 +106,67 @@ cap-thm {suc m} {suc n} f x≤fx | false ¬n<sm =
   proof cap (suc m) ∘ f ∘ suc $ toℕ $ cap m n
     〉 _==_ 〉 cap (suc m) ∘ f ∘ suc $ m
       :by: ap (cap (suc m) ∘ f ∘ suc) $' toℕ-cap-overflow ¬n<sm
-    〉 _==_ 〉 toFinℕ (min (suc m) (f $ suc m)) min<s
+    〉 _==_ 〉 toFinℕ (min (suc m) (f $ suc m)) (min<s _ _)
       :by: refl _
-    〉 _==_ 〉 toFinℕ (min (suc m) (f $ suc n)) min<s
-      :by: {!!} -- congₚ
---             {b' = min<s}
---             toFinℕ
---             min-sm-fsn==min-sm-fsm
---             (_< 2 + m ` min-sm-fsn==min-sm-fsm)
+    〉 _==_ 〉 toFinℕ (min (suc m) (f $ suc n)) (min<s _ _)
+      :by: apₚ (_< 2 + m) toFinℕ min-sm-fsn==min-sm-fsm
     〉 _==_ 〉 cap (suc m) $ f $ suc $ n  :by: refl (cap (suc m) (f $ suc n))
   qed
   where sm<fsn : suc m < f (suc n)
         min-sm-fsn==min-sm-fsm : min (suc m) (f $ suc m) == min (suc m) (f $ suc n)
         min-sm-fsn==min-sm-fsm =
           proof min (suc m) (f $ suc m)
-            〉 _==_ 〉 suc m                   :by: ≤→min== x≤fx
+            〉 _==_ 〉 suc m                   :by: ≤→min== $' x≤fx (suc m)
             〉 _==_ 〉 min (suc m) (f $ suc n) :by: sym $' ≤→min== (∨right sm<fsn)
           qed
-        sm<fsn with ⟵ ≤↔¬< ¬n<sm
-        sm<fsn | (∨left (refl _)) =
+        sm<fsn with ⟵ -<s↔¬->- ¬n<sm
+        sm<fsn | s<s m<n =
           proof suc m
-            〉 _<_ 〉 2 + m     :by: self<s
-            〉 _≤_ 〉 f (2 + m) :by: x≤fx
-          qed
-        sm<fsn | (∨right sm<n) =
-          proof suc m
-            〉 _<_ 〉 n         :by: sm<n
-            〉 _<_ 〉 suc n     :by: self<s
-            〉 _≤_ 〉 f (suc n) :by: x≤fx
+            〉 _<_ 〉 suc n     :by: ap suc m<n
+            〉 _≤_ 〉 f (suc n) :by: x≤fx (suc n)
           qed
 
 infixl 20 _+ₛ_
-_+ₛ_ : (x : Finℕ n) (y : Finℕ n) → Finℕ n
+_+ₛ_ : ∀ {n} (x : Finℕ n) (y : Finℕ n) → Finℕ n
 _+ₛ_ {suc n} x y = cap n $ toℕ x + toℕ y
 
 infixl 21 _*ₛ_
-_*ₛ_ : (x : Finℕ n) (y : Finℕ n) → Finℕ n
+_*ₛ_ : ∀ {n} (x : Finℕ n) (y : Finℕ n) → Finℕ n
 _*ₛ_ {suc n} x y = cap n $ toℕ x * toℕ y
 
 instance
-  CommutativeFinℕ+ : Commutative (_+ₛ_ {n})
+  CommutativeFinℕ+ : ∀ {n} → Commutative (_+ₛ_ {n})
   comm ⦃ CommutativeFinℕ+ {suc n} ⦄ a b = ap (cap n) $' comm (toℕ a) (toℕ b)
 
-  SemigroupFinℕ+ : Semigroup (_+ₛ_ {n})
+  SemigroupFinℕ+ : ∀ {n} → Semigroup (_+ₛ_ {n})
   assoc ⦃ SemigroupFinℕ+ {suc n} ⦄ a b c = 
     proof a +ₛ (b +ₛ c)
       〉 _==_ 〉 cap n $ toℕ a + toℕ (cap n $ toℕ b + toℕ c) :by: refl (a +ₛ (b +ₛ c))
       〉 _==_ 〉 cap n $ toℕ a + (toℕ b + toℕ c)
-        :by: cap-thm (toℕ a +_) {!!} -- postfix
+        :by: cap-thm (toℕ a +_) $'
+             postfix (toℕ a +_)
       〉 _==_ 〉 cap n $ (toℕ a + toℕ b) + toℕ c
         :by: ap (cap n) $' assoc (toℕ a) (toℕ b) (toℕ c)
       〉 _==_ 〉 cap n $ toℕ (cap n $ toℕ a + toℕ b) + toℕ c
-        :by: sym $' cap-thm (_+ toℕ c) {!!} -- postfix 
+        :by: sym $'
+               cap-thm (_+ toℕ c) $'
+               postfix (_+ toℕ c)
       〉 _==_ 〉 a +ₛ b +ₛ c :by: refl (a +ₛ b +ₛ c)
     qed
   
-  MonoidFinℕ+ : Monoid (_+ₛ_ {suc n})
-  e ⦃ MonoidFinℕ+ ⦄ = 0
-  right-unit ⦃ MonoidFinℕ+ {n} ⦄ a = proof
-    cap n (toℕ a + 0)
-      〉 _==_ 〉 cap n (toℕ a) :by: ap (cap n) $' right-unit (toℕ a)
-      〉 _==_ 〉 a             :by: cap-toℕ
-  left-unit ⦃ MonoidFinℕ+ ⦄ a = cap-toℕ
+  0-+ₛ : ∀ {n} → 0 IsLeftUnitOf (_+ₛ_ {suc n})
+  left-unit ⦃ 0-+ₛ ⦄ a = cap-toℕ
 
-  CommutativeFinℕ* : Commutative (_*ₛ_ {n})
+  +ₛ-0 : ∀ {n} → 0 IsRightUnitOf (_+ₛ_ {suc n})
+  +ₛ-0 = right-unit-of-commutative-left-unit 0 _+ₛ_
+  
+  MonoidFinℕ+ : ∀ {n} → Monoid (_+ₛ_ {suc n})
+  e ⦃ MonoidFinℕ+ ⦄ = 0
+
+  CommutativeFinℕ* : ∀ {n} → Commutative (_*ₛ_ {n})
   comm ⦃ CommutativeFinℕ* {suc n} ⦄ a b = ap (cap n) $' comm (toℕ a) (toℕ b)
 
-  SemigroupFinℕ* : Semigroup (_*ₛ_ {n})
+  SemigroupFinℕ* : ∀ {n} → Semigroup (_*ₛ_ {n})
   assoc ⦃ SemigroupFinℕ* {suc n} ⦄ zero b c =
     proof cap n zero
       〉 _==_ 〉 cap n (toℕ (Finℕ.zero {n}) * toℕ c) :by: refl (cap n zero)
@@ -199,31 +188,42 @@ instance
       〉 _==_ 〉 cap n $ suc (toℕ a) * toℕ (cap n $ toℕ b * suc (toℕ c))
         :by: refl (suc a *ₛ (b *ₛ suc c))
       〉 _==_ 〉 cap n $ suc (toℕ a) * (toℕ b * suc (toℕ c))
-        :by: cap-thm (suc (toℕ a) *_) {!!} -- (postfix ⦃ Postfix*- {toℕ a} ⦄)
+        :by: cap-thm (suc (toℕ a) *_) $'
+             postfix (suc (toℕ a) *_) ⦃ Postfix-*-left-≤ {toℕ a} ⦄
       〉 _==_ 〉 cap n $ (suc (toℕ a) * toℕ b) * suc (toℕ c)
         :by: ap (cap n) $' assoc (suc $ toℕ a) (toℕ b) (suc $ toℕ c)
       〉 _==_ 〉 cap n $ toℕ (cap n $ suc (toℕ a) * toℕ b) * suc (toℕ c)
-        :by: sym $' cap-thm (_* suc (toℕ c)) {!!} -- postfix
+        :by: sym $'
+               cap-thm (_* suc (toℕ c)) $'
+               postfix (_* suc (toℕ c))
       〉 _==_ 〉 suc a *ₛ b *ₛ suc c
         :by: refl (suc a *ₛ b *ₛ suc c)
     qed
   
-  MonoidFinℕ* : Monoid (_*ₛ_ {suc n})
-  e ⦃ MonoidFinℕ* {zero} ⦄ = 0
-  e ⦃ MonoidFinℕ* {suc n} ⦄ = 1
-  right-unit ⦃ MonoidFinℕ* {zero} ⦄ zero = refl 0
-  right-unit ⦃ MonoidFinℕ* {suc n} ⦄ a =
-    proof cap (suc n) (toℕ a * 1)
-      〉 _==_ 〉 cap (suc n) (toℕ a) :by: ap (cap (suc n)) $' right-unit (toℕ a)
+  *ₛ-0 : 0 IsRightUnitOf (_*ₛ_ {1})
+  right-unit ⦃ *ₛ-0 ⦄ Finℕ.zero = refl 0
+
+  *ₛ-1 : ∀ {n : ℕ} → (suc (zero {n})) IsRightUnitOf (_*ₛ_ {suc (suc n)})
+  right-unit ⦃ *ₛ-1 {n} ⦄ a = 
+    proof a *ₛ (suc (zero {n}))
+      〉 _==_ 〉 cap (suc n) (toℕ a * 1) :by: refl (a *ₛ (suc (zero {n})))
+      〉 _==_ 〉 cap (suc n) (toℕ a) :by: ap (cap (suc n)) $' right-unit {_∙_ = _*_} (toℕ a)
       〉 _==_ 〉 a                   :by: cap-toℕ
     qed
-  left-unit ⦃ MonoidFinℕ* ⦄ a =
-    proof e *ₛ a
-      〉 _==_ 〉 a *ₛ e :by: comm e a
-      〉 _==_ 〉 a :by: right-unit a
-    qed
 
-  HemiringFinℕ+* : Hemiring (_+ₛ_ {suc n}) _*ₛ_
+  0-*ₛ : 0 IsLeftUnitOf (_*ₛ_ {1})
+  0-*ₛ = left-unit-of-commutative-right-unit 0 _*ₛ_
+
+  1-*ₛ : ∀ {n} → 1 IsLeftUnitOf (_*ₛ_ {suc (suc n)})
+  1-*ₛ {n} = left-unit-of-commutative-right-unit 1 _*ₛ_
+  
+  MonoidFinℕ* : ∀ {n} → Monoid (_*ₛ_ {suc n})
+  e ⦃ MonoidFinℕ* {0} ⦄ = 0
+  e ⦃ MonoidFinℕ* {suc n} ⦄ = 1
+  unit ⦃ MonoidFinℕ* {0} ⦄ = DefaultUnit
+  unit ⦃ MonoidFinℕ* {suc n} ⦄ = DefaultUnit
+
+  HemiringFinℕ+* : ∀ {n} → Hemiring (_+ₛ_ {suc n}) _*ₛ_
   Hemiring.monoid+ HemiringFinℕ+* = MonoidFinℕ+
   0* ⦃ HemiringFinℕ+* ⦄ _ = cap-n-zero==zero
   *0 ⦃ HemiringFinℕ+* ⦄ a =
@@ -235,20 +235,26 @@ instance
     (proof toℕ (cap n zero) + toℕ (cap n zero)
       〉 _==_ 〉 toℕ (cap n zero)
         :by: ap (λ – → toℕ – + toℕ (cap n zero)) $' cap-n-zero==zero {n}
-      〉 _==_ 〉 zero :by: ap toℕ $' cap-n-zero==zero {n}
+      〉 _==_ 〉 zero
+        :by: ap toℕ $' cap-n-zero==zero {n}
     qed)
   *[+]==*+* ⦃ HemiringFinℕ+* {n} ⦄ (suc a) b c =
     proof suc a *ₛ (b +ₛ c)
       〉 _==_ 〉 cap n (suc (toℕ a) * toℕ (cap n $ toℕ b + toℕ c))
         :by: refl (suc a *ₛ (b +ₛ c))
       〉 _==_ 〉 cap n (suc (toℕ a) * (toℕ b + toℕ c))
-        :by: cap-thm (suc (toℕ a) *_) {!!} -- (postfix ⦃ Postfix*- {b = toℕ a} ⦄)
+        :by: cap-thm (suc (toℕ a) *_) $'
+             postfix (suc (toℕ a) *_) ⦃ Postfix-*-left-≤ {toℕ a} ⦄
       〉 _==_ 〉 cap n (suc (toℕ a) * toℕ b + suc (toℕ a) * toℕ c)
         :by: ap (cap n) $' *[+]==*+* (suc $ toℕ a) (toℕ b) (toℕ c)
       〉 _==_ 〉 cap n (toℕ (cap n $ suc (toℕ a) * toℕ b) + suc (toℕ a) * toℕ c)
-        :by: sym $' cap-thm (_+ suc (toℕ a) * toℕ c) {!!} -- postfix
+        :by: sym $'
+               cap-thm (_+ suc (toℕ a) * toℕ c) $'
+               postfix (_+ suc (toℕ a) * toℕ c)
       〉 _==_ 〉 cap n (toℕ (suc a *ₛ b) + toℕ (cap n $ suc (toℕ a) * toℕ c))
-        :by: sym $' cap-thm (toℕ (suc a *ₛ b) +_) {!!} -- postfix
+        :by: sym $'
+               cap-thm (toℕ (suc a *ₛ b) +_) $'
+               postfix (toℕ (suc a *ₛ b) +_)
       〉 _==_ 〉 suc a *ₛ b +ₛ suc a *ₛ c :by: refl (suc a *ₛ b +ₛ suc a *ₛ c)
     qed
   [+]*==*+* ⦃ HemiringFinℕ+* ⦄ a b c =

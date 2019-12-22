@@ -45,6 +45,7 @@ infix 11 _,_ -- Foundation.Prop'.Sum
 infix 11 _,_ -- Foundation.Prop'.Sum
 infix 11 _,_ -- Foundation.Prop'.Sum
 infix 11 _,_ -- Foundation.Logic
+infix 11 _,_ -- Foundation.Operation.Property
 
 -- Proof (10 - 5)
 

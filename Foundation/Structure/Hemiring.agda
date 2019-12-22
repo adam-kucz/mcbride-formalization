@@ -6,7 +6,7 @@ open import Foundation.Prop'.Identity using (_==_)
 open import Foundation.Structure.Semigroup using (Semigroup)
 open import Foundation.Structure.Monoid using (Monoid)
 open import Foundation.Operation.Binary renaming (ClosedOp to Op) using ()
-open import Foundation.Operation.Binary.Instances using (Commutative)
+open import Foundation.Operation.Binary.Property using (Commutative)
 
 open Monoid renaming (e to zero) using ()
 

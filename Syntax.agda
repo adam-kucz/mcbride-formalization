@@ -1,40 +1,18 @@
-{-# OPTIONS --prop  #-}
+{-# OPTIONS --exact-split --safe --prop  #-}
 module Syntax where
 
-open import Foundations.Univ
-  using (Level; lsuc; _⊔_)
-
-private
-  variable
-    𝑙 𝑚 𝑛 𝑝 : Level
- 
+open import Foundation.Universes
+open import Foundation.Structure.Hemiring
 
 -- Definition 1 (rig)
 
-open import Foundations.Equality.Core
-  using (_==_; refl)
+open import Foundation.Prop'.Identity using (_==_; refl)
 
-record Rig (𝑅 : Set 𝑙) : Set 𝑙  where
-  infixl 20 _+_
-  infixl 21 _*_
-  field
-    zero : 𝑅
-    _+_ : (π : 𝑅) (ρ : 𝑅) → 𝑅
-    _*_ : (π : 𝑅) (ρ : 𝑅) → 𝑅
-    0+ : ∀ {ρ} → zero + ρ == ρ
-    +assoc : ∀ {ρ π φ} → ρ + (π + φ) == ρ + π + φ
-    +comm : ∀ {ρ π} → ρ + π == π + ρ
-    *assoc : ∀ {ρ π φ} → ρ * (π * φ) == ρ * π * φ
-    0* : ∀ {ρ} → zero * ρ == zero
-    *0 : ∀ {ρ} → ρ * zero == zero
-    *[+]==*+* : ∀ {ρ π φ} → φ * (ρ + π) == φ * ρ + φ * π
-    [+]*==*+* : ∀ {ρ π φ} → (ρ + π) * φ  == ρ * φ + π * φ
-
-private
-  variable
-    R : Set 𝑙
+Rig : {X : 𝒰 ˙} (_+_ _*_ : (x y : X) → X) → 𝒰 ˙
+Rig = Hemiring
 
 open Rig ⦃ ... ⦄ using (_+_; _*_)
+
 r0 : ⦃ r : Rig R ⦄ → R
 r0 ⦃ r ⦄ = Rig.zero r
 
@@ -349,6 +327,7 @@ _⊢_∋_ :
   (t : Term)
   → --------------------
   Prop
+_⊢_∋_ = ?
 
 _⊢_∈_ :
   ⦃ _ : Rig R ⦄
@@ -358,6 +337,7 @@ _⊢_∈_ :
   (S : Term)
   → --------------------
   Prop
+_⊢_∈_ = ?
 
 -- Definition 8 (judgment)
 
@@ -408,6 +388,7 @@ _≼_ :
   (S T : Term)
   → --------------------------------
   Prop
+_≼_ = ?
 
 data _⊢_,_∋_ {𝑙 = 𝑙} {R = R} {𝑆 = 𝑆} where
   pre : {ρ : R} {Δ : Ctx R 𝑆} {T R t : Term}

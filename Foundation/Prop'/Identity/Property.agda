@@ -1,9 +1,9 @@
 {-# OPTIONS --exact-split --safe --prop #-}
-module Foundation.Prop'.Identity.Instances where
+module Foundation.Prop'.Identity.Property where
 
 open import Foundation.PropUniverses
-open import Foundation.Relation.Binary.Instances public
-open import Foundation.Prop'.Identity.Definition hiding (refl) public
+open import Foundation.Relation.Binary.Property
+open import Foundation.Prop'.Identity.Definition hiding (refl)
 
 instance
   Transitive== : Transitive {𝒱 = 𝒱} {X = X} _==_
