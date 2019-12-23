@@ -16,7 +16,7 @@ record Nat (X : 𝒰 ˙) : 𝒰 ⁺ ˙ where
     Constraint : (n : ℕ) → 𝒰 ᵖ
     fromℕ : (n : ℕ) ⦃ p : Constraint n ⦄ → X
 
-open Nat {{...}} public using (fromℕ)
+open Nat ⦃ ... ⦄ public using (fromℕ)
 
 {-# BUILTIN FROMNAT fromℕ #-}
 

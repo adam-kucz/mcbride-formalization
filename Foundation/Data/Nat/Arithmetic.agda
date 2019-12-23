@@ -9,9 +9,8 @@ open import Foundation.Prop'.Function using (_$_)
 open import Foundation.Relation.Binary.Property
 open import Foundation.Operation.Binary.Property
 
-open import Foundation.Structure.Semigroup using (Semigroup; assoc)
-open import Foundation.Structure.Monoid using (Monoid; e; unit)
-open import Foundation.Structure.Hemiring
+open import Foundation.Structure.Monoid
+open import Foundation.Structure.Hemiring hiding (_+_; _*_; zero)
 
 open import Foundation.Prop'.Identity hiding (refl)
 open import Foundation.Prop'.Identity.Property
@@ -22,9 +21,9 @@ open import Foundation.Proof
 +-suc (suc a) b = ap suc $ +-suc a b
 
 instance
-  Semigroupℕ+ : Semigroup _+_
-  assoc ⦃ Semigroupℕ+ ⦄ zero b c = refl (b + c)
-  assoc ⦃ Semigroupℕ+ ⦄ (suc a) b c = ap suc $ assoc a b c
+  assoc+ : Associative _+_
+  assoc ⦃ assoc+ ⦄ zero b c = refl (b + c)
+  assoc ⦃ assoc+ ⦄ (suc a) b c = ap suc $ assoc a b c
 
   0-+ : 0 IsLeftUnitOf _+_
   left-unit ⦃ 0-+ ⦄ = refl
@@ -32,9 +31,6 @@ instance
   +-0 : 0 IsRightUnitOf _+_
   right-unit ⦃ +-0 ⦄ 0 = refl 0
   right-unit ⦃ +-0 ⦄ (suc a) = ap suc $ right-unit a
-
-  Monoidℕ+ : Monoid _+_
-  e ⦃ Monoidℕ+ ⦄ = 0
 
   Commutative+ : Commutative _+_
   comm ⦃ Commutative+ ⦄ zero y = sym $ right-unit y
@@ -81,9 +77,9 @@ instance
       〉 _==_ 〉 b * suc a :by: sym $ *-suc b a
     qed
 
-  Semigroupℕ* : Semigroup _*_
-  assoc ⦃ Semigroupℕ* ⦄ zero _ _ = refl zero
-  assoc ⦃ Semigroupℕ* ⦄ (suc a) b c = 
+  assoc* : Associative _*_
+  assoc ⦃ assoc* ⦄ zero _ _ = refl zero
+  assoc ⦃ assoc* ⦄ (suc a) b c = 
     proof
       b * c + a * (b * c)
         〉 _==_ 〉 b * c + (a * b) * c :by: ap (b * c +_) $ assoc a b c
@@ -99,11 +95,7 @@ instance
   *-1 : 1 IsRightUnitOf _*_
   *-1 = right-unit-of-commutative-left-unit 1 _*_
   
-  Monoidℕ* : Monoid _*_
-  e ⦃ Monoidℕ* ⦄ = 1
-
-  Hemiringℕ+* : Hemiring _+_ _*_
-  monoid+ ⦃ Hemiringℕ+* ⦄ = Monoidℕ+
+  Hemiringℕ+* : FormHemiring _+_ _*_ 0
   0* ⦃ Hemiringℕ+* ⦄ _ = refl 0
   *0 ⦃ Hemiringℕ+* ⦄ = *-0
   *[+]==*+* ⦃ Hemiringℕ+* ⦄ = *-+-distrib

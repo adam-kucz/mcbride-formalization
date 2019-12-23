@@ -127,7 +127,7 @@ instance
 ⟵ (-<s↔¬->- {suc a} {zero}) q = ⊥-recursion (suc a < 1) (q z<s)
 ⟵ (-<s↔¬->- {suc a} {suc b}) q = ap suc $ ⟵ -<s↔¬->- $ λ a>b → q (s<s a>b )
 
-infix 15 _<ₜ_
+infix 35 _<ₜ_
 _<ₜ_ : (n m : ℕ) → 𝒰₀ ᵖ
 _ <ₜ 0 = ⊥
 0 <ₜ suc _ = ⊤

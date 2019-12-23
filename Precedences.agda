@@ -6,6 +6,7 @@ infixl 150 _∘_ -- Foundation.Function.Equivalence
 
 infixl 140 _*_ -- Foundation.Data.Nat
 infixl 130 _+_ -- Foundation.Data.Nat
+infixl 130 _∙_ -- Foundation.Structure.Semigroup
 
 infixr 100 _$_ -- Foundation.Function.Equivalence
 

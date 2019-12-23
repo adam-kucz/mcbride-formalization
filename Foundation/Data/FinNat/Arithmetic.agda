@@ -10,10 +10,9 @@ open import Foundation.Logic
 
 open import Foundation.Relation.Binary.Property using (sym; refl)
 open import Foundation.Operation.Binary.Property
-open import Foundation.Structure.Semigroup using (Semigroup; assoc)
-open import Foundation.Structure.Monoid using (Monoid; unit; e)
+open import Foundation.Structure.Monoid
 open import Foundation.Structure.Hemiring
-  using (Hemiring; *0; 0*; *[+]==*+*; [+]*==*+*)
+  using (FormHemiring; *0; 0*; *[+]==*+*; [+]*==*+*)
 
 open import Foundation.Proof
 open import Foundation.Function.Proof
@@ -138,8 +137,8 @@ instance
   CommutativeFinℕ+ : ∀ {n} → Commutative (_+ₛ_ {n})
   comm ⦃ CommutativeFinℕ+ {suc n} ⦄ a b = ap (cap n) $' comm (toℕ a) (toℕ b)
 
-  SemigroupFinℕ+ : ∀ {n} → Semigroup (_+ₛ_ {n})
-  assoc ⦃ SemigroupFinℕ+ {suc n} ⦄ a b c = 
+  assoc+ₛ : ∀ {n} → Associative (_+ₛ_ {n})
+  assoc ⦃ assoc+ₛ {suc n} ⦄ a b c = 
     proof a +ₛ (b +ₛ c)
       〉 _==_ 〉 cap n $ toℕ a + toℕ (cap n $ toℕ b + toℕ c) :by: refl (a +ₛ (b +ₛ c))
       〉 _==_ 〉 cap n $ toℕ a + (toℕ b + toℕ c)
@@ -160,21 +159,18 @@ instance
   +ₛ-0 : ∀ {n} → 0 IsRightUnitOf (_+ₛ_ {suc n})
   +ₛ-0 = right-unit-of-commutative-left-unit 0 _+ₛ_
   
-  MonoidFinℕ+ : ∀ {n} → Monoid (_+ₛ_ {suc n})
-  e ⦃ MonoidFinℕ+ ⦄ = 0
-
   CommutativeFinℕ* : ∀ {n} → Commutative (_*ₛ_ {n})
   comm ⦃ CommutativeFinℕ* {suc n} ⦄ a b = ap (cap n) $' comm (toℕ a) (toℕ b)
 
-  SemigroupFinℕ* : ∀ {n} → Semigroup (_*ₛ_ {n})
-  assoc ⦃ SemigroupFinℕ* {suc n} ⦄ zero b c =
+  assoc*ₛ : ∀ {n} → Associative (_*ₛ_ {n})
+  assoc ⦃ assoc*ₛ {suc n} ⦄ zero b c =
     proof cap n zero
       〉 _==_ 〉 cap n (toℕ (Finℕ.zero {n}) * toℕ c) :by: refl (cap n zero)
       〉 _==_ 〉 cap n (toℕ (cap n zero) * toℕ c)
         :by: ap (λ – → cap n (toℕ – * toℕ c)) $' sym $' cap-n-zero==zero {n}
     qed
     where 
-  assoc ⦃ SemigroupFinℕ* {suc n} ⦄ (suc a) b zero = ap (cap n) $'
+  assoc ⦃ assoc*ₛ {suc n} ⦄ (suc a) b zero = ap (cap n) $'
     (proof toℕ (suc a) * toℕ (cap n (toℕ b * 0))
       〉 _==_ 〉 toℕ (suc a) * toℕ (cap n 0)
         :by: ap (λ – → toℕ (suc a) * toℕ (cap n –)) $' *0 (toℕ b)
@@ -183,7 +179,7 @@ instance
       〉 _==_ 〉 0                    :by: *0 (toℕ $ suc a)
       〉 _==_ 〉 toℕ (suc a *ₛ b) * 0 :by: sym $' *0 (toℕ $ suc a *ₛ b)
     qed)
-  assoc ⦃ SemigroupFinℕ* {suc n} ⦄ (suc a) b (suc c) =
+  assoc ⦃ assoc*ₛ {suc n} ⦄ (suc a) b (suc c) =
     proof suc a *ₛ (b *ₛ suc c)
       〉 _==_ 〉 cap n $ suc (toℕ a) * toℕ (cap n $ toℕ b * suc (toℕ c))
         :by: refl (suc a *ₛ (b *ₛ suc c))
@@ -216,15 +212,18 @@ instance
 
   1-*ₛ : ∀ {n} → 1 IsLeftUnitOf (_*ₛ_ {suc (suc n)})
   1-*ₛ {n} = left-unit-of-commutative-right-unit 1 _*ₛ_
-  
-  MonoidFinℕ* : ∀ {n} → Monoid (_*ₛ_ {suc n})
-  e ⦃ MonoidFinℕ* {0} ⦄ = 0
-  e ⦃ MonoidFinℕ* {suc n} ⦄ = 1
-  unit ⦃ MonoidFinℕ* {0} ⦄ = DefaultUnit
-  unit ⦃ MonoidFinℕ* {suc n} ⦄ = DefaultUnit
 
-  HemiringFinℕ+* : ∀ {n} → Hemiring (_+ₛ_ {suc n}) _*ₛ_
-  Hemiring.monoid+ HemiringFinℕ+* = MonoidFinℕ+
+private
+  *unit : (n : ℕ) → Finℕ (suc n)
+  *unit 0 = 0
+  *unit (suc _) = 1
+    
+instance
+  MonoidFinℕ* : ∀ {n} → FormMonoid (_*ₛ_ {suc n}) (*unit n)
+  FormMonoid.unit (MonoidFinℕ* {0}) = DefaultUnit
+  FormMonoid.unit (MonoidFinℕ* {suc n}) = DefaultUnit
+
+  HemiringFinℕ+* : ∀ {n} → FormHemiring (_+ₛ_ {suc n}) _*ₛ_ 0
   0* ⦃ HemiringFinℕ+* ⦄ _ = cap-n-zero==zero
   *0 ⦃ HemiringFinℕ+* ⦄ a =
     proof a *ₛ 0

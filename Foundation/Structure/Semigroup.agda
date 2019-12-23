@@ -2,9 +2,15 @@
 module Foundation.Structure.Semigroup where
 
 open import Foundation.PropUniverses
+open import Foundation.Operation.Binary using (ClosedOp; Associative)
 
-open import Foundation.Operation.Binary as BinOp using (ClosedOp; Associative)
-open BinOp using (assoc) public
+FormSemigroup : {X : 𝒰 ˙} (_∙_ : ClosedOp X) → 𝒰 ᵖ
+FormSemigroup = Associative
 
-Semigroup : {X : 𝒰 ˙} (_∙_ : ClosedOp X) → 𝒰 ᵖ
-Semigroup = Associative
+record Semigroup (X : 𝒰 ˙) : 𝒰 ˙ where
+  infixl 130 _∙_
+  field
+    _∙_ : ClosedOp X
+    ⦃ def ⦄ : FormSemigroup _∙_
+
+open Semigroup ⦃ ... ⦄ public

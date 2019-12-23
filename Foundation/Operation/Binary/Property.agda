@@ -50,7 +50,6 @@ open import Foundation.Logic using (⊥)
 
 record _IsUnitOf_ {X : 𝒰 ˙} (e : X) (op : Op X X X) : 𝒰 ᵖ where
   field
-    implicit : ⊥ → ⊥
     ⦃ unit-left ⦄ : e IsLeftUnitOf op
     ⦃ unit-right ⦄ : e IsRightUnitOf op
 
@@ -64,7 +63,7 @@ instance
     ⦃ _ : e IsRightUnitOf op ⦄
     → -------------------------
     e IsUnitOf op
-  implicit ⦃ DefaultUnit ⦄ ()
+  DefaultUnit = record {}
 
 open import Foundation.Proof
 
@@ -91,3 +90,44 @@ left-unit ⦃ left-unit-of-commutative-right-unit e _∙_ ⦄ a =
     〉 _==_ 〉 a ∙ e :by: comm e a
     〉 _==_ 〉 a     :by: right-unit a
   qed
+
+record LeftInverse {X : 𝒰 ˙}
+    (_⁻¹ : (x : X) → X) (_∙_ : ClosedOp X) {e : X}
+    ⦃ _ : e IsUnitOf _∙_ ⦄
+    : --------------------------------------------
+    𝒰 ᵖ where
+  field
+    left-inverse : ∀ x → (x ⁻¹) ∙ x == e
+
+open LeftInverse ⦃ ... ⦄ public
+
+record RightInverse {X : 𝒰 ˙}
+    (_⁻¹ : (x : X) → X) (_∙_ : ClosedOp X) {e : X}
+    ⦃ _ : e IsUnitOf _∙_ ⦄
+    : --------------------------------------------
+    𝒰 ᵖ where
+  field
+    right-inverse : ∀ x → x ∙ (x ⁻¹) == e
+
+open RightInverse ⦃ ... ⦄ public
+
+record Inverse {X : 𝒰 ˙}
+    (_⁻¹ : (x : X) → X) (_∙_ : ClosedOp X) {e : X}
+    ⦃ unit : e IsUnitOf _∙_ ⦄
+    : ------------------------------------------
+    𝒰 ᵖ where
+  field
+    ⦃ inverse-left ⦄ : LeftInverse _⁻¹ _∙_ ⦃ unit ⦄
+    ⦃ inverse-right ⦄ : RightInverse _⁻¹ _∙_ ⦃ unit ⦄
+
+open Inverse ⦃ ... ⦄ public
+
+instance
+  DefaultInverse :
+    {_⁻¹ : (x : X) → X} {op : ClosedOp X} {e : X}
+    ⦃ unit : e IsUnitOf op ⦄
+    ⦃ _ : LeftInverse _⁻¹ op ⦃ unit ⦄ ⦄
+    ⦃ _ : RightInverse _⁻¹ op ⦃ unit ⦄ ⦄
+    → -----------------------------
+    Inverse _⁻¹ op
+  DefaultInverse = record {}

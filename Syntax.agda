@@ -1,44 +1,20 @@
 {-# OPTIONS --exact-split --safe --prop  #-}
 module Syntax where
 
-open import Foundation.Universes
+open import Foundation.PropUniverses
 open import Foundation.Structure.Hemiring
+open import Foundation.Data.Nat.Definition hiding (zero)
+open import Foundation.Data.FinNat.Definition hiding (zero)
 
 -- Definition 1 (rig)
 
 open import Foundation.Prop'.Identity using (_==_; refl)
 
-Rig : {X : 𝒰 ˙} (_+_ _*_ : (x y : X) → X) → 𝒰 ˙
+Rig : (X : 𝒰 ˙) → 𝒰 ˙
 Rig = Hemiring
 
-open Rig ⦃ ... ⦄ using (_+_; _*_)
-
-r0 : ⦃ r : Rig R ⦄ → R
-r0 ⦃ r ⦄ = Rig.zero r
-
-open import Foundations.Functions.Core using (_$_)
-open import Foundations.Data.Nat using (ℕ)
-open import Foundations.Data.FinNat
-open import Foundations.Algebra.GroupLike hiding (zero; _+_)
-open import Foundations.Algebra.RingLike
-
-fin-rig : ∀ {n} → Rig (Finℕ $ ℕ.suc n)
-fin-rig = record
-            { zero = zero
-            ; _+_ = _+ₛ_
-            ; _*_ = _*ₛ_
-            ; 0+ = Monoid.zero+ MonoidFinℕ+
-            ; +assoc = λ {ρ π ϕ} → +assoc {a = ρ} {π} {ϕ}
-            ; +comm = λ {ρ π} → +comm {a = ρ} {π}
-            ; *assoc = λ {ρ π ϕ} → +assoc {a = ρ} {π} {ϕ}
-            ; 0* = λ {ρ} → 0* {a = ρ}
-            ; *0 = λ {ρ} → *0 {a = ρ}
-            ; *[+]==*+* = λ {ρ π ϕ} → *[+]==*+* {a = ϕ} {ρ} {π}
-            ; [+]*==*+* = λ {ρ π ϕ} → [+]*==*+* {a = ρ} {π} {ϕ}
-            }
-
 -- Definition 2 (none-one-tons)
-None-one-tons : Set
+None-one-tons : 𝒰₀ ˙
 None-one-tons = Finℕ 3
 
 q0 q1 qω : None-one-tons
@@ -48,37 +24,33 @@ qω = 2
 
 -- Definition 3 (sort ordering)
 
-record WellFoundedSorts (S : Set 𝑙) : Set (𝑙 ⊔ lsuc (𝑚 ⊔ 𝑛)) where
+record WellFoundedSorts (𝒰 𝒱 : Universe) (S : 𝒲 ˙) : (𝒰 ⊔ 𝒱) ⁺ ⊔ 𝒲 ˙ where
   field
-    _≻_ : (i : S) → (j : S) → Set 𝑚
+    _≻_ : (i : S) → (j : S) → 𝒰 ˙
     
     trans : ∀ {i j k}
       (k≻j : k ≻ j) → (j≻i : j ≻ i)
       → --------------------------
       k ≻ i
     
-    wf : ∀ {j} {P : S → Set 𝑛} →
+    wf : ∀ {j} {P : S → 𝒱 ˙} →
       (all≺ : ∀ i { j≻i : j ≻ i } → P i)
       → ------------------------
       ∀ k → P k
 
 open WellFoundedSorts ⦃ ... ⦄ public
 
-wfs : (𝑚 𝑛 : Level) → Set 𝑙 → Set (𝑙 ⊔ lsuc 𝑚 ⊔ lsuc 𝑛)
-wfs 𝑚 𝑛 S = WellFoundedSorts {𝑚 = 𝑚} {𝑛} S
-
-private
-  variable
-    𝑆 : Set 𝑙
+wfs : ∀ 𝒰 𝒱 (S : 𝒲 ˙) → (𝒰 ⊔ 𝒱) ⁺ ⊔ 𝒲 ˙
+wfs = WellFoundedSorts
 
 -- Definition 4 (term, elimination)
 
-data Var {𝑙} : Set 𝑙 where
+data Var {𝒰} : 𝒰 ˙ where
   avar : Var
   -- TODO: decide on var representation
 
-data Term {R : Set 𝑙} ⦃ r : Rig R ⦄ {S : Set 𝑚} ⦃ _ : wfs 𝑛 𝑝 S ⦄ : Set (lsuc 𝑙 ⊔ 𝑚)
-data Elim {R : Set 𝑙} ⦃ r : Rig R ⦄ {S : Set 𝑚} ⦃ _ : wfs 𝑛 𝑝 S ⦄ : Set (lsuc 𝑙 ⊔ 𝑚)
+data Term {R : 𝒰 ˙} ⦃ r : Rig R ⦄ {S : 𝒱 ˙} ⦃ _ : wfs 𝒲 𝒯 S ⦄ : 𝒰 ⁺ ⊔ 𝒱 ˙
+data Elim {R : 𝒰 ˙} ⦃ r : Rig R ⦄ {S : 𝒱 ˙} ⦃ _ : wfs 𝒲 𝒯 S ⦄ : 𝒰 ⁺ ⊔ 𝒱 ˙
 
 infix 32 [_x:_]→_ λx,_
 data Term {R = R} {S = 𝑆} where
@@ -88,8 +60,8 @@ data Term {R = R} {S = 𝑆} where
   ⌊_⌋ : (e : Elim) → Term
 
 infix 30 _`_ _꞉_
-data Elim {𝑙} where
-  var : (x : Var {𝑙}) → Elim
+data Elim {𝒰} where
+  var : (x : Var {𝒰}) → Elim
   _`_ : (f : Elim) → (s : Term) → Elim
   _꞉_ : (s : Term) → (S : Term) → Elim
 
@@ -98,48 +70,45 @@ data Expr : Set where
 
 Expr-2-Set :
   (e : Expr)
-  {R : Set 𝑙}
+  {R : 𝒰 ˙}
   ⦃ _ : Rig R ⦄
-  {S : Set 𝑚}
-  ⦃ _ : wfs 𝑛 𝑝 S ⦄
+  {S : 𝒱 ˙}
+  ⦃ _ : wfs 𝒲 𝒯 S ⦄
   → --------------------
-  Set (lsuc 𝑙 ⊔ 𝑚)
+  𝒰 ⁺ ⊔ 𝒱 ˙
 Expr-2-Set term = Term
 Expr-2-Set elim = Elim
-
-private
-  variable
-    e : Expr
 
 -- Definition 5 (contraction, reduction, computation)
 
 infix 4 _[_/new]
 _[_/new] :
-  ⦃ _ : Rig R ⦄
-  ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄
+  ⦃ _ : Rig X ⦄
+  ⦃ _ : wfs 𝒰 𝒱 Y ⦄
+  {e' : Expr}
   → -----------------
-  Expr-2-Set e → Elim → Expr-2-Set e
+  (e : Expr-2-Set e') (f : Elim) → Expr-2-Set e'
 e [ f /new] = e
 
 infix 2 _⇝β_ _⇝v_
-data _⇝β_ ⦃ _ : Rig R ⦄ ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄ : Elim → Elim → Prop where
+data _⇝β_ ⦃ _ : Rig X ⦄ ⦃ _ : wfs 𝒰 𝒱 Y ⦄ : (e e' : Elim) → 𝒰₀ ᵖ where
   β : ∀ {π} {s t S T}
     → ----------------------------------------------------
     (λx, t ꞉ ([ π x: S ]→ T)) ` s ⇝β (t ꞉ T) [ s ꞉ S /new]
 
-data _⇝v_ ⦃ _ : Rig R ⦄ ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄ : Term → Term → Prop where
+data _⇝v_ ⦃ _ : Rig X ⦄ ⦃ _ : wfs 𝒰 𝒱 Y ⦄ : (t T : Term) → 𝒰₀ ᵖ where
   v : ∀ {t T}
     → --------------
     ⌊ t ꞉ T ⌋ ⇝v t
 
 data 1-hole-ctx
-  {R : Set 𝑙}
+  {R : 𝒰 ˙}
   ⦃ _ : Rig R ⦄
-  {S : Set 𝑚}
-  ⦃ _ : wfs 𝑛 𝑝 S ⦄
+  {S : 𝒱 ˙}
+  ⦃ _ : wfs 𝒲 𝒯 S ⦄
   : ------------------------
-  Expr → Expr → Set (lsuc 𝑙 ⊔ 𝑚)
-data 1-hole-ctx {R = R} where
+  (e e' : Expr) → 𝒰 ⁺ ⊔ 𝒱 ˙
+  where
   — : ∀ {e}
     → ------------
     1-hole-ctx e e
@@ -194,7 +163,7 @@ data 1-hole-ctx {R = R} where
 
 
 infix 35 _[_/—]
-_[_/—] : {R : Set 𝑙} ⦃ _ : Rig R ⦄ {𝑆 : Set 𝑚} ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄
+_[_/—] : {R : 𝒰 ˙} ⦃ _ : Rig R ⦄ {S : 𝒱 ˙} ⦃ _ : wfs 𝒲 𝒯 S ⦄
   {e₁ e₂ : Expr}
   (C[—] : 1-hole-ctx e₁ e₂)
   (e : Expr-2-Set e₁)
@@ -211,8 +180,8 @@ _[_/—] : {R : Set 𝑙} ⦃ _ : Rig R ⦄ {𝑆 : Set 𝑚} ⦃ _ : wfs 𝑛 �
 (C[—] ↓∶ S) [ e /—] = C[—] [ e /—] ꞉ S
 
 infix 1 _⇝_
-data _⇝_ {R : Set 𝑙} ⦃ _ : Rig R ⦄ {𝑆 : Set 𝑚} ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄ :
-     Expr-2-Set e → Expr-2-Set e → Prop (𝑚 ⊔ lsuc 𝑙) where
+data _⇝_ {R : 𝒰 ˙} ⦃ _ : Rig R ⦄ {S : 𝒱 ˙} ⦃ _ : wfs 𝒲 𝒯 S ⦄ :
+     {e' : Expr} (s t : Expr-2-Set e') → 𝒰 ⁺ ⊔ 𝒱 ᵖ where
   β-exact : ∀ {s t}
     (β : s ⇝β t)
     → -------------
@@ -229,99 +198,99 @@ data _⇝_ {R : Set 𝑙} ⦃ _ : Rig R ⦄ {𝑆 : Set 𝑚} ⦃ _ : wfs 𝑛 �
     → --------------------
     C[—] [ s /—] ⇝ C[—] [ t /—]
 
-open import Foundations.Algebra.Relations.ReflexiveTransitiveClosure
+open import Foundation.Relation.Binary.ReflexiveTransitiveClosure
   using (refl-trans-close)
 
 infix 1 _↠_
-_↠_ : ∀ {R : Set 𝑙} ⦃ _ : Rig R ⦄ {𝑆 : Set 𝑚} ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄ {e}
+_↠_ : ∀ {R : 𝒰 ˙} ⦃ _ : Rig R ⦄ {S : 𝒱 ˙} ⦃ _ : wfs 𝒲 𝒯 S ⦄ {e}
   (e₁ : Expr-2-Set e)
   (e₂ : Expr-2-Set e)
   → --------------------
-  Prop (𝑚 ⊔ lsuc 𝑙)
+  𝒰 ⁺ ⊔ 𝒱 ᵖ
 _↠_ = refl-trans-close _⇝_
 
 -- Definition 6 (precontext, context)
 
 infix 19 _∥_∶_
 data Precontext
-  {R : Set 𝑙}
+  {R : 𝒰 ˙}
   ⦃ _ : Rig R ⦄
-  {𝑆 : Set 𝑚}
-  ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄
+  {S : 𝒱 ˙}
+  ⦃ _ : wfs 𝒲 𝒯 S ⦄
   : -----------------
-  Set (𝑚 ⊔ lsuc 𝑙)
+  𝒰 ⁺ ⊔ 𝒱 ˙
   where
   · : Precontext
   _∥_∶_ :
     (Γ : Precontext)
-    (x : Var {𝑙})
+    (x : Var {𝒰})
     (S : Term)
     → ----------------
     Precontext
 
 infix 19 _∥_,_∶_
 data Context
-  {R : Set 𝑙}
-  {𝑆 : Set 𝑚}
+  {R : 𝒰 ˙}
+  {S : 𝒱 ˙}
   ⦃ _ : Rig R ⦄
-  ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄
+  ⦃ _ : wfs 𝒲 𝒯 S ⦄
   : -----------------
-  Set (lsuc 𝑙 ⊔ 𝑚)
+  𝒰 ⁺ ⊔ 𝒱 ˙
   where
   · : Context
   
   _∥_,_∶_ :
     (Δ : Context)
     (ρ : R)
-    (x : Var {𝑙})
+    (x : Var {𝒰})
     (S : Term)
     → --------------
     Context
 
 private
-  PC : (R : Set 𝑙) (𝑆 : Set 𝑚) ⦃ _ : Rig R ⦄ ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄ → Set (lsuc 𝑙 ⊔ 𝑚)
-  PC R 𝑆 = Precontext {R = R} {𝑆 = 𝑆}
+  PC : (R : 𝒰 ˙) (S : 𝒱 ˙) ⦃ _ : Rig R ⦄ ⦃ _ : wfs 𝒲 𝒯 S ⦄ → 𝒰 ⁺ ⊔ 𝒱 ˙
+  PC R S = Precontext {R = R} {S = S}
 
-  Ctx : (R : Set 𝑙) (𝑆 : Set 𝑚) ⦃ _ : Rig R ⦄ ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄ → Set (lsuc 𝑙 ⊔ 𝑚)
-  Ctx R 𝑆 = Context {R = R} {𝑆 = 𝑆}
+  Ctx : (R : 𝒰 ˙) (S : 𝒱 ˙) ⦃ _ : Rig R ⦄ ⦃ _ : wfs 𝒲 𝒯 S ⦄ → 𝒰 ⁺ ⊔ 𝒱 ˙
+  Ctx R 𝑆 = Context {R = R} {S = 𝑆}
 
-precont : ⦃ _ : Rig R ⦄ ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄
-  (Δ : Ctx R 𝑆)
+precont : ⦃ _ : Rig X ⦄ ⦃ _ : wfs 𝒰 𝒱 Y ⦄
+  (Δ : Ctx X Y)
   → ------------
-  PC R 𝑆
+  PC X Y
 precont · = ·
 precont (Δ ∥ _ , x ∶ S) = precont Δ ∥ x ∶ S
 
 ctx :
-  ⦃ _ : Rig R ⦄
-  ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄
-  (Γ : PC R 𝑆)
-  (r : R)
+  ⦃ _ : Rig X ⦄
+  ⦃ _ : wfs 𝒰 𝒱 Y ⦄
+  (Γ : PC X Y)
+  (r : X)
   → ----------------
-  Ctx R 𝑆
+  Ctx X Y
 ctx · _ = ·
 ctx (Γ ∥ x ∶ S) ρ = (ctx Γ ρ) ∥ ρ , x ∶ S
 
 infix 18 _++_
-_++_ : ⦃ _ : Rig R ⦄ ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄
-  (Δ Δ' : Ctx R 𝑆)
+_++_ : ⦃ _ : Rig X ⦄ ⦃ _ : wfs 𝒰 𝒱 Y ⦄
+  (Δ Δ' : Ctx X Y)
   → -----------------
-  Ctx R 𝑆
+  Ctx X Y
 Δ ++ · = Δ
 Δ ++ (Δ' ∥ ρ , x ∶ S) = (Δ ++ Δ') ∥ ρ , x ∶ S
 
 infix 18 _pt+_
-_pt+_ : ⦃ _ : Rig R ⦄ ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄
-  (Δ Δ' : Ctx R 𝑆)
+_pt+_ : ⦃ _ : Rig X ⦄ ⦃ _ : wfs 𝒰 𝒱 Y ⦄
+  (Δ Δ' : Ctx X Y)
   → -----------------
-  Ctx R 𝑆
+  Ctx X Y
 Δ pt+ Δ' = {!!}
 
 -- Definition 7 (prejudgement)
 
 _⊢_∋_ :
-  ⦃ _ : Rig R ⦄
-  ⦃ _ : wfs 𝑚 𝑛 𝑆 ⦄
+  ⦃ _ : Rig X ⦄
+  ⦃ _ : wfs 𝒰 𝒱 Y ⦄
   (Γ : Precontext)
   (T : Term)
   (t : Term)
@@ -330,8 +299,8 @@ _⊢_∋_ :
 _⊢_∋_ = ?
 
 _⊢_∈_ :
-  ⦃ _ : Rig R ⦄
-  ⦃ _ : wfs 𝑚 𝑛 𝑆 ⦄
+  ⦃ _ : Rig X ⦄
+  ⦃ _ : wfs 𝒰 𝒱 Y ⦄
   (Γ : Precontext)
   (e : Elim)
   (S : Term)
@@ -343,54 +312,54 @@ _⊢_∈_ = ?
 
 infix 17 _⊢_,_∋_
 data _⊢_,_∋_
-  {R : Set 𝑙}
-  {𝑆 : Set 𝑚}
+  {R : 𝒰 ˙}
+  {S : 𝒱 ˙}
   ⦃ _ : Rig R ⦄
-  ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄
+  ⦃ _ : wfs 𝒲 𝒯 S ⦄
   : ------------------------------
-  (Δ : Ctx R 𝑆)
+  (Δ : Ctx R S)
   (ρ : R)
   (T : Term)
   (t : Term)
-  → Prop (lsuc 𝑙 ⊔ 𝑚 ⊔ 𝑛)
+  → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ˙
 
 infix 17 _⊢_,_∈_
 data _⊢_,_∈_
-  {R : Set 𝑙}
-  {𝑆 : Set 𝑚}
+  {R : 𝒰 ˙}
+  {S : 𝒱 ˙}
   ⦃ _ : Rig R ⦄
-  ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄
+  ⦃ _ : wfs 𝒲 𝒯 S ⦄
   : ------------------------------
-  (Δ : Ctx R 𝑆)
+  (Δ : Ctx R S)
   (ρ : R)
   (e : Elim)
   (S : Term)
-  → Prop (lsuc 𝑙 ⊔ 𝑚 ⊔ 𝑛)
+  → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ˙
 
 infix 17 _⊢₀_∋_
 _⊢₀_∋_ : 
-  {R : Set 𝑙}
-  {𝑆 : Set 𝑚}
+  {R : 𝒰 ˙}
+  {S : 𝒱 ˙}
   ⦃ r : Rig R ⦄
-  ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄
-  (Γ : PC R 𝑆)
+  ⦃ _ : wfs 𝒲 𝒯 S ⦄
+  (Γ : PC R S)
   (T : Term)
   (t : Term)
   → --------------------
-  Prop (lsuc 𝑙 ⊔ 𝑚 ⊔ 𝑛)
-_⊢₀_∋_ ⦃ r = r ⦄ Γ T t = ctx Γ r0 ⊢ r0 , T ∋ t
+  𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ˙
+_⊢₀_∋_ ⦃ r = r ⦄ Γ T t = ctx Γ zero ⊢ zero , T ∋ t
 
 -- Definition 9 (type checking and synthesis)
 
 _≼_ :
-  {R : Set 𝑙} {𝑆 : Set 𝑚}
-  ⦃ _ : Rig R ⦄ ⦃ _ : wfs 𝑛 𝑝 𝑆 ⦄
+  {R : 𝒰 ˙} {S : 𝒱 ˙}
+  ⦃ _ : Rig R ⦄ ⦃ _ : wfs 𝒲 𝒯 S ⦄
   (S T : Term)
   → --------------------------------
-  Prop
+  𝒰₀ ᵖ
 _≼_ = ?
 
-data _⊢_,_∋_ {𝑙 = 𝑙} {R = R} {𝑆 = 𝑆} where
+data _⊢_,_∋_ {𝒰 = 𝒰} {R = R} {S = 𝑆} where
   pre : {ρ : R} {Δ : Ctx R 𝑆} {T R t : Term}
     (Δ⊢ρT∋t : Δ ⊢ ρ , T ∋ t)
     (T⇝R : T ⇝ R)
@@ -402,13 +371,13 @@ data _⊢_,_∋_ {𝑙 = 𝑙} {R = R} {𝑆 = 𝑆} where
     → --------------
     Γ ⊢₀ ⋆ j ∋ ⋆ i
    
-  fun : {i : 𝑆} {π : R} {Γ : PC R 𝑆} {T S : Term} {x : Var {𝑙}}
+  fun : {i : 𝑆} {π : R} {Γ : PC R 𝑆} {T S : Term} {x : Var {𝒰}}
     (Γ⊢₀*ᵢ∋S : Γ ⊢₀ ⋆ i ∋ S)
     (Γ,x:S⊢₀*ᵢ∋T : Γ ∥ x ∶ S ⊢₀ ⋆ i ∋ T)
     → --------------------------------------
     Γ ⊢₀ ⋆ i ∋ [ π x: S ]→ T
 
-  lam : {π ρ : R} {Δ : Ctx R 𝑆} {T S t : Term} {x : Var {𝑙}}
+  lam : {π ρ : R} {Δ : Ctx R 𝑆} {T S t : Term} {x : Var {𝒰}}
     (Δ,ρπx:S⊢ρT∋t : Δ ∥ ρ * π , x ∶ S ⊢ ρ , T ∋ t)
     → --------------------------------------
     Δ ⊢ ρ , [ π x: S ]→ T ∋ λx, t
@@ -420,16 +389,16 @@ data _⊢_,_∋_ {𝑙 = 𝑙} {R = R} {𝑆 = 𝑆} where
     Δ ⊢ ρ , T ∋ ⌊ e ⌋
 
 
-data _⊢_,_∈_ {𝑙 = 𝑙} {R = R} {𝑆 = 𝑆} where
+data _⊢_,_∈_ {𝒰 = 𝒰} {R = R} {S = 𝑆} where
   post : {ρ : R} {Δ : Ctx R 𝑆} {S R : Term} {e : Elim}
     (Δ⊢ρe∈S : Δ ⊢ ρ , e ∈ S)
     (S⇝R : S ⇝ R)
     → ------------------------
     Δ ⊢ ρ , e ∈ R
 
-  var : {ρ : R} {Γ Γ' : PC R 𝑆} {S : Term} {x : Var {𝑙}}
+  var : {ρ : R} {Γ Γ' : PC R 𝑆} {S : Term} {x : Var {𝒰}}
     → -------------------------------------------------
-    ctx Γ r0 ∥ ρ , x ∶ S ++ ctx Γ' r0 ⊢ ρ , var x ∈ S
+    ctx Γ zero ∥ ρ , x ∶ S ++ ctx Γ' zero ⊢ ρ , var x ∈ S
 
   app : {π ρ : R} {Δ₀ Δ₁ : Ctx R 𝑆} {T S s : Term} {f : Elim}
     (Δ₀⊢ρf∈[πx:S]→T : Δ₀ ⊢ ρ , f ∈ [ π x: S ]→ T)

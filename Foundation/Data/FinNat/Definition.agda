@@ -2,10 +2,9 @@
 module Foundation.Data.FinNat.Definition where
 
 open import Foundation.Universes
-open import Foundation.Data.Nat.Definition
+open import Foundation.Data.Nat.Definition as N
 open import Foundation.Data.Nat.Order
 open import Foundation.Function using (_$_)
-open import Foundation.Logic
 
 -- types of natural numbers less than index
 data Finℕ : (n : ℕ) → 𝒰₀ ˙ where
@@ -17,6 +16,9 @@ instance
   Nat.Constraint (NatFinℕ {n}) m = m <ₜ n
   Nat.fromℕ (NatFinℕ {suc n}) zero = zero
   Nat.fromℕ (NatFinℕ {suc n}) (suc m) = suc $ Nat.fromℕ (NatFinℕ {n}) m
+
+open import Foundation.Logic using (⋆ₚ) public
+open N using (fromℕ) public
 
 toℕ : ∀ {n} → Finℕ n → ℕ
 toℕ zero = 0

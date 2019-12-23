@@ -43,23 +43,8 @@ instance
     Semiconnex R
   semicon ⦃ DefaultSemiconnex ⦄ {x} {y} _ = total x y
 
-  DefaultLeftQuasiReflexive :
-    {R : Rel 𝒰 X X}
-    ⦃ _ : Reflexive R ⦄
-    → -------------------------
-    LeftQuasiReflexive R
-  left-quasirefl ⦃ DefaultLeftQuasiReflexive ⦄ {x} _ = refl x
-
-  DefaultRightQuasiReflexive :
-    {R : Rel 𝒰 X X}
-    ⦃ _ : Reflexive R ⦄
-    → -------------------------
-    RightQuasiReflexive R
-  right-quasirefl ⦃ DefaultRightQuasiReflexive ⦄ {_} {y} _ = refl y
-
 record Equivalence {X : 𝒱 ˙} (R : Rel 𝒰 X X) : 𝒰 ⊔ 𝒱 ᵖ where
   field
-    implicit : ⊥ → ⊥
     ⦃ equiv-reflexive ⦄ : Reflexive R
     ⦃ equiv-symmetric ⦄ : Symmetric R
     ⦃ equiv-transitive ⦄ : Transitive R
@@ -68,7 +53,6 @@ open Equivalence ⦃ ... ⦄ public
 
 record QuasiReflexive {X : 𝒱 ˙} (R : Rel 𝒰 X X) : 𝒰 ⊔ 𝒱 ᵖ where
   field
-    implicit : ⊥ → ⊥
     ⦃ qr-left ⦄ : LeftQuasiReflexive R
     ⦃ qr-right ⦄ : RightQuasiReflexive R
 
@@ -82,7 +66,7 @@ instance
     ⦃ _ : Transitive R ⦄
     → -------------------------
     Equivalence R
-  implicit ⦃ DefaultEquivalence ⦄ ()
+  DefaultEquivalence = record {}
 
   DefaultQuasiReflexive :
     {R : Rel 𝒰 X X}
@@ -90,7 +74,5 @@ instance
     ⦃ _ : RightQuasiReflexive R ⦄
     → -------------------------
     QuasiReflexive R
-  implicit ⦃ DefaultQuasiReflexive ⦄ ()
-  qr-left ⦃ DefaultQuasiReflexive ⦃ lqr ⦄ ⦃ rqr ⦄ ⦄ = lqr
-  qr-right ⦃ DefaultQuasiReflexive ⦃ lqr ⦄ ⦃ rqr ⦄ ⦄ = rqr
+  DefaultQuasiReflexive = record {}
 
