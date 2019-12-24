@@ -1,84 +1,75 @@
-{-# OPTIONS --exact-split --safe --prop  #-}
-module TypeTheory.Context where
-
+{-# OPTIONS --exact-split --prop  #-}
+open import Foundation.PropUniverses
 open import TypeTheory.Basic using (Rig; wfs; _≻_)
+
+module TypeTheory.Context
+  {R : 𝒰 ˙} ⦃ r : Rig R ⦄
+  {𝑆 : 𝒱 ˙} ⦃ 𝑤𝑓𝑠 : wfs 𝒲 𝒯 𝑆 ⦄
+  where
+
 open import TypeTheory.Syntax using (Var; Term)
 
-open import Foundation.Universes
+open import Foundation.Data.Nat renaming (_+_ to _+ℕ_) using (ℕ; suc)
+open import Foundation.Structure.Hemiring using (_+_)
+open import TypeTheory.Computation using (shift-by)
 
 -- Definition 6 (precontext, context)
 
-infix 19 _∥_∶_
-data Precontext
-  {R : 𝒰 ˙}
-  ⦃ _ : Rig R ⦄
-  {S : 𝒱 ˙}
-  ⦃ _ : wfs 𝒲 𝒯 S ⦄
-  : -----------------
-  𝒰 ⁺ ⊔ 𝒱 ˙
-  where
-  · : Precontext
-  _∥_∶_ :
-    (Γ : Precontext)
-    (x : Var {𝒰})
-    (S : Term)
+infixl 155 _∥x:_
+-- index n denotes how many variables are defined by a (pre-)context
+-- by construction no free variables are allowed in contexts
+data Precontext : (n : ℕ) → 𝒰 ⁺ ⊔ 𝒱 ˙ where
+  · : Precontext 0
+  _∥x:_ : {n : ℕ}
+    (Γ : Precontext n)
+    (S : Term n)
     → ----------------
-    Precontext
+    Precontext (suc n)
 
-infix 19 _∥_,_∶_
-data Context
-  {R : 𝒰 ˙}
-  {S : 𝒱 ˙}
-  ⦃ _ : Rig R ⦄
-  ⦃ _ : wfs 𝒲 𝒯 S ⦄
-  : -----------------
-  𝒰 ⁺ ⊔ 𝒱 ˙
-  where
-  · : Context
+infixl 155 _∥_,x:_
+data Context : (n : ℕ) → 𝒰 ⁺ ⊔ 𝒱 ˙ where
+  · : Context 0
   
-  _∥_,_∶_ :
-    (Δ : Context)
+  _∥_,x:_ : ∀ {n}
+    (Δ : Context n)
     (ρ : R)
-    (x : Var {𝒰})
-    (S : Term)
+    (S : Term n)
     → --------------
-    Context
+    Context (suc n)
 
-PC : (R : 𝒰 ˙) (S : 𝒱 ˙) ⦃ _ : Rig R ⦄ ⦃ _ : wfs 𝒲 𝒯 S ⦄ → 𝒰 ⁺ ⊔ 𝒱 ˙
-PC R S = Precontext {R = R} {S = S}
-
-Ctx : (R : 𝒰 ˙) (S : 𝒱 ˙) ⦃ _ : Rig R ⦄ ⦃ _ : wfs 𝒲 𝒯 S ⦄ → 𝒰 ⁺ ⊔ 𝒱 ˙
-Ctx R 𝑆 = Context {R = R} {S = 𝑆}
-
-precont : ⦃ _ : Rig X ⦄ ⦃ _ : wfs 𝒰 𝒱 Y ⦄
-  (Δ : Ctx X Y)
-  → ------------
-  PC X Y
+precont : {n : ℕ} (ctx : Context n) → Precontext n
 precont · = ·
-precont (Δ ∥ _ , x ∶ S) = precont Δ ∥ x ∶ S
+precont (Δ ∥ _ ,x: S) = precont Δ ∥x: S
 
-ctx :
-  ⦃ _ : Rig X ⦄
-  ⦃ _ : wfs 𝒰 𝒱 Y ⦄
-  (Γ : PC X Y)
-  (r : X)
-  → ----------------
-  Ctx X Y
+ctx : {n : ℕ} (Γ : Precontext n) (r : R) → Context n
 ctx · _ = ·
-ctx (Γ ∥ x ∶ S) ρ = (ctx Γ ρ) ∥ ρ , x ∶ S
+ctx (Γ ∥x: S) ρ = (ctx Γ ρ) ∥ ρ ,x: S
 
-infix 18 _++_
-_++_ : ⦃ _ : Rig X ⦄ ⦃ _ : wfs 𝒰 𝒱 Y ⦄
-  (Δ Δ' : Ctx X Y)
-  → -----------------
-  Ctx X Y
+open import Foundation.Prop'.Identity using (ap; _==_)
+open import Foundation.Prop'.Identity.Transport
+open import Foundation.Prop'.Function using (_$_)
+open import Foundation.Operation.Binary using (comm)
+
+infixl 153 _++_
+_++_ : ∀ {m n} (Δ : Context m) (Δ' : Context n) → Context (n +ℕ m)
 Δ ++ · = Δ
-Δ ++ (Δ' ∥ ρ , x ∶ S) = (Δ ++ Δ') ∥ ρ , x ∶ S
+_++_ {m} {suc n} Δ (Δ' ∥ ρ ,x: S) = (Δ ++ Δ') ∥ ρ ,x: S'
+  where S' = transport (ap Term $ comm m n) (shift-by m S)
 
-infix 18 _pt+_
-_pt+_ : ⦃ _ : Rig X ⦄ ⦃ _ : wfs 𝒰 𝒱 Y ⦄
-  (Δ Δ' : Ctx X Y)
-  → -----------------
-  Ctx X Y
-Δ pt+ Δ' = ?
+open import Foundation.Logic using (⊤; _∧_)
+
+compatible : ∀ {n} (Δ Δ' : Context n) → 𝒰 ⁺ ⊔ 𝒱 ᵖ
+compatible · · = Lift𝒰ᵖ ⊤
+compatible (Δ ∥ _ ,x: S) (Δ' ∥ _ ,x: S') = compatible Δ Δ' ∧ S == S'
+  
+subcomp = _∧_.left
+
+infixl 154 _pt+_[_]
+_pt+_[_] : ∀ {n}
+  (Δ Δ' : Context n)
+  (p : compatible Δ Δ')
+  → ----------------------------
+  Context n
+· pt+ · [ p ] = ·
+Δ ∥ ρ₁ ,x: S₁ pt+ Δ' ∥ ρ ,x: S [ p ] = (Δ pt+ Δ' [ subcomp p ]) ∥ ρ + ρ₁ ,x: S
 

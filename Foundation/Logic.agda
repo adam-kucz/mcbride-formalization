@@ -15,8 +15,8 @@ open import Foundation.Prop'.BinarySum
 ∃! : {X : 𝒰 ˙} (𝐴 : (x : X) → 𝒱 ᵖ) → 𝒰 ⊔ 𝒱 ᵖ
 ∃! {X = X} 𝐴 = ∃ λ (x : X) → 𝐴 x ∧ ∀ y (p : 𝐴 y) → y == x
 
-infixl 11 _↔_
-infix 11 _,_
+infix 11 _↔_
+infixl 11 _,_
 record _↔_ (𝑋 : 𝒰 ᵖ) (𝑌 : 𝒱 ᵖ) : 𝒰 ⊔ 𝒱 ᵖ where
   constructor _,_
   field

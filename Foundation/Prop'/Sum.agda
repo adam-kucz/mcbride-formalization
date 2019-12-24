@@ -3,9 +3,14 @@ module Foundation.Prop'.Sum where
 
 open import Foundation.PropUniverses
 
-infix 11 _,_
-data Σₚ {X : 𝒰 ˙} (𝐴 : (x : X) → 𝒱 ᵖ) : 𝒰 ⊔ 𝒱 ˙ where
-  _,_ : (elem : X) (p : 𝐴 elem) → Σₚ 𝐴
+infixl 11 _,_
+record Σₚ {X : 𝒰 ˙} (𝐴 : (x : X) → 𝒱 ᵖ) : 𝒰 ⊔ 𝒱 ˙ where
+  constructor _,_
+  field
+    elem : X
+    prop : 𝐴 elem
+
+open Σₚ public
 
 data ∃ {X : 𝒰 ˙} (𝐴 : (x : X) → 𝒱 ᵖ) : 𝒰 ⊔ 𝒱 ᵖ where
   _,_ : (elem : X) (p : 𝐴 elem) → ∃ 𝐴

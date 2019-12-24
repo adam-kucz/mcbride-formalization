@@ -8,11 +8,11 @@ open import Foundation.Logic using (¬_; _∨_; _∧_; ⊥)
 
 private
   module RelProp (property : RelProperty) where
-    record Property {X : 𝒱 ˙} (R : Rel 𝒰 X X) : 𝒰 ⊔ 𝒱 ᵖ where
+    record Property {X : 𝒰 ˙} (R : Rel 𝒱 X X) : 𝒰 ⊔ 𝒱 ᵖ where
       field
         prop-name : property R
 
-    open Property ⦃ ... ⦄ public
+    open Property ⦃ … ⦄ public
 
 open RelProp (λ _R_ → ∀ {x y z} (p : x R y) (q : y R z) → x R z)
   renaming (Property to Transitive; prop-name to trans) public
@@ -49,14 +49,14 @@ record Equivalence {X : 𝒱 ˙} (R : Rel 𝒰 X X) : 𝒰 ⊔ 𝒱 ᵖ where
     ⦃ equiv-symmetric ⦄ : Symmetric R
     ⦃ equiv-transitive ⦄ : Transitive R
 
-open Equivalence ⦃ ... ⦄ public
+open Equivalence ⦃ … ⦄ public
 
 record QuasiReflexive {X : 𝒱 ˙} (R : Rel 𝒰 X X) : 𝒰 ⊔ 𝒱 ᵖ where
   field
     ⦃ qr-left ⦄ : LeftQuasiReflexive R
     ⦃ qr-right ⦄ : RightQuasiReflexive R
 
-open QuasiReflexive ⦃ ... ⦄ public
+open QuasiReflexive ⦃ … ⦄ public
 
 instance
   DefaultEquivalence :
@@ -76,3 +76,58 @@ instance
     QuasiReflexive R
   DefaultQuasiReflexive = record {}
 
+record Minimal {X : 𝒰 ˙} (_≼_ : Rel 𝒱 X X) (⊥ : X) : 𝒰 ⊔ 𝒱 ᵖ where
+  field
+    minimality : ∀ {x} (p : x ≼ ⊥) → x == ⊥
+
+open Minimal ⦃ … ⦄ public
+
+open import Foundation.Prop'.Sum using (Σₚ; _,_)
+
+-- TODO: put in separate module
+Subset : (X : 𝒰 ˙) (𝐴 : (x : X) → 𝒱 ᵖ) → 𝒰 ⊔ 𝒱 ˙ 
+Subset X 𝐴 = Σₚ λ (x : X) → 𝐴 x
+
+on-elems : {𝐴 : (x : X) → 𝒰 ᵖ}
+  (R : Rel 𝒱 X X)
+  → ------------------------------
+  Rel 𝒱 (Subset X 𝐴) (Subset X 𝐴)
+on-elems _R_ (x , _) (x' , _) = x R x'
+
+open import Foundation.Prop'.Decidable using (Decidable)
+
+record WellFounded {X : 𝒰 ˙}
+  (_≼_ : Rel 𝒱 X X)
+  (min : ∀ {𝒲}
+    (𝐴 : (x : X) → 𝒲 ᵖ)
+    ⦃ _ : ∀ {x} → Decidable (𝐴 x) ⦄
+    (non-empty : Subset X 𝐴)
+    → ------------------------
+    Subset X 𝐴)
+  : ---------------------------------
+  𝒰ω
+  where
+  field
+    well-founded :
+      (𝐴 : (x : X) → 𝒲 ᵖ)
+      ⦃ _ : ∀ {x} → Decidable (𝐴 x) ⦄
+      (non-empty : Subset X 𝐴)
+      → -----------------------
+      Minimal (on-elems _≼_) (min 𝐴 non-empty)
+
+open WellFounded ⦃ … ⦄ public
+
+infix 21 _⊆_
+record _⊆_ {X : 𝒰 ˙} {Y : 𝒱 ˙} (_R_ : Rel 𝒲 X Y) (_P_ : Rel 𝒯 X Y) : 𝒰 ⊔ 𝒱 ⊔ 𝒲 ⊔ 𝒯 ᵖ
+  where
+  field
+    subrel : ∀ {x} {y} (xRy : x R y) → x P y
+
+open _⊆_ ⦃ … ⦄ public
+
+infix 19 _~_
+record _~_ {X : 𝒰 ˙} {Y : 𝒱 ˙} (R : Rel 𝒲 X Y) (P : Rel 𝒯 X Y) : 𝒰 ⊔ 𝒱 ⊔ 𝒲 ⊔ 𝒯 ᵖ
+  where
+  field
+    ⦃ ~-⊆ ⦄ : R ⊆ P
+    ⦃ ~-⊇ ⦄ : P ⊆ R

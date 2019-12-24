@@ -25,3 +25,9 @@ variable
   𝒰 𝒱 𝒲 𝒯 𝒮 𝒳 𝒴 𝒵 : Universe
   X Y Z W : 𝒰 ˙
   A B : (x : X) → 𝒱 ˙
+
+record Lift𝒰 {𝒱} (X : 𝒰 ˙) : 𝒰 ⊔ 𝒱 ˙ where
+  field
+    unlift : X
+
+open Lift𝒰 public

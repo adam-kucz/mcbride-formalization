@@ -1,7 +1,7 @@
 {-# OPTIONS --exact-split --safe --prop #-}
 module Foundation.Operation.Binary.Property where
 
-open import Foundation.PropUniverses
+open import Foundation.PropUniverses as Univ
 open import Foundation.Operation.Binary.Definition
 
 open import Foundation.Prop'.Identity using (_==_)
@@ -131,3 +131,25 @@ instance
     → -----------------------------
     Inverse _⁻¹ op
   DefaultInverse = record {}
+
+open import Foundation.Relation.Binary.Definition
+
+record Join {X : 𝒰 ˙}
+    (_⊔_ : ClosedOp X) (_≼_ : Rel 𝒱 X X)
+    : --------------------------------------------
+    𝒰 Univ.⊔ 𝒱 ᵖ where
+  field
+    ⦃ join-comm ⦄ : Commutative _⊔_
+    upper-bound : ∀ x y → x ≼ (x ⊔ y)
+
+open Join ⦃ ... ⦄ public
+
+record Meet {X : 𝒰 ˙}
+    (_⊓_ : ClosedOp X) (_≼_ : Rel 𝒱 X X)
+    : --------------------------------------------
+    𝒰 ⊔ 𝒱 ᵖ where
+  field
+    ⦃ meet-comm ⦄ : Commutative _⊓_
+    lower-bound : ∀ x y → (x ⊓ y) ≼ x
+
+open Meet ⦃ ... ⦄ public

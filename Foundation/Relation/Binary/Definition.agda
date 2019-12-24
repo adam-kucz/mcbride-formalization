@@ -8,3 +8,4 @@ Rel 𝒰 X Y = (x : X) (y : Y) → 𝒰 ᵖ
 
 RelProperty : 𝒰ω
 RelProperty = {𝒰 𝒱 : Universe} {X : 𝒱 ˙} (R : Rel 𝒰 X X) → 𝒰 ⊔ 𝒱 ᵖ
+

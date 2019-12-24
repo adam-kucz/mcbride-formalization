@@ -1,7 +1,7 @@
 {-# OPTIONS --exact-split --safe --prop #-}
 module Foundation.Data.Nat.Order where
 
-open import Foundation.PropUniverses
+open import Foundation.PropUniverses hiding (_⊔_)
 open import Foundation.Data.Nat.Definition
 
 open import Foundation.Prop'.Identity renaming (Idₚ to Id) using (_==_; ap)
@@ -133,31 +133,89 @@ _ <ₜ 0 = ⊥
 0 <ₜ suc _ = ⊤
 suc n <ₜ suc m = n <ₜ m
 
-min : (x y : ℕ) → ℕ
-min zero _ = zero
-min (suc _) zero = zero
-min (suc x) (suc y) = suc (min x y)
+infixl 120 _⊓_ _⊔_
+_⊓_ min : (x y : ℕ) → ℕ
+zero ⊓ _ = zero
+suc _ ⊓ zero = zero
+suc x ⊓ suc y = suc (x ⊓ y)
+
+_⊔_ max : (x y : ℕ) → ℕ
+zero ⊔ y = y
+suc x ⊔ zero = suc x
+suc x ⊔ suc y = suc (x ⊔ y)
+
+min = _⊓_
+max = _⊔_
 
 instance
-  Commutative-min : Commutative min
+  Commutative-min : Commutative _⊓_
   comm ⦃ Commutative-min ⦄ zero zero = refl 0
   comm ⦃ Commutative-min ⦄ zero (suc b) = refl 0
   comm ⦃ Commutative-min ⦄ (suc a) zero = refl 0
   comm ⦃ Commutative-min ⦄ (suc a) (suc b) = ap suc $ comm a b
 
-min<s : ∀ m n → min m n < suc m
-min<s 0 _ = postfix suc 0
-min<s (suc m) 0 = z<s
-min<s (suc m) (suc n) = s<s $ min<s m n
+  Meet-min : Meet _⊓_ _≤_
+  lower-bound ⦃ Meet-min ⦄ zero y = refl 0
+  lower-bound ⦃ Meet-min ⦄ (suc x) zero = ∨right z<s
+  lower-bound ⦃ Meet-min ⦄ (suc x) (suc y) = ap suc $ lower-bound x y
 
-min== : ∀ m n → min m n == m ∨ min m n == n
+  Commutative-max : Commutative _⊔_
+  comm ⦃ Commutative-max ⦄ zero zero = refl 0
+  comm ⦃ Commutative-max ⦄ zero (suc y) = refl (suc y)
+  comm ⦃ Commutative-max ⦄ (suc x) zero = refl (suc x)
+  comm ⦃ Commutative-max ⦄ (suc x) (suc y) = ap suc $ comm x y
+
+  Join-max : Join _⊔_ _≤_
+  upper-bound ⦃ Join-max ⦄ zero zero = refl 0
+  upper-bound ⦃ Join-max ⦄ zero (suc y) = ∨right z<s
+  upper-bound ⦃ Join-max ⦄ (suc x) zero = refl (suc x)
+  upper-bound ⦃ Join-max ⦄ (suc x) (suc y) = ap suc $ upper-bound x y
+
+min== : ∀ m n → m ⊓ n == m ∨ m ⊓ n == n
 min== zero n = ∨left (refl 0)
 min== (suc _) zero = ∨right (refl 0)
 min== (suc m) (suc n) with min== m n
 min== (suc m) (suc n) | ∨left min-m-n==m = ∨left $ ap suc min-m-n==m
 min== (suc m) (suc n) | ∨right min-m-n==n = ∨right $ ap suc min-m-n==n
 
-≤→min== : ∀ {m n} → (p : n ≤ m) → min n m == n
+≤→min== : ∀ {m n} → (p : n ≤ m) → n ⊓ m == n
 ≤→min== (∨left (Id.refl n)) = ∨-contract (min== n n)
 ≤→min== (∨right z<s) = refl 0
 ≤→min== (∨right (s<s n<m)) = ap suc $ ≤→min== $ ∨right n<m
+
+-- <induction :
+--   {A : (n : ℕ) → 𝒰 ᵖ}
+--   (f : (n : ℕ) → ℕ)
+--   (p : UniversalPrefix f _<_)
+--   → -------------------
+--   (n : ℕ) → B
+-- <induction = {!!}
+
+-- least-elem :
+--   (𝐴 : (n : ℕ) → 𝒰 ᵖ)
+--   ⦃ _ : ∀ {n} → Decidable (𝐴 n) ⦄
+--   (e : Subset ℕ 𝐴)
+--   → --------------------
+--   Subset ℕ 𝐴
+-- least-elem 𝐴 e = smallest e
+--   where open import Foundation.Prop'.Sum
+--         open import Foundation.Data.Maybe
+--         smaller : (n : ℕ)
+--           → --------------------------------------------------
+--           Maybe (Σₚ λ (e' : Subset ℕ 𝐴) → elem e' < n)
+--         smaller zero = nothing
+--         smaller (suc n) with decide (𝐴 n)
+--         smaller (suc n) | true p = just (n , p , postfix suc n)
+--         smaller (suc n) | false _ with smaller n
+--         smaller (suc n) | false _ | nothing = nothing
+--         smaller (suc n) | false _ | just (m , m<n) =
+--           just (m , trans m<n $ postfix suc n)
+--         smallest = {!!}
+
+-- instance
+--   WellFounded≤ : WellFounded _≤_ least-elem
+--   well-founded ⦃ WellFounded≤ ⦄ 𝐴 (elem , prop) = minimal
+--     where minimal : Minimal (on-elems _≤_) (least-elem 𝐴 (elem , prop))
+--           minimality ⦃ minimal ⦄ {x} (∨left (Id.refl y)) = {!!}
+--           minimality ⦃ minimal ⦄ {x} (∨right q) = {!!}
+

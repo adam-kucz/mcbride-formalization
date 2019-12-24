@@ -4,11 +4,11 @@ module Foundation.Data.Nat.Arithmetic.Definition where
 open import Foundation.Data.Nat.Definition public
 
 infixl 130 _+_
-_+_ : ℕ → ℕ → ℕ
-zero  + b = b
-suc a + b = suc (a + b)
+_+_ : (m n : ℕ) → ℕ
+zero  + n = n
+suc m + n = suc (m + n)
 
 infixl 140 _*_
-_*_ : ℕ → ℕ → ℕ
-zero  * b = 0
-suc a * b = b + a * b
+_*_ : (m n : ℕ) → ℕ
+zero  * n = 0
+suc m * n = n + m * n
