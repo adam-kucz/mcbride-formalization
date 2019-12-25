@@ -43,3 +43,36 @@ subrel-rtc-to-rtc-subrel-rtc {R = _R_} {P = _P_} = go
         subrel ⦃ go ⦄ (rfl a) = refl a
         subrel ⦃ go ⦄ (step {x} {b} {y} xPb bP*y) =
           trans (subrel xPb) (subrel ⦃ go ⦄ bP*y)
+
+open import Foundation.Proof
+open Composable
+open import Foundation.Function.Proof
+
+instance
+  RTCRelating :
+    {P : Rel 𝒰 X X}
+    {R : Rel 𝒱 Y Y}
+    {f : (x : X) → Y}
+    ⦃ _ : Relating f P R ⦄
+    → ----------------------
+    Relating f (refl-trans-close P) (refl-trans-close R)
+  rel-preserv ⦃ RTCRelating {f = f} ⦄ (rfl a) = refl (f a)
+  rel-preserv ⦃ RTCRelating ⦄ (step aRb aR*b) =
+    step (rel-preserv aRb) (rel-preserv aR*b)
+
+  Composable-R-R* : {X : 𝒰 ˙}
+    {R : Rel 𝒱 X X}
+    → -----------------
+    Composable (𝒰 ⊔ 𝒱) R (refl-trans-close R)
+  rel (Composable-R-R* {R = R}) = refl-trans-close R
+  compose Composable-R-R* = step
+
+  Composable-R*-R : {X : 𝒰 ˙}
+    {R : Rel 𝒱 X X}
+    → -----------------
+    Composable (𝒰 ⊔ 𝒱) (refl-trans-close R) R
+  rel (Composable-R*-R {R = R}) = refl-trans-close R
+  compose Composable-R*-R {x} {x} {y} (rfl x) q =
+    step q (refl y)
+  compose Composable-R*-R (step aRb p) q = step aRb (compose Composable-R*-R p q)
+

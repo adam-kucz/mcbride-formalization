@@ -5,7 +5,7 @@ open import Foundation.PropUniverses
 
 open import Foundation.Type.Sum using (Σ; _,_; pr₁; pr₂; _×_)
 open import Foundation.Prop'.Identity.Definition using (_==_; refl)
-open import Foundation.Relation.Binary using (Rel)
+open import Foundation.Relation.Binary.Definition using (Rel)
 open import Foundation.Relation.Binary.Property using (Transitive; trans)
 
 record Composable 𝒵 (R : Rel 𝒯 X Y) (S : Rel 𝒮 Y Z) : 𝒰ω

@@ -29,3 +29,15 @@ _≠_ : {X Y : 𝒰 ˙}
   → -------------
   𝒰 ᵖ
 x ≠ y = ¬ x == y
+
+module Id where
+  -- more general than Relation.Binary.Property.sym
+  -- becuase it doesn't require the two sides
+  -- to be of the same type
+  sym : {x : X} {y : Y}
+    (p : x == y)
+    → ----------
+    y == x
+  sym (refl x) = refl x
+
+

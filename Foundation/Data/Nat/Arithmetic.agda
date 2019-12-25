@@ -20,6 +20,14 @@ open import Foundation.Proof
 +-suc    zero b = refl (suc b)
 +-suc (suc a) b = ap suc $ +-suc a b
 
++-suc-transport : ∀ {m n}
+  (A : (n : ℕ) → 𝒰 ˙)
+  (x : A (m + suc n))
+  → -----------------
+  A (suc (m + n))
++-suc-transport {m =  zero} _ x = x
++-suc-transport {m = suc m} A x = +-suc-transport (λ n → A (suc n)) x
+
 instance
   assoc+ : Associative _+_
   assoc ⦃ assoc+ ⦄ zero b c = refl (b + c)

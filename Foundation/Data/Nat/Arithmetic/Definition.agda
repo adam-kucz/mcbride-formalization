@@ -5,7 +5,7 @@ open import Foundation.Data.Nat.Definition public
 
 infixl 130 _+_
 _+_ : (m n : ℕ) → ℕ
-zero  + n = n
+zero + n = n
 suc m + n = suc (m + n)
 
 infixl 140 _*_

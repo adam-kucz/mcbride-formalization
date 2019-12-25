@@ -114,7 +114,7 @@ instance
     → ----------------------------
     ReindexingRelating F f _==_
   reindexed ⦃ RRelating-all-== {f = f} ⦄ i = Relating-all-==
-  
+
   -- TODO (low priority): think of a different approach, this produces too many choice points
   -- Relating-∧-intro :
   --   {A : Set 𝑙₀}

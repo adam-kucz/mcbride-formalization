@@ -1,4 +1,4 @@
-{-# OPTIONS --exact-split --prop  #-}
+{-# OPTIONS --exact-split --prop --safe  #-}
 open import TypeTheory.Basic using (Rig; wfs; _≻_)
 open import Foundation.PropUniverses
 
@@ -8,7 +8,7 @@ module TypeTheory.Judgment
   where
 
 open import TypeTheory.Syntax
-open import TypeTheory.Computation using (wk; wk'; _⇝_; _[_/new])
+open import TypeTheory.Computation using (wk1; _⇝_; _[_/new])
 open import TypeTheory.Context
 
 open import Foundation.Data.Nat using (ℕ; suc; _+_)
@@ -100,7 +100,7 @@ data var-in-ctx {n} (Γ : Precontext n) (ρ : R) (S : Term n)
   : {m : ℕ} (Δ : Context (m + suc n)) → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ˙
   where
   Γ'==∅ :
-    (p : ctx Γ zero ∥ ρ ,x: S ⊢ ρ , var (nth-var n) ∈ wk 1 S)
+    (p : ctx Γ zero ∥ ρ ,x: S ⊢ ρ , var (nth-var n) ∈ wk1 S)
     → -------------------------------------------------------
     var-in-ctx Γ ρ S {0} (ctx Γ zero ∥ ρ ,x: S)
 
@@ -122,20 +122,20 @@ data _⊢_,_∈_ where
   -- achieves the same result when weakening is added
   var : ∀ {n} {ρ : R} {Γ : Precontext n} {S : Term n}
     → ----------------------------------------------------
-    ctx Γ zero ∥ ρ ,x: S ⊢ ρ , var (nth-var n) ∈ wk 1 S
+    ctx Γ zero ∥ ρ ,x: S ⊢ ρ , var (nth-var n) ∈ wk1 S
 
   -- necessary to make our version of var equivalent to mcbride's
   weaken : ∀ {n} {ρ} {Δ : Context (suc n)} {S S' : Term (suc n)}
     → let v = var (nth-var n) in (p : Δ ⊢ ρ , v ∈ S)
     → ----------------------------------------------------------
-    Δ ∥ zero ,x: S' ⊢ ρ , wk 1 v ∈ wk 1 S
+    Δ ∥ zero ,x: S' ⊢ ρ , wk1 v ∈ wk1 S
 
-  -- alternative formulation of var (equivalent to that in the paper)
-  var' : ∀ {m n} {ρ} {Γ : Precontext n}  {Δ : Context (m + suc n)}
-           {S : Term n}
-    (p : var-in-ctx Γ ρ S Δ)
-    → ------------------------------------------------------------
-    Δ ⊢ ρ , wk m (var (nth-var n)) ∈ wk m (wk 1 S)
+  -- -- alternative formulation of var (equivalent to that in the paper)
+  -- var' : ∀ {m n} {ρ} {Γ : Precontext n}  {Δ : Context (m + suc n)}
+  --          {S : Term n}
+  --   (p : var-in-ctx Γ ρ S Δ)
+  --   → ------------------------------------------------------------
+  --   Δ ⊢ ρ , wk m (var (nth-var n)) ∈ wk m (wk1 S)
 
   app : ∀ {n} {π ρ} {Δ₀ Δ₁ : Context n} {T S s} {f}
     (p : compatible Δ₀ Δ₁)

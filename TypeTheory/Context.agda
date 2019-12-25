@@ -1,4 +1,4 @@
-{-# OPTIONS --exact-split --prop  #-}
+{-# OPTIONS --exact-split --prop --safe  #-}
 open import Foundation.PropUniverses
 open import TypeTheory.Basic using (Rig; wfs; _≻_)
 
@@ -45,16 +45,15 @@ ctx : {n : ℕ} (Γ : Precontext n) (r : R) → Context n
 ctx · _ = ·
 ctx (Γ ∥x: S) ρ = (ctx Γ ρ) ∥ ρ ,x: S
 
-open import Foundation.Prop'.Identity using (ap; _==_)
-open import Foundation.Prop'.Identity.Transport
-open import Foundation.Prop'.Function using (_$_)
-open import Foundation.Operation.Binary using (comm)
+open import Foundation.Prop'.Identity using (_==_)
+-- open import Foundation.Prop'.Function using (_$_)
+-- open import Foundation.Operation.Binary using (comm)
 
-infixl 153 _++_
-_++_ : ∀ {m n} (Δ : Context m) (Δ' : Context n) → Context (n +ℕ m)
-Δ ++ · = Δ
-_++_ {m} {suc n} Δ (Δ' ∥ ρ ,x: S) = (Δ ++ Δ') ∥ ρ ,x: S'
-  where S' = transport (ap Term $ comm m n) (shift-by m S)
+-- infixl 153 _++_
+-- _++_ : ∀ {m n} (Δ : Context m) (Δ' : Context n) → Context (n +ℕ m)
+-- Δ ++ · = Δ
+-- _++_ {m} {suc n} Δ (Δ' ∥ ρ ,x: S) = (Δ ++ Δ') ∥ ρ ,x: S'
+--   where S' = transport== (ap Term $ comm m n) (shift-by m S)
 
 open import Foundation.Logic using (⊤; _∧_)
 
