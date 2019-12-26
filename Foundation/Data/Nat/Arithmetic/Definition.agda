@@ -10,5 +10,5 @@ suc m + n = suc (m + n)
 
 infixl 140 _*_
 _*_ : (m n : ℕ) → ℕ
-zero  * n = 0
+zero  * n = zero
 suc m * n = n + m * n

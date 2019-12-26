@@ -14,3 +14,9 @@ _≡_ : {X Y : 𝒰 ˙}
   𝒰 ˙
 x ≡ y = Id _ _ x y
 
+transport :
+  (p : X ≡ Y)
+  (x : X)
+  → ----------
+  Y
+transport (refl _) x = x

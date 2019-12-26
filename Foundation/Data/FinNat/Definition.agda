@@ -2,7 +2,8 @@
 module Foundation.Data.FinNat.Definition where
 
 open import Foundation.Universes
-open import Foundation.Data.Nat.Definition as N
+open import Foundation.Data.Nat.Definition
+open import Foundation.Data.Nat.Syntax as N
 open import Foundation.Data.Nat.Order
 open import Foundation.Function using (_$_)
 

@@ -3,6 +3,7 @@ module Foundation.Data.Nat.Order where
 
 open import Foundation.PropUniverses hiding (_⊔_)
 open import Foundation.Data.Nat.Definition
+open import Foundation.Data.Nat.Syntax
 
 open import Foundation.Prop'.Identity renaming (Idₚ to Id) using (_==_; ap)
 open import Foundation.Prop'.Decidable

@@ -25,7 +25,7 @@ codomain {Y = Y} _ = Y
 type-of : {X : 𝒰 ˙} (x : X) → 𝒰 ˙
 type-of {X = X} _ = X
 
-infixr 16 _$_
+infixr 100 _$_
 _$_ : {A : 𝒰 ˙} {B : A → 𝒱 ˙}
   (f : (x : A) → B x)
   (x : A)
@@ -33,7 +33,7 @@ _$_ : {A : 𝒰 ˙} {B : A → 𝒱 ˙}
   B x
 f $ x = f x
 
-infixl 25 _∘_
+infixl 150 _∘_
 _∘_ :
   {X : 𝒰 ˙}
   {A : (x : X) → 𝒱 ˙}

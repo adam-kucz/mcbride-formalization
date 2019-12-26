@@ -32,7 +32,7 @@ x ≠ y = ¬ x == y
 
 module Id where
   -- more general than Relation.Binary.Property.sym
-  -- becuase it doesn't require the two sides
+  -- it doesn't require the two sides
   -- to be of the same type
   sym : {x : X} {y : Y}
     (p : x == y)
@@ -40,4 +40,11 @@ module Id where
     y == x
   sym (refl x) = refl x
 
-
+  transport :
+    (𝐴 : (x : X) → 𝒰 ᵖ)
+    {x y : X}
+    (p : x == y)
+    (ax : 𝐴 x)
+    → ----------
+    𝐴 y
+  transport 𝐴 (refl x) ax = ax

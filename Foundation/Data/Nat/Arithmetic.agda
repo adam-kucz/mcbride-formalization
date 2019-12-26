@@ -4,6 +4,7 @@ module Foundation.Data.Nat.Arithmetic where
 open import Foundation.PropUniverses
 open import Foundation.Data.Nat.Arithmetic.Definition public
 open import Foundation.Data.Nat.Definition
+open import Foundation.Data.Nat.Syntax
 open import Foundation.Prop'.Function using (_$_)
 
 open import Foundation.Relation.Binary.Property
@@ -19,14 +20,6 @@ open import Foundation.Proof
 +-suc : ∀ a b → a + suc b == suc (a + b)
 +-suc    zero b = refl (suc b)
 +-suc (suc a) b = ap suc $ +-suc a b
-
-+-suc-transport : ∀ {m n}
-  (A : (n : ℕ) → 𝒰 ˙)
-  (x : A (m + suc n))
-  → -----------------
-  A (suc (m + n))
-+-suc-transport {m =  zero} _ x = x
-+-suc-transport {m = suc m} A x = +-suc-transport (λ n → A (suc n)) x
 
 instance
   assoc+ : Associative _+_

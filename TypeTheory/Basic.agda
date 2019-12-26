@@ -4,6 +4,7 @@ module TypeTheory.Basic where
 open import Foundation.Universes
 open import Foundation.Structure.Hemiring
 open import Foundation.Data.Nat.Definition hiding (zero)
+import Foundation.Data.Nat.Syntax
 open import Foundation.Data.FinNat.Definition hiding (zero)
 
 -- Definition 1 (rig)

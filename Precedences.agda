@@ -15,7 +15,8 @@ infix 152 _⊢_,_∋_ _⊢_,_∈_ _⊢₀_∋_ -- TypeTheory.Judgment
 
 -- Terms (150 - 100)
 
-infixl 150 _∘_ -- Foundation.Function.Equivalence
+infixl 150 _∘_ -- Foundation.Type.Transport
+infixl 150 _∘_ -- Foundation.Function
 
 infixl 140 _*_ -- Foundation.Data.Nat
 infixl 130 _+_ -- Foundation.Data.Nat
@@ -23,13 +24,15 @@ infixl 130 _∙_ -- Foundation.Structure.Semigroup
 infixl 120 _⊓_ -- Foundation.Data.Nat
 infixl 120 _⊔_ -- Foundation.Data.Nat
 
-infixr 100 _$_ -- Foundation.Function.Equivalence
+infixr 100 _$_ -- Foundation.Function
 
 -- Types (60 - 50)
 
 infix 57 _×_ -- Foundation.Type.Sum
 infix 55 _+_ -- Foundation.Type.Sum
 infix 51 _,_ -- Foundation.Type.Sum
+infix 50 _⟺_ -- Foundation.Type.Transport
+infix 50 _,_ -- Foundation.Type.Transport
 
 -- Logic formers (40 - 30)
 

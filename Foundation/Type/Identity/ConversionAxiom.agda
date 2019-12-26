@@ -1,16 +1,10 @@
 {-# OPTIONS --exact-split --prop #-}
-module Foundation.Type.Identity.Equivalence where
+module Foundation.Type.Identity.ConversionAxiom where
 
 open import Foundation.Type.Identity.Definition
 
 open import Foundation.Universes
 open import Foundation.Prop'.Identity.Definition
-
-≡→== : {x : X} {y : Y}
-  (id : x ≡ y)
-  → ------------
-  x == y
-≡→== (refl x) = refl x
 
 postulate
   ==→≡ : {x : X} {y : Y}

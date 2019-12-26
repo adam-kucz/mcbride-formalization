@@ -11,7 +11,7 @@ module TypeTheory.ParallelReduction
 
 open import TypeTheory.Syntax using (Term; Elim; ExprTag; expr-of-type)
 open Term; open Elim; open ExprTag
-open import TypeTheory.Substitution using (_[_/new])
+open import TypeTheory.Substitution as Subs using (_[_/new])
 import TypeTheory.Computation as Comp
 
 infix 36 _▷_
