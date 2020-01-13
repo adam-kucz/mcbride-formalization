@@ -10,13 +10,16 @@ module ParallelReduction.Proof
 open import Syntax using (Term; Elim; ExprTag; expr-of-type)
 open Term; open Elim; open ExprTag
 open import ParallelReduction
-open import Substitution ⦃ r ⦄ ⦃ 𝑤𝑓𝑠 ⦄ as Subs
-  using (Ren; rename; lift; _[_/new]; rename-[-/new])
+open import Substitution ⦃ r ⦄ ⦃ 𝑤𝑓𝑠 ⦄
+  using (_[_/new]; rename-[-/new])
 
 open import Proposition.Identity as Id using (_==_)
 open Id.Id renaming (sym to Id-sym)
 open import Proof
 open import Function.Proof
+
+open import Renaming
+open import Liftable
 
 instance
   Composable-==-▷ : ∀ {n} {tag}

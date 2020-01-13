@@ -9,7 +9,9 @@ module Confluence
 
 open import Syntax using (Var; Term; Elim; expr-of-type)
 open Term; open Elim
-open import Substitution using (Sub; sub; _[_/new]; lift; rename)
+open import Substitution using (Sub; sub; _[_/new])
+open import Renaming
+open import Liftable
 open import ParallelReduction using (_▷_)
 open _▷_
 
@@ -28,7 +30,7 @@ private
     → -------------------------------
     (v : Var (suc m)) → lift σ v ▷ lift σ' v
   liftSubVec σ σ' 𝒆▷𝒆' Var.new = refl (var Var.new)
-  liftSubVec σ σ' 𝒆▷𝒆' (Var.old v) = ap (rename Var.old) $ 𝒆▷𝒆' v
+  liftSubVec σ σ' 𝒆▷𝒆' (Var.old v) = ap (shift {F = Elim}) $ 𝒆▷𝒆' v
 
 liftSub-to-▷ : ∀ {m n} {tag}
   (σ σ' : Sub m n)

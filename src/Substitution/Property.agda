@@ -2,62 +2,22 @@
 open import Basic using (Rig; wfs)
 open import PropUniverses
 
-module Substitution
+module Substitution.Property
   {𝑅 : 𝒰 ˙} ⦃ r : Rig 𝑅 ⦄
   {𝑆 : 𝒱 ˙} ⦃ 𝑤𝑓𝑠 : wfs 𝒲 𝒯 𝑆 ⦄
   where
 
+open import Substitution.Definition
+
 open import Syntax
 open import Liftable
 open import Renaming ⦃ r ⦄ ⦃ 𝑤𝑓𝑠 ⦄
-
 open import Data.Nat
-open import Type.Identity using (transport; transport==)
-
-Sub : (m n : ℕ) → 𝒰 ⁺ ⊔ 𝒱 ˙
-Sub m n = (v : Var m) → Elim n
-
-instance
-  LiftableSub : Liftable Sub
-  lift ⦃ LiftableSub ⦄ σ new = var new
-  lift ⦃ LiftableSub ⦄ σ (old v) = shift (σ v)
-
-sub : {m n : ℕ} {tag : ExprTag}
-  (σ : Sub m n)
-  (e : expr-of-type tag m)
-  → ------------------------------
-  expr-of-type tag n
-sub {tag = term} σ (⋆ i) = ⋆ i
-sub {tag = term} σ ([ ρ x: S ]→ T) = [ ρ x: sub σ S ]→ sub (lift σ) T
-sub {tag = term} σ (λx, e) = λx, sub (lift σ) e
-sub {tag = term} σ ⌊ e ⌋ = ⌊ sub σ e ⌋
-sub {tag = elim} σ (var x) = σ x
-sub {tag = elim} σ (f ` s) = sub σ f ` sub σ s
-sub {tag = elim} σ (s ꞉ S) = sub σ s ꞉ sub σ S
-
-open import Proposition.Empty
-open import Proposition.Comparable
-open import Relation.Binary hiding (_~_)
-open import Logic hiding (⊥-recursion)
-open import Proof
 open import Data.Nat.Proof
-
-nthSub : ∀ {n} m (p : m < suc n)(f : Elim n) → Sub (suc n) n
-nthSub m p f v with compare (index v) _<_ m
-nthSub {n} m p f v | lt q = var (contract v q')
-  where q' : index v < n
-        q' =
-          proof index v
-            〉 _<_ 〉 m :by: q
-            〉 _≤_ 〉 n :by: ⟵ -≤-↔-<s p
-          qed
-nthSub m p f v | eq _ = f
-nthSub m p f (old v) | gt _ = var v
-
-newSub : ∀ {n} (f : Elim n) → Sub (suc n) n
-newSub = nthSub 0 z<s
-
-open import Function hiding (_$_)
+open import Proposition.Comparable
+open import Function using (_~_; _∘_)
+open import Logic
+open import Proof
 
 lift-nthSub~ : ∀ {n} m (p : m < suc n) (f : Elim n)
   → -----------------------------------------------------
@@ -67,22 +27,6 @@ lift-nthSub~ m p f (old v) with compare (index v) _<_ m ⦃ Comparableℕ ⦄
 lift-nthSub~ m p f (old v) | lt _ = refl (var (old (contract v _)))
 lift-nthSub~ m p f (old v) | eq _ = refl (shift f)
 lift-nthSub~ m p f (old (old v)) | gt _ = refl (var (old v))
-
-infix 180 _[_/new] _[_/_[_]]
-_[_/new] : {n : ℕ} {tag : ExprTag}
-  → -------------------------------------------------------------
-  (e : expr-of-type tag (suc n)) (f : Elim n) → expr-of-type tag n
-e [ f /new] = sub (newSub f) e
-
-_[_/_[_]] : {n : ℕ} {tag : ExprTag}
-  (e : expr-of-type tag (suc n))
-  (f : Elim n)
-  (m : ℕ)
-  (p : m < suc n)
-  → -------------------------------------------------------------
-  expr-of-type tag n
-e [ f / m [ p ]] = sub (nthSub m p f) e
-
 
 -- rename-sub-new {m} {n} k {term} ρ (⋆ i) f =
 --   proof ⋆ i
@@ -168,7 +112,7 @@ nthSub-trivial {n = n}{elim} (var v) f p q
   with compare (index v) _<_ n  ⦃ Comparableℕ ⦄
 nthSub-trivial {n = n} {elim} (var v) f p q | lt p₁ = refl (var (contract v _))
 nthSub-trivial {n = n} {elim} (var v) f p q | eq (Id.refl _) =
-  ⊥-recursionₚ (f == _) $
+  ⊥-recursion (f == _) $
     q $
     Id.transport (_∈ [ v ]) (⟵ Var== $ sym $ index-nth-var (index v) p) $
     x∈x∷ []
@@ -201,53 +145,65 @@ nthSub-trivial {tag = elim} (s ꞉ S) f p q =  -꞉-eq
 
 open import Function.Proof
 
+sub-lift-shift : ∀ {m n} k {tag}
+  (e : expr-of-type tag m)
+  (σ : Sub m n)
+  → -------------------------------------------------------
+  sub (lift-by k σ) (shift-by k e) == shift-by k (sub σ e)
+sub-lift-shift k {term} (⋆ i) σ =
+  proof sub (lift-by k σ) (shift-by k (⋆ i))
+    〉 _==_ 〉 ⋆ i :by: ap (sub (lift-by k σ)) $ lemma k
+    〉 _==_ 〉 shift-by k (⋆ i) :by: Id.sym $ lemma k
+  qed
+  where lemma : ∀ {n} k → shift-by k (⋆ {n = n} i) == ⋆ {n = k + n} i
+        lemma zero = refl (⋆ i)
+        lemma (suc k) = ap shift (lemma k)
+sub-lift-shift k {term} ([ ρ x: e ]→ e₁) σ = {!!}
+sub-lift-shift k {term} (λx, e) σ = {!!}
+sub-lift-shift k {term} ⌊ e ⌋ σ = {!!}
+sub-lift-shift k {elim} (e ` s) σ = {!!}
+sub-lift-shift k {elim} (s ꞉ S) σ = {!!}
+sub-lift-shift 0 {elim} (var v) σ = refl (σ v)
+sub-lift-shift 1 {elim} (var v) σ = refl (shift (σ v))
+sub-lift-shift (k +2) {elim} (var v) σ =
+  proof sub (lift-by (k +2) σ) (shift-by (k +2) (var v))
+    〉 _==_ 〉 shift-by (k +2) (σ v)
+      :by: {!!}
+  qed
+-- sub (lift (lift-by k σ)) (shift (shift-by k (var v))) == shift (shift-by k (σ v))
+
 sub-commute : ∀ {m n k : ℕ} {tag}
   (σ : Sub m n)
   (e : expr-of-type tag (suc k + m))
   (f : Elim m)
+  (p : (x : ℕ) → k < suc k + x)
   → ------------------------------------------------------
-  let p = λ m → (proof k
-          〉 _≤_ 〉 k + m     :by: postfix (_+ m) k
-          〉 _<_ 〉 suc k + m :by: postfix suc (k + m)
-        qed) in
-  (sub (nthSub k (p n) (shift-by k (sub σ f))) ∘ sub (lift-by (suc k) σ)) e
-    == (sub (lift-by k σ) ∘ sub (nthSub k (p m) (shift-by k f))) e
-  -- (sub (nthSub k (p n) (shift-by k (sub σ f))) ∘ sub (lift-by (suc k) σ)) e : E (k + n)
-  -- (sub (lift-by (suc k) σ)) e : E (suc k+ n)
+  let shft-exp-by = λ {m} {tag} → shift-by {m = m} ⦃ RenameableExpr {tag} ⦄ in
+  sub (nthSub k (p n) (shft-exp-by k (sub σ f)))
+    (sub (lift-by (suc k) σ) e)
+      ==
+  sub (lift-by k σ)
+    (sub (nthSub k (p m) (shft-exp-by k f)) e)
+sub-commute {tag = term} σ (⋆ i) f p = refl (⋆ i)
+sub-commute {tag = term} σ ([ ρ x: S ]→ T) f p = {!!}
+sub-commute {tag = term} σ (λx, t) f p = {!!}
+sub-commute {tag = term} σ ⌊ e ⌋ f p = {!!}
+sub-commute {tag = elim} σ (var v) f p = {!!}
+--  sub (nthSub k (p n) (shift-by k (sub σ f)))
+--    (lift-by (suc k) σ v)
+--    == sub (lift-by k σ) (nthSub k (p m) (shift-by k f) v)
 
-  -- == (sub (lift-by k σ) ∘ sub (nthSub k p (shift-by k f))) e
+-- case index v == k
+--   sub (nthSub k (p n) (shift-by k (sub σ f)))
+--    (lift-by (suc k) σ v)
+--    == sub (lift-by k σ) (shift-by k f)
 
-  -- (sub (nthSub k p (shift-by k (sub σ f))) ∘ sub (lift-by (suc k) σ)) e
-  --   == (sub (lift-by k σ) ∘ sub (nthSub k p (shift-by k f))) e
- -- (sub (nthSub 0 z<s (sub σ f)) ∘ sub (lift σ)) e == (sub σ ∘ sub (nthSub 0 z<s f)) e
--- sub-commute {tag = term} σ (⋆ i) f = refl (⋆ i)
--- sub-commute {tag = term} σ ([ ρ x: S ]→ T) f = {!!}
--- sub-commute {tag = term} σ (λx, e) f = ap λx,_ {!!}
--- sub-commute {tag = term} σ ⌊ e ⌋ f = ap ⌊_⌋ $ sub-commute σ e f
--- sub-commute {tag = elim} σ (var new) f = refl (sub σ f)
--- sub-commute {n = n} {tag = elim} σ (var (old v)) f = {!!}
--- sub-commute {tag = elim} σ (f ` s) f' =
---   proof (sub (lift σ) (f ` s)) [ sub σ f' /new]
---     〉 _==_ 〉 sub (lift σ) f [ sub σ f' /new] ` sub (lift σ) s [ sub σ f' /new] 
---       :by: Id.refl _
---     〉 _==_ 〉 sub σ (f [ f' /new]) ` sub (lift σ) s [ sub σ f' /new] 
---       :by: ap (_` sub (lift σ) s [ sub σ f' /new] ) $
---            sub-commute σ f f'
---     〉 _==_ 〉 sub σ (f [ f' /new]) ` sub σ (s [ f' /new])
---       :by: ap (sub σ (f [ f' /new]) `_) $ sub-commute σ s f'
---     〉 _==_ 〉 sub σ ((f ` s) [ f' /new])
---       :by: Id.refl _
---   qed
--- sub-commute {tag = elim} σ (s ꞉ S) f = 
---   proof (sub (lift σ) (s ꞉ S)) [ sub σ f /new]
---     〉 _==_ 〉 sub (lift σ) s [ sub σ f /new] ꞉ sub (lift σ) S [ sub σ f /new] 
---       :by: Id.refl _
---     〉 _==_ 〉 sub σ (s [ f /new]) ꞉ sub (lift σ) S [ sub σ f /new] 
---       :by: ap (_꞉ sub (lift σ) S [ sub σ f /new] ) $
---            sub-commute σ s f
---     〉 _==_ 〉 sub σ (s [ f /new]) ꞉ sub σ (S [ f /new])
---       :by: ap (sub σ (s [ f /new]) ꞉_) $ sub-commute σ S f
---     〉 _==_ 〉 sub σ ((s ꞉ S) [ f /new])
---       :by: Id.refl _
---   qed
 
+sub-commute {tag = elim} σ (f' ` s) f p = {!!}
+sub-commute {tag = elim} σ (s ꞉ S) f p = {!!}
+
+-- p = λ m → (proof k
+--           〉 _≤_ 〉 k + m     :by: postfix (_+ m) k
+--           〉 _<_ 〉 suc k + m :by: postfix suc (k + m)
+--         qed)
+        

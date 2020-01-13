@@ -28,12 +28,15 @@ instance
   rename ⦃ RenameableElim ⦄ ρ (f ` s) = rename ρ f ` rename ρ s
   rename ⦃ RenameableElim ⦄ ρ (s ꞉ S) = rename ρ s ꞉ rename ρ S
 
-private
-  prevRenUnsafe : ∀ {m} → Ren (suc (suc m)) (suc m)
-  prevRenUnsafe new = new
-  prevRenUnsafe (old v) = v
+  RenameableExpr : ∀ {tag} → Renameable (expr-of-type tag)
+  RenameableExpr {term} = RenameableTerm
+  RenameableExpr {elim} = RenameableElim
 
-open import Data.List
+prevRenUnsafe : ∀ {m} → Ren (suc (suc m)) (suc m)
+prevRenUnsafe new = new
+prevRenUnsafe (old v) = v
+
+open import Data.List hiding (index)
 open import Data.Collection
 open import Data.Functor
 
@@ -95,17 +98,24 @@ del-nth n {elim} (s ꞉ S) p q =
 del-nth n {elim} (var v) p q =
   var (delVar n v p
     λ nth==v → q $ Id.transport (_∈ [ v ]) (Id.sym nth==v) $ x∈x∷ [])
-  where delVar : ∀ {m}
+  where open import Proposition.Comparable
+        open import Data.Nat.Proof
+        delVar : ∀ {m}
           (n : ℕ)
           (v : Var (suc m))
           (p : n < suc m)
           (q : nth-var n p ≠ v)
           → --------------------
           Var m
-        delVar zero (old v) p q = v
-        delVar {suc m} (suc n) (old v) p q =
-          old (delVar n v (s<s→-<- p) λ q' → q (ap old q'))
-        delVar {m} zero new p q = ⊥-recursion (Var m) (q (refl new))
-        delVar {zero} (suc n) new p q with s<s→-<- p
-        delVar {zero} (suc n) new p q | ()
-        delVar {suc m} (suc n) new p q = new 
+        delVar n v p q with compare (index v) _<_ n
+        delVar {m} n v p q | lt p₁ = contract v (
+          proof index v
+            〉 _<_ 〉 n :by: p₁
+            〉 _≤_ 〉 m :by: ⟵ -≤-↔-<s p
+          qed)
+        delVar {m} n v p q | eq p₁ = ⊥-recursion (Var m) (q $ ⟵ Var== (
+            proof index (nth-var n p)
+              〉 _==_ 〉 n       :by: index-nth-var n p
+              〉 _==_ 〉 index v :by: sym p₁
+            qed))
+        delVar n (old v) p q | gt _ = v
