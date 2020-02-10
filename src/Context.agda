@@ -1,17 +1,16 @@
-{-# OPTIONS --exact-split --prop --safe  #-}
-open import Foundation.PropUniverses
-open import TypeTheory.Basic using (Rig; wfs; _≻_)
+{-# OPTIONS --exact-split --prop  #-}
+open import PropUniverses
+open import Basic using (Rig; wfs; _≻_)
 
-module TypeTheory.Context
+module Context
   {R : 𝒰 ˙} ⦃ r : Rig R ⦄
   {𝑆 : 𝒱 ˙} ⦃ 𝑤𝑓𝑠 : wfs 𝒲 𝒯 𝑆 ⦄
   where
 
-open import TypeTheory.Syntax using (Var; Term)
+open import Syntax using (Var; Term)
 
-open import Foundation.Data.Nat renaming (_+_ to _+ℕ_) using (ℕ; suc)
-open import Foundation.Structure.Hemiring using (_+_)
-open import TypeTheory.Computation using (shift-by)
+open import Data.Nat renaming (_+_ to _+ℕ_) hiding (_⊔_)
+open import Structure.Hemiring using (_+_)
 
 -- Definition 6 (precontext, context)
 
@@ -26,6 +25,9 @@ data Precontext : (n : ℕ) → 𝒰 ⁺ ⊔ 𝒱 ˙ where
     → ----------------
     Precontext (suc n)
 
+variable
+  Γ Γ' Γ″ : Precontext n
+
 infixl 155 _∥_,x:_
 data Context : (n : ℕ) → 𝒰 ⁺ ⊔ 𝒱 ˙ where
   · : Context 0
@@ -37,17 +39,20 @@ data Context : (n : ℕ) → 𝒰 ⁺ ⊔ 𝒱 ˙ where
     → --------------
     Context (suc n)
 
-precont : {n : ℕ} (ctx : Context n) → Precontext n
+variable
+  Δ Δ' Δ″ : Context n
+
+precont : (ctx : Context n) → Precontext n
 precont · = ·
 precont (Δ ∥ _ ,x: S) = precont Δ ∥x: S
 
-ctx : {n : ℕ} (Γ : Precontext n) (r : R) → Context n
+ctx : (Γ : Precontext n)(r : R) → Context n
 ctx · _ = ·
 ctx (Γ ∥x: S) ρ = (ctx Γ ρ) ∥ ρ ,x: S
 
-open import Foundation.Prop'.Identity using (_==_)
--- open import Foundation.Prop'.Function using (_$_)
--- open import Foundation.Operation.Binary using (comm)
+open import Proposition.Identity using (_==_)
+-- open import Proposition.Function using (_$_)
+-- open import Operation.Binary using (comm)
 
 -- infixl 153 _++_
 -- _++_ : ∀ {m n} (Δ : Context m) (Δ' : Context n) → Context (n +ℕ m)
@@ -55,16 +60,16 @@ open import Foundation.Prop'.Identity using (_==_)
 -- _++_ {m} {suc n} Δ (Δ' ∥ ρ ,x: S) = (Δ ++ Δ') ∥ ρ ,x: S'
 --   where S' = transport== (ap Term $ comm m n) (shift-by m S)
 
-open import Foundation.Logic using (⊤; _∧_)
+open import Logic using (⊤; _∧_)
 
-compatible : ∀ {n} (Δ Δ' : Context n) → 𝒰 ⁺ ⊔ 𝒱 ᵖ
+compatible : (Δ Δ' : Context n) → 𝒰 ⁺ ⊔ 𝒱 ᵖ
 compatible · · = Lift𝒰ᵖ ⊤
 compatible (Δ ∥ _ ,x: S) (Δ' ∥ _ ,x: S') = compatible Δ Δ' ∧ S == S'
   
 subcomp = _∧_.left
 
 infixl 154 _pt+_[_]
-_pt+_[_] : ∀ {n}
+_pt+_[_] :
   (Δ Δ' : Context n)
   (p : compatible Δ Δ')
   → ----------------------------

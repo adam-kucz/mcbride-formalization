@@ -10,17 +10,9 @@ module Computation.Proof
 open import Proof
 
 open import Proposition.Identity using (_==_)
-open import Computation ⦃ r ⦄ ⦃ 𝑤𝑓𝑠 ⦄
+open import Computation.Basic ⦃ r ⦄ ⦃ 𝑤𝑓𝑠 ⦄
 
-instance
-  comp-⇝-== : ∀ {n} {tag} → Composable (𝒰 ⁺ ⊔ 𝒱) (_⇝_ {n} {tag}) _==_
-  comp-⇝-== = composable-R-== _⇝_
-
-  comp-==-⇝ : ∀ {n} {tag} → Composable (𝒰 ⁺ ⊔ 𝒱) _==_ (_⇝_ {n} {tag})
-  comp-==-⇝ = composable-==-R _⇝_
-
-  comp-↠-== : ∀ {n} {tag} → Composable (𝒰 ⁺ ⊔ 𝒱) (_↠_ {n} {tag}) _==_
-  comp-↠-== = composable-R-== _↠_
-
-  comp-==-↠ : ∀ {n} {tag} → Composable (𝒰 ⁺ ⊔ 𝒱) _==_ (_↠_ {n} {tag})
-  comp-==-↠ = composable-==-R _↠_
+module comp-⇝ {n} {tag} where
+  open MakeComposable (_⇝_ {n} {tag}) public
+module comp-↠ {n} {tag} where
+  open TransMakeComposable (_↠_ {n} {tag}) public

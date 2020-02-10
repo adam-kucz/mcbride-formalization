@@ -37,7 +37,8 @@ infix 50 _,_ -- Foundation.Type.Transport
 -- Logic formers (40 - 30)
 
 infix 36 _⇝β_ _⇝v_ _⇝_ _↠_ -- TypeTheory.Computation
-infix 36 _▷_ -- TypeTheory.Confluence
+infix 36 _~_ -- TypeTheory.Confluence
+infix 36 _▷_ -- TypeTheory.ParallelReduction
 
 infix 35 _<_ -- Foundation.Data.Nat.Order
 infix 35 _≤_ -- Foundation.Data.Nat.Order

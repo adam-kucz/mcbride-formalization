@@ -1,7 +1,7 @@
 {-# OPTIONS --exact-split --safe --prop  #-}
 module Basic where
 
-open import Universes
+open import PropUniverses
 open import Structure.Hemiring
 open import Data.Nat.Definition hiding (zero)
 import Data.Nat.Syntax
@@ -23,16 +23,15 @@ None-one-tons = Finℕ 3
 
 -- Definition 3 (sort ordering)
 
+open import Relation.Binary
+
 record WellFoundedSorts (𝒰 𝒱 : Universe) (S : 𝒲 ˙) : (𝒰 ⊔ 𝒱) ⁺ ⊔ 𝒲 ˙ where
   field
-    _≻_ : (i : S) → (j : S) → 𝒰 ˙
+    _≻_ : (i j : S) → 𝒰 ᵖ
+
+    ⦃ Transitive≻ ⦄ : Transitive _≻_ 
     
-    trans : ∀ {i j k}
-      (k≻j : k ≻ j) → (j≻i : j ≻ i)
-      → --------------------------
-      k ≻ i
-    
-    wf : ∀ {j} {P : S → 𝒱 ˙} →
+    wf : ∀ {j} {P : S → 𝒱 ˙}
       (all≺ : ∀ i { j≻i : j ≻ i } → P i)
       → ------------------------
       ∀ k → P k

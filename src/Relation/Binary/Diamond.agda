@@ -1,15 +1,13 @@
 {-# OPTIONS --exact-split --prop --safe #-}
-module TypeTheory.Relation.Binary.Diamond where
+module Relation.Binary.Diamond where
 
-open import Foundation.PropUniverses
+open import PropUniverses
 
-open import Foundation.Relation.Binary
-  using (Rel)
-open import Foundation.Relation.Binary.Property
-  using (refl; _⊆_; subrel)
-open import Foundation.Relation.Binary.ReflexiveTransitiveClosure
-  using (refl-trans-close; rfl; step; subrel-rtc-to-rtc-subrel-rtc)
-open import Foundation.Logic
+open import Relation.Binary using (Rel)
+open import Relation.Binary using (
+    refl ; _⊆_; subrel;
+    refl-trans-close; rfl; step; subrel-rtc-to-rtc-subrel-rtc)
+open import Logic
   using (∃; _∧_; _,_)
 
 -- Definition 10 (diamond property)
@@ -23,12 +21,12 @@ diamond _R_ = ∀ {s p q}
 
 -- Lemma 11 (parallelogram)
 
-diamond-2-rtc-diamond :
+diamond-to-rtc-diamond :
   {R : Rel 𝒴 X X}
   (diamond-R : diamond R)
   → ----------------------
   diamond (refl-trans-close R)
-diamond-2-rtc-diamond {R = _R_} diamond-R = go
+diamond-to-rtc-diamond {R = _R_} diamond-R = go
   where _R*_ = refl-trans-close _R_
         go : diamond _R*_
         go {s} {s} {q} (rfl s) sR*q = q , (sR*q , refl q)
@@ -61,5 +59,5 @@ parallelogram R {P} diamond-P = result
         result sR*p sR*q with diamond-rtc-P (subrel sR*p) (subrel sR*q)
         result sR*p sR*q | q , (left , right) = q , (P*→R* left , P*→R* right)
           where P*→R* = subrel ⦃ subrel-rtc-to-rtc-subrel-rtc ⦄
-        diamond-rtc-P = diamond-2-rtc-diamond diamond-P
+        diamond-rtc-P = diamond-to-rtc-diamond diamond-P
 

@@ -1,37 +1,39 @@
-{-# OPTIONS --exact-split --prop --safe  #-}
-open import TypeTheory.Basic using (Rig; wfs; _≻_)
-open import Foundation.PropUniverses
+{-# OPTIONS --exact-split --prop  #-}
+open import Basic using (Rig; wfs; _≻_)
+open import PropUniverses
 
-module TypeTheory.Judgment
+module Judgment
   {R : 𝒰 ˙} ⦃ r : Rig R ⦄
   {𝑆 : 𝒱 ˙} ⦃ 𝑤𝑓𝑠 : wfs 𝒲 𝒯 𝑆 ⦄
   where
 
-open import TypeTheory.Syntax
-open import TypeTheory.Computation using (wk1; _⇝_; _[_/new])
-open import TypeTheory.Context
+open import Syntax
+open import Computation
+open import Context
+open import Renaming
+open import Substitution
 
-open import Foundation.Data.Nat using (ℕ; suc; _+_)
-open import Foundation.Structure.Hemiring using (zero; _*_)
+open import Data.Nat hiding (_⊔_; zero; _*_)
+open import Structure.Hemiring using (zero; _*_)
 
 -- Definition 7 (prejudgment)
 
-infix 152 _⊢_∋_ _⊢_∈_
-_⊢_∋_ : ∀ {n}
-  (Γ : Precontext n)
-  (T : Term n)
-  (t : Term n)
-  → --------------------
-  𝒰₀ ᵖ
-_⊢_∋_ = {!!}
+-- infix 152 _⊢_∋_ _⊢_∈_
+-- _⊢_∋_ : ∀ {n}
+--   (Γ : Precontext n)
+--   (T : Term n)
+--   (t : Term n)
+--   → --------------------
+--   𝒰₀ ᵖ
+-- _⊢_∋_ = {!!}
 
-_⊢_∈_ : ∀ {n}
-  (Γ : Precontext n)
-  (e : Elim n)
-  (S : Term n)
-  → --------------------
-  𝒰₀ ᵖ
-_⊢_∈_ = {!!}
+-- _⊢_∈_ : ∀ {n}
+--   (Γ : Precontext n)
+--   (e : Elim n)
+--   (S : Term n)
+--   → --------------------
+--   𝒰₀ ᵖ
+-- _⊢_∈_ = {!!}
 
 -- Definition 8 (judgment)
 
@@ -42,7 +44,7 @@ data _⊢_,_∋_ {n}
   (ρ : R)
   (T : Term n)
   (t : Term n)
-  → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ˙
+  → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ᵖ
 
 data _⊢_,_∈_
   : ------------------------------
@@ -51,38 +53,54 @@ data _⊢_,_∈_
   (ρ : R)
   (e : Elim n)
   (S : Term n)
-  → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ˙
+  → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ᵖ
 
 _⊢₀_∋_ : ∀ {n}
   (Γ : Precontext n)
   (T : Term n)
   (t : Term n)
   → --------------------
-  𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ˙
+  𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ᵖ
 _⊢₀_∋_ Γ T t = ctx Γ zero ⊢ zero , T ∋ t
 
 -- Definition 9 (type checking and synthesis)
 
-_≼_ : ∀ {n} (T S : Term n) → 𝒰₀ ᵖ
-_≼_ = {!!}
+open import Subtyping.Definition
+
+open import Proposition.Identity
 
 data _⊢_,_∋_ {n} where
-  pre : ∀ {ρ} {Δ : Context n} {T R t : Term n}
-    (Δ⊢ρT∋t : Δ ⊢ ρ , T ∋ t)
-    (T⇝R : T ⇝ R)
+  pre : ∀ {ρ}{Δ : Context n}{T R t : Term n}
+    (Δ⊢ρT∋t : Δ ⊢ ρ , R ∋ t)
+    (R⇝T : T ⇝ R)
     → ------------------------
-    Δ ⊢ ρ , R ∋ t
+    Δ ⊢ ρ , T ∋ t
 
-  sort : ∀ {j i} {Γ : Precontext n}
+  -- _⊢₀_∋_ interacts badly with pattern matching
+  
+  -- sort : ∀ {j i} {Γ : Precontext n}
+  --   (j≻i : j ≻ i)
+  --   → --------------
+  --   Γ ⊢₀ ⋆ j ∋ ⋆ i
+   
+  -- fun : ∀ {i} π {Γ : Precontext n} {T S}
+  --   (Γ⊢₀*ᵢ∋S : Γ ⊢₀ ⋆ i ∋ S)
+  --   (Γ,x:S⊢₀*ᵢ∋T : Γ ∥x: S ⊢₀ ⋆ i ∋ T)
+  --   → --------------------------------------
+  --   Γ ⊢₀ ⋆ i ∋ [ π x: S ]→ T
+
+  sort : ∀ {j i}{Γ : Precontext n}
+    (p : Δ == ctx Γ zero)
     (j≻i : j ≻ i)
     → --------------
-    Γ ⊢₀ ⋆ j ∋ ⋆ i
+    Δ ⊢ zero , ⋆ j ∋ ⋆ i
    
-  fun : ∀ {i} {π} {Γ : Precontext n} {T S}
+  fun : ∀ {i} π {T S}
+    (p : Δ == ctx Γ zero)
     (Γ⊢₀*ᵢ∋S : Γ ⊢₀ ⋆ i ∋ S)
     (Γ,x:S⊢₀*ᵢ∋T : Γ ∥x: S ⊢₀ ⋆ i ∋ T)
     → --------------------------------------
-    Γ ⊢₀ ⋆ i ∋ [ π x: S ]→ T
+    Δ ⊢ zero , ⋆ i ∋ [ π x: S ]→ T
 
   lam : ∀ {π ρ} {Δ : Context n} {T S t}
     (Δ,ρπx:S⊢ρT∋t : Δ ∥ ρ * π ,x: S ⊢ ρ , T ∋ t)
@@ -95,12 +113,14 @@ data _⊢_,_∋_ {n} where
     → --------------------------------------
     Δ ⊢ ρ , T ∋ ⌊ e ⌋
 
+open import Function.Proof using (postfix)
+
 -- used in alternative formulation of var
 data var-in-ctx {n} (Γ : Precontext n) (ρ : R) (S : Term n)
   : {m : ℕ} (Δ : Context (m + suc n)) → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ˙
   where
   Γ'==∅ :
-    (p : ctx Γ zero ∥ ρ ,x: S ⊢ ρ , var (nth-var n) ∈ wk1 S)
+    (p : ctx Γ zero ∥ ρ ,x: S ⊢ ρ , var (nth-var n (postfix suc n)) ∈ extend S)
     → -------------------------------------------------------
     var-in-ctx Γ ρ S {0} (ctx Γ zero ∥ ρ ,x: S)
 
@@ -122,13 +142,13 @@ data _⊢_,_∈_ where
   -- achieves the same result when weakening is added
   var : ∀ {n} {ρ : R} {Γ : Precontext n} {S : Term n}
     → ----------------------------------------------------
-    ctx Γ zero ∥ ρ ,x: S ⊢ ρ , var (nth-var n) ∈ wk1 S
+    ctx Γ zero ∥ ρ ,x: S ⊢ ρ , var (nth-var n (postfix suc n)) ∈ extend S
 
   -- necessary to make our version of var equivalent to mcbride's
   weaken : ∀ {n} {ρ} {Δ : Context (suc n)} {S S' : Term (suc n)}
-    → let v = var (nth-var n) in (p : Δ ⊢ ρ , v ∈ S)
+    → let v = var (nth-var n (postfix suc n)) in (p : Δ ⊢ ρ , v ∈ S)
     → ----------------------------------------------------------
-    Δ ∥ zero ,x: S' ⊢ ρ , wk1 v ∈ wk1 S
+    Δ ∥ zero ,x: S' ⊢ ρ , extend v ∈ extend S
 
   -- -- alternative formulation of var (equivalent to that in the paper)
   -- var' : ∀ {m n} {ρ} {Γ : Precontext n}  {Δ : Context (m + suc n)}
@@ -150,3 +170,12 @@ data _⊢_,_∈_ where
     → --------------------------------------
     Δ ⊢ ρ , s ꞉ S ∈ S
 
+open import Relation.Binary
+
+iter-pre : ∀ {ρ} {Δ : Context n} {T R t : Term n}
+  (Δ⊢ρT∋t : Δ ⊢ ρ , R ∋ t)
+  (R↠T : T ↠ R)
+  → ------------------------
+  Δ ⊢ ρ , T ∋ t
+iter-pre Δ⊢ρT∋t (rfl T) = Δ⊢ρT∋t
+iter-pre Δ⊢ρT∋t (step R⇝R' R'↠T) = pre (iter-pre Δ⊢ρT∋t R'↠T) R⇝R'

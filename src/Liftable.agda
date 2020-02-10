@@ -1,35 +1,12 @@
-{-# OPTIONS --exact-split --prop --safe #-}
-module Liftable where
-
+{-# OPTIONS --exact-split --prop #-}
+open import Basic
 open import Universes
-open import Data.Nat
 
--- types that take and return variable-indexed objects
--- which can be lifted to operate on more variables
--- while being identity on the newly introduced ones
-record Liftable (f : (m n : ℕ) → 𝒰 ˙) : 𝒰 ˙ where
-  field
-    lift : ∀ {m n} (ρ : f m n) → f (suc m) (suc n)
+module Liftable
+  {R : 𝒰 ˙} ⦃ r : Rig R ⦄
+  {𝑆 : 𝒱 ˙} ⦃ 𝑤𝑓𝑠 : wfs 𝒲 𝒯 𝑆 ⦄
+  where
 
-  lift-by : ∀ {m n}
-    (k : ℕ)
-    (e : f m n)
-    → -----------------------
-    f (k + m) (k + n)
-  lift-by zero e = e
-  lift-by (suc k) e = lift (lift-by k e)
-
-  open import Function using (_~_; _∘_; _$_)
-  open import Proposition.Identity
-
-  lift-inner : ∀ {m n k} →
-    lift-by {m}{n}(suc k) ~ lift-by k ∘ lift
-  lift-inner {k = zero} x = refl (lift x)
-  lift-inner {k = k +1} x = {!lift-inner {k = k} x!}
-    where aux : ∀ {m n}{x y : f m n} (p : x == y) → lift x == lift y
-          aux (refl x) = refl (lift x)
-
-open Liftable ⦃ … ⦄ public
-
-{-# DISPLAY Liftable.lift L = lift #-}
+open import Liftable.Definition ⦃ r ⦄ ⦃ 𝑤𝑓𝑠 ⦄ public
+open import Liftable.Property ⦃ r ⦄ ⦃ 𝑤𝑓𝑠 ⦄ public
 

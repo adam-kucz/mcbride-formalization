@@ -1,43 +1,26 @@
-{-# OPTIONS --exact-split --prop #-} -- TODO: add --safe
+{-# OPTIONS --exact-split --prop #-}
 open import Basic using (Rig; wfs)
 open import PropUniverses
 
 module Renaming.Syntax
-  {𝑅 : 𝒰 ˙} ⦃ r : Rig 𝑅 ⦄
-  {𝑆 : 𝒱 ˙} ⦃ 𝑤𝑓𝑠 : wfs 𝒲 𝒯 𝑆 ⦄
+  {𝑅 : 𝒰 ˙} ⦃ rig : Rig 𝑅 ⦄
+  {𝑆 : 𝒱 ˙} ⦃ wfs : wfs 𝒲 𝒯 𝑆 ⦄
   where
 
 open import Renaming.Definition
 
-open import Syntax
+open import Syntax.Definition
 open import Data.Nat
-open import Liftable
-
-instance
-  RenameableVar : Renameable Var
-  rename ⦃ RenameableVar ⦄ ρ v = ρ v
-
-  RenameableTerm : Renameable Term
-  RenameableElim : Renameable Elim
-  rename ⦃ RenameableTerm ⦄ ρ (⋆ i) = ⋆ i
-  rename ⦃ RenameableTerm ⦄ ρ ([ π x: S ]→ T) =
-    [ π x: rename ρ S ]→ rename (lift ρ) T
-  rename ⦃ RenameableTerm ⦄ ρ (λx, t) = λx, rename (lift ρ) t
-  rename ⦃ RenameableTerm ⦄ ρ ⌊ e ⌋ = ⌊ rename ρ e ⌋
-  rename ⦃ RenameableElim ⦄ ρ (var v) = var (rename ρ v)
-  rename ⦃ RenameableElim ⦄ ρ (f ` s) = rename ρ f ` rename ρ s
-  rename ⦃ RenameableElim ⦄ ρ (s ꞉ S) = rename ρ s ꞉ rename ρ S
-
-  RenameableExpr : ∀ {tag} → Renameable (expr-of-type tag)
-  RenameableExpr {term} = RenameableTerm
-  RenameableExpr {elim} = RenameableElim
+open import Liftable.Definition
 
 prevRenUnsafe : ∀ {m} → Ren (suc (suc m)) (suc m)
 prevRenUnsafe new = new
 prevRenUnsafe (old v) = v
 
-open import Data.List hiding (index)
+open import Data.List hiding (index; _++_)
+open import Data.List.Functor
 open import Data.Collection
+open import Data.Collection.Listable.Function
 open import Data.Functor
 
 fv : ∀ {m} {tag}
@@ -60,6 +43,16 @@ open import Proposition.Empty
 open import Proposition.Identity hiding (refl)
 open import Logic hiding (⊥-recursion)
 open import Proof
+
+-- shift-var : ∀ k {m} (v : Var m) →
+--   shift-by k (var v) == var (shift-by k v)
+-- shift-var zero v = refl (var v)
+-- shift-var (k +1) v = ap shift $ shift-var k v
+
+-- shift-star : ∀ k {n} i  →
+--   shift-by k (⋆ {n} i) == ⋆ {k + n} i
+-- shift-star zero i = refl (⋆ i)
+-- shift-star (k +1) i = ap shift $ shift-star k i
 
 del-nth : ∀ {m} n {tag}
   (e : expr-of-type tag (suc m))
@@ -97,7 +90,7 @@ del-nth n {elim} (s ꞉ S) p q =
   del-nth n S p (λ q' → q $ ⟵ (++-prop {l = fv s}) $ ∨right q')
 del-nth n {elim} (var v) p q =
   var (delVar n v p
-    λ nth==v → q $ Id.transport (_∈ [ v ]) (Id.sym nth==v) $ x∈x∷ [])
+    λ nth==v → q $ Id.subst (_∈ [ v ]) (Id.sym nth==v) $ x∈x∷ [])
   where open import Proposition.Comparable
         open import Data.Nat.Proof
         delVar : ∀ {m}

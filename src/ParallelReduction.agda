@@ -9,8 +9,9 @@ module ParallelReduction
 
 -- Definition 12 (parallel reduction)
 
-open import Syntax using (Term; Elim; ExprTag; expr-of-type)
-open Term; open Elim; open ExprTag
+open import Syntax
+-- using (Term; Elim; ExprTag; expr-of-type)
+-- open Term; open Elim; open ExprTag
 open import Substitution as Subs using (_[_/new])
 import Computation as Comp
 
@@ -36,7 +37,7 @@ data _▷_ {n} : ∀ {tag} (s t : expr-of-type tag n) → 𝒰 ⁺ ⊔ 𝒱 ᵖ 
     → ---------------
     ⌊ e ⌋ ▷ ⌊ e' ⌋
 
-  elim-comp : ∀ {t t'} {T T'}
+  elim-comp : ∀ {t t' T T'}
     (t▷t' : t ▷ t')
     (T▷T' : T ▷ T')
     → ---------------
@@ -46,19 +47,19 @@ data _▷_ {n} : ∀ {tag} (s t : expr-of-type tag n) → 𝒰 ⁺ ⊔ 𝒱 ᵖ 
     → ------------
     var v ▷ var v
 
-  app : ∀ {f f'} {s s'}
+  app : ∀ {f f' s s'}
     (f▷f' : f ▷ f')
     (s▷s' : s ▷ s')
     → ---------------
     f ` s ▷ f' ` s'
 
-  annot : ∀ {t t'} {T T'}
+  annot : ∀ {t t' T T'}
     (t▷t' : t ▷ t')
     (T▷T' : T ▷ T')
     → ---------------
     t ꞉ T ▷ t' ꞉ T'
 
-  lam-comp : ∀ π {t t'} {S S'} {T T'} {s s'}
+  lam-comp : ∀ π {t t' S S' T T' s s'}
     (t▷t' : t ▷ t')
     (S▷S' : S ▷ S')
     (T▷T' : T ▷ T')
@@ -69,18 +70,18 @@ data _▷_ {n} : ∀ {tag} (s t : expr-of-type tag n) → 𝒰 ⁺ ⊔ 𝒱 ᵖ 
 -- Lemma 13 (parallel reduction computes)
 
 open import Relation.Binary.Property
-  using (Reflexive; refl; _⊆_; subrel)
 import Relation.Binary.ReflexiveTransitiveClosure
 
 instance
   Reflexive▷ : ∀ {n} {tag} → Reflexive (_▷_ {n} {tag})
-  refl ⦃ Reflexive▷ {n} {term} ⦄ (⋆ i) = sort i
-  refl ⦃ Reflexive▷ {n} {term} ⦄ ([ ρ x: S ]→ T) = pi ρ (refl S) (refl T)
-  refl ⦃ Reflexive▷ {n} {term} ⦄ (λx, t) = lam (refl t)
-  refl ⦃ Reflexive▷ {n} {term} ⦄ ⌊ e ⌋ = elim (refl e)
-  refl ⦃ Reflexive▷ {n} {elim} ⦄ (var v) = var v
-  refl ⦃ Reflexive▷ {n} {elim} ⦄ (f ` s) = app (refl f) (refl s)
-  refl ⦃ Reflexive▷ {n} {elim} ⦄ (s ꞉ S) = annot (refl s) (refl S)
+
+refl ⦃ Reflexive▷ {n} {term} ⦄ (⋆ i) = sort i
+refl ⦃ Reflexive▷ {n} {term} ⦄ ([ ρ x: S ]→ T) = pi ρ (refl S) (refl T)
+refl ⦃ Reflexive▷ {n} {term} ⦄ (λx, t) = lam (refl t)
+refl ⦃ Reflexive▷ {n} {term} ⦄ ⌊ e ⌋ = elim (refl e)
+refl ⦃ Reflexive▷ {n} {elim} ⦄ (var v) = var v
+refl ⦃ Reflexive▷ {n} {elim} ⦄ (f ` s) = app (refl f) (refl s)
+refl ⦃ Reflexive▷ {n} {elim} ⦄ (s ꞉ S) = annot (refl s) (refl S)
 
 open import Function.Proof
 open Comp using (1-hole-ctx; _[_/—]; ContextClosed; ctx-closed)
@@ -93,25 +94,29 @@ private
     (C : 1-hole-ctx tag m tag' n)
     → ----------------------------
     C [ e /—] ▷ C [ e' /—]
-  ▷cc e▷e' — = e▷e'
-  ▷cc e▷e' [ ρ x: S ]→ C ↓ = pi ρ (refl S) (▷cc e▷e' C)
-  ▷cc e▷e' ([ ρ x: C ↓]→ T) = pi ρ (▷cc e▷e' C) (refl T)
-  ▷cc e▷e' (λx, C) = lam (▷cc e▷e' C)
-  ▷cc e▷e' ⌊ C ⌋ = elim (▷cc e▷e' C)
-  ▷cc e▷e' (f ` C ↓) = app (refl f) (▷cc e▷e' C)
-  ▷cc e▷e' (C ↓` s) = app (▷cc e▷e' C) (refl s)
-  ▷cc e▷e' (s ꞉ C ↓) = annot (refl s) (▷cc e▷e' C)
-  ▷cc e▷e' (C ↓꞉ S) = annot (▷cc e▷e' C) (refl S)
+
+▷cc e▷e' — = e▷e'
+▷cc e▷e' [ ρ x: S ]→ C ↓ = pi ρ (refl S) (▷cc e▷e' C)
+▷cc e▷e' ([ ρ x: C ↓]→ T) = pi ρ (▷cc e▷e' C) (refl T)
+▷cc e▷e' (λx, C) = lam (▷cc e▷e' C)
+▷cc e▷e' ⌊ C ⌋ = elim (▷cc e▷e' C)
+▷cc e▷e' (f ` C ↓) = app (refl f) (▷cc e▷e' C)
+▷cc e▷e' (C ↓` s) = app (▷cc e▷e' C) (refl s)
+▷cc e▷e' (s ꞉ C ↓) = annot (refl s) (▷cc e▷e' C)
+▷cc e▷e' (C ↓꞉ S) = annot (▷cc e▷e' C) (refl S)
 
 instance
   ContextClosed▷ : ContextClosed _▷_
-  rel-preserv ⦃ ContextClosed▷ {C = C} ⦄ e▷e' = ▷cc e▷e' C
 
+rel-preserv ⦃ ContextClosed▷ {C = C} ⦄ e▷e' = ▷cc e▷e' C
+
+open import Data.Nat
 open Comp using (_⇝_; _↠_)
 open _⇝_
 
-⇝-⊆-▷ : ∀ {n} {tag} →
-  (_⇝_ {n = n} {tag = tag}) ⊆ (_▷_ {n = n} {tag = tag})
+instance
+  ⇝-⊆-▷ : (_⇝_ {n = n}{tag}) ⊆ (_▷_ {n = n}{tag})
+
 subrel ⦃ ⇝-⊆-▷ ⦄ (β-exact (Comp.β π s S t T)) =
   lam-comp π (refl t) (refl S) (refl T) (refl s)
 subrel ⦃ ⇝-⊆-▷ ⦄ (v-exact (Comp.v t T)) = elim-comp (refl t) (refl T)
@@ -120,8 +125,9 @@ subrel ⦃ ⇝-⊆-▷ ⦄ (hole C[—] x⇝y) = ctx-closed (subrel ⦃ ⇝-⊆-
 open import Proof
 open import Computation.Proof
 
-▷-⊆-↠ : ∀ {n} {tag} →
-  (_▷_ {n = n} {tag = tag}) ⊆ (_↠_ {n = n} {tag = tag})
+instance
+  ▷-⊆-↠ : (_▷_ {n = n}{tag}) ⊆ (_↠_ {n = n}{tag})
+
 subrel ⦃ ▷-⊆-↠ ⦄ (sort i) = refl (⋆ i)
 subrel ⦃ ▷-⊆-↠ ⦄ (pi π {S} {S'} {T} {T'} S▷S' T▷T') = 
   proof [ π x: S ]→ T
@@ -161,4 +167,3 @@ subrel ⦃ ▷-⊆-↠ ⦄ (lam-comp π {t} {t'} {S} {S'} {T} {T'} {s} {s'} t▷
     〉 _⇝_ 〉 (t' ꞉ T') [ s' ꞉ S' /new]
       :by: β-exact (Comp.β π s' S' t' T')
   qed
-
