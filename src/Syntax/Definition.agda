@@ -12,43 +12,50 @@ open import Data.Nat
 -- Definition 4 (term, elimination)
 
 data Var : (n : ℕ) → 𝒰₀ ˙ where
-  new : {n : ℕ} → Var (suc n)
-  old : {n : ℕ} (a : Var n) → Var (suc n)
+  new : {n : ℕ} → Var (n +1)
+  old : {n : ℕ} (a : Var n) → Var (n +1)
 
 index : ∀ {m} (v : Var m) → ℕ
 index new = 0
-index (old v) = suc (index v)
+index (old v) = index v +1
 
+open import Proposition.Empty
+open import Logic hiding (⊥-recursion)
 open import Proof
 
 index< : ∀ {m} (v : Var m) → index v < m
-index< new = z<s
+index< {m +1} new = ⟵ -<-↔s≤- $ ap suc $ z≤ m
 index< (old v) = ap suc (index< v)
 
-open import Logic hiding (_,_)
 open import Function using (inj)
+open import Relation.Binary
 
 Var== : ∀ {m} {u v : Var m}
   → --------------------------
   u == v ↔ index u == index v
 ⟶ Var== = ap index
 ⟵ (Var== {u = new} {new}) q = refl new
-⟵ (Var== {u = old u} {old v}) q = ap old $ ⟵ Var== $ inj q
+⟵ (Var== {u = old u} {old v}) q = ap old $ ⟵ Var== $ ap pred q
 
 nth-var : ∀ {m} (n : ℕ) (p : n < m) → Var m
-nth-var {suc m} zero p = new
-nth-var {suc m} (suc n) p = old (nth-var n (s<s→-<- p))
+nth-var {zero} zero p = ⊥-recursion (Var 0) (irrefl 0 p)
+nth-var {m +1} zero _ = new
+nth-var {m +1} (n +1) p = old (nth-var n (s<s→-<- p))
 
 index-nth-var : ∀ {m} n
   (p : n < m)
   → ----------------------
   index (nth-var n p) == n
-index-nth-var {suc m} zero p = refl 0
-index-nth-var {suc m} (suc n) (s<s p) = ap suc (index-nth-var n p)
+index-nth-var {zero} zero p = ⊥-recursionₚ _ $ irrefl 0 p
+index-nth-var {m +1} zero p = refl 0
+index-nth-var {m +1} (n +1) p = ap suc (index-nth-var n (s<s→-<- p))
+-- index-nth-var {m +1} zero p = refl 0
+-- index-nth-var {m +1}(n +1)(s<s p) = 
 
 contract : ∀ {m n} (v : Var m) (p : index v < n) → Var n
-contract {suc m}{suc n} new p = new
-contract {suc m}{suc n}(old v) p = old (contract v (s<s→-<- p))
+contract {m +1}{zero} new p = ⊥-recursion (Var 0) (irrefl 0 p)
+contract {m +1}{n +1} new p = new
+contract {m +1}{n +1}(old v) p = old (contract v (s<s→-<- p))
 
 data Term (n : ℕ) : 𝒰 ⁺ ⊔ 𝒱 ˙
 data Elim (n : ℕ) : 𝒰 ⁺ ⊔ 𝒱 ˙
@@ -76,13 +83,13 @@ expr-of-type : (e : ExprTag) (n : ℕ) → 𝒰 ⁺ ⊔ 𝒱 ˙
 expr-of-type term = Term
 expr-of-type elim = Elim
 
-open import Type.Sum using (Σ; _,_)
+open import Type.Sum hiding (_,_)
 
 Expr : (n : ℕ) → 𝒰 ⁺ ⊔ 𝒱 ˙
 Expr n = Σ λ e → expr-of-type e n
 
 type-of-expr : (e : Expr n) → ExprTag
-type-of-expr (tag , _) = tag
+type-of-expr (tag Σ., _) = tag
 
 open import Proposition.Identity
   renaming (Idₚ to Id) hiding (refl)
@@ -91,12 +98,13 @@ open import Function
 
 instance
   DecidableVar== : {v v' : Var n} → Decidable (v == v')
-  DecidableVar== {v = new} {new} = true (refl new)
-  DecidableVar== {v = new} {old _} = false λ ()
-  DecidableVar== {v = old _} {new} = false λ ()
-  DecidableVar== {v = old v} {old v'} with decide (v == v')
-  DecidableVar== | true p = true (ap old p)
-  DecidableVar== | false ¬p = false λ { (Id.refl (old v)) → ¬p (refl v) }
-
   Injective-old : Injective (old {m})
-  inj ⦃ Injective-old ⦄ (Id.refl (old v)) = refl v
+
+DecidableVar== {v = new} {new} = true (refl new)
+DecidableVar== {v = new} {old _} = false λ ()
+DecidableVar== {v = old _} {new} = false λ ()
+DecidableVar== {v = old v} {old v'} with decide (v == v')
+DecidableVar== | true p = true (ap old p)
+DecidableVar== | false ¬p = false λ { (Id.refl (old v)) → ¬p (refl v) }
+
+inj ⦃ Injective-old ⦄ (Het.refl (old v)) = refl v

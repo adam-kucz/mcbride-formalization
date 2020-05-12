@@ -19,8 +19,7 @@ prevRenUnsafe (old v) = v
 
 open import Data.List hiding (index; _++_)
 open import Data.List.Functor
-open import Data.Collection
-open import Data.Collection.Listable.Function
+open import Collection
 open import Data.Functor
 
 fv : ∀ {m} {tag}
@@ -63,24 +62,25 @@ del-nth : ∀ {m} n {tag}
 
 private
   del-nth-aux :
-    ∀ {m n p} {l : List (Var (suc (suc m)))}
+    ∀ {m n p} {l : List (Var (m +2))}
     (q : old (nth-var n p) ∈ l)
     → ---------------------------------------------------
     nth-var n p ∈ (prevRenUnsafe <$> remove new l)
   del-nth-aux (x∈x∷ _) = x∈x∷ _
-  del-nth-aux (x∈tail new q) = del-nth-aux q
-  del-nth-aux (x∈tail (old h) q) = x∈tail h (del-nth-aux q)
+  del-nth-aux {m}{n}{p}(x∈tail new q) = del-nth-aux {n = n}{p} q
+  del-nth-aux {m}{n}{p}(x∈tail (old h) q) =
+    x∈tail h (del-nth-aux {n = n}{p} q)
 
 del-nth n {term} (⋆ i) p q = ⋆ i
 del-nth n {term} ([ ρ x: S ]→ T) p q =
   [ ρ x:
   del-nth n S p (λ q' → q $ ⟵ (++-prop {l' = lₜ}) $ ∨left q') ]→
   del-nth (suc n) T (s<s p)
-    (λ q' → q $ ⟵ (++-prop {l = fv S}) $ ∨right $ del-nth-aux q')
+    (λ q' → q $ ⟵ (++-prop {l = fv S}) $ ∨right $ del-nth-aux {n = n}{p} q')
   where lₜ = prevRenUnsafe <$> remove new (fv T)
 del-nth n {term} (λx, t) p q =
   λx, del-nth (suc n) t (s<s p)
-    λ q' → q $ del-nth-aux q'
+    λ q' → q $ del-nth-aux {n = n}{p} q'
 del-nth n {term} ⌊ e ⌋ p q = ⌊ del-nth n e p q ⌋
 del-nth n {elim} (f ` s) p q =
   del-nth n f p (λ q' → q $ ⟵ (++-prop {l' = fv s}) $ ∨left q') `
@@ -90,13 +90,13 @@ del-nth n {elim} (s ꞉ S) p q =
   del-nth n S p (λ q' → q $ ⟵ (++-prop {l = fv s}) $ ∨right q')
 del-nth n {elim} (var v) p q =
   var (delVar n v p
-    λ nth==v → q $ Id.subst (_∈ [ v ]) (Id.sym nth==v) $ x∈x∷ [])
+    λ nth==v → q $ Id.subst (_∈ [ v ]) (sym nth==v) $ x∈x∷ [])
   where open import Proposition.Comparable
         open import Data.Nat.Proof
         delVar : ∀ {m}
           (n : ℕ)
-          (v : Var (suc m))
-          (p : n < suc m)
+          (v : Var (m +1))
+          (p : n < m +1)
           (q : nth-var n p ≠ v)
           → --------------------
           Var m
@@ -104,11 +104,17 @@ del-nth n {elim} (var v) p q =
         delVar {m} n v p q | lt p₁ = contract v (
           proof index v
             〉 _<_ 〉 n :by: p₁
-            〉 _≤_ 〉 m :by: ⟵ -≤-↔-<s p
+            〉 _≤_ 〉 m :by: ap pred $ ⟶ -<-↔s≤- p
           qed)
         delVar {m} n v p q | eq p₁ = ⊥-recursion (Var m) (q $ ⟵ Var== (
             proof index (nth-var n p)
               〉 _==_ 〉 n       :by: index-nth-var n p
               〉 _==_ 〉 index v :by: sym p₁
             qed))
+        delVar n new p q | gt r = ⊥-recursion _ (irrefl 0 (
+          proof 0
+            〉 _≤_ 〉 n :by: z≤ n
+            〉 _<_ 〉 0 :by: r
+          qed))
+          where open import Relation.Binary
         delVar n (old v) p q | gt _ = v
