@@ -37,17 +37,19 @@ sub {tag = elim} σ (f ` s) = sub σ f ` sub σ s
 sub {tag = elim} σ (s ꞉ S) = sub σ s ꞉ sub σ S
 
 nthSub : ∀ m (p : m < n +1)(f : Elim n) → Sub (n +1) n
-nthSub m p f v with compare (index v) _<_ m
+nthSub m p f v with compare (index v) _<_ m ⦃ Comparable< ⦄
 nthSub {n} m p f v | lt q = var (contract v (
   proof index v
     〉 _<_ 〉 m :by: q
-    〉 _≤_ 〉 n :by: ⟵ -≤-↔-<s p
+    〉 _≤_ 〉 n :by: ap pred $ ⟶ -<-↔s≤- p
   qed))
 nthSub m p f v | eq _ = f
+nthSub m p f new | gt m<0 = ⊥-recursion _ (¬-<0 m m<0)
+  where open import Proposition.Empty
 nthSub m p f (old v) | gt _ = var v
 
 newSub : (f : Elim n) → Sub (n +1) n
-newSub = nthSub 0 z<s
+newSub {n} = nthSub 0 (z<s n)
 
 infix 180 _[_/new] _[_/_[_]]
 _[_/new] : {n : ℕ} {tag : ExprTag}

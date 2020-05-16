@@ -13,7 +13,7 @@ open import Syntax.Definition
 open import Data.Nat
 open import Liftable.Definition
 
-prevRenUnsafe : ∀ {m} → Ren (suc (suc m)) (suc m)
+prevRenUnsafe : ∀ {m} → Ren (m +2) (m +1)
 prevRenUnsafe new = new
 prevRenUnsafe (old v) = v
 
@@ -54,22 +54,21 @@ open import Proof
 -- shift-star (k +1) i = ap shift $ shift-star k i
 
 del-nth : ∀ {m} n {tag}
-  (e : expr-of-type tag (suc m))
-  (p : n < suc m)
+  (e : expr-of-type tag (m +1))
+  (p : n < m +1)
   (q : nth-var n p ∉ fv e)
   → ------------------------------
   expr-of-type tag m
 
-private
-  del-nth-aux :
-    ∀ {m n p} {l : List (Var (m +2))}
-    (q : old (nth-var n p) ∈ l)
-    → ---------------------------------------------------
-    nth-var n p ∈ (prevRenUnsafe <$> remove new l)
-  del-nth-aux (x∈x∷ _) = x∈x∷ _
-  del-nth-aux {m}{n}{p}(x∈tail new q) = del-nth-aux {n = n}{p} q
-  del-nth-aux {m}{n}{p}(x∈tail (old h) q) =
-    x∈tail h (del-nth-aux {n = n}{p} q)
+del-nth-aux :
+  ∀ {m n p} {l : List (Var (m +2))}
+  (q : old (nth-var n p) ∈ l)
+  → ---------------------------------------------------
+  nth-var n p ∈ (prevRenUnsafe <$> remove new l)
+del-nth-aux (x∈x∷ _) = x∈x∷ _
+del-nth-aux {m}{n}{p}(x∈tail new q) = del-nth-aux {n = n}{p} q
+del-nth-aux {m}{n}{p}(x∈tail (old h) q) =
+  x∈tail h (del-nth-aux {n = n}{p} q)
 
 del-nth n {term} (⋆ i) p q = ⋆ i
 del-nth n {term} ([ ρ x: S ]→ T) p q =

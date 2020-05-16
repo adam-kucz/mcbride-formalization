@@ -49,8 +49,6 @@ index-nth-var : ∀ {m} n
 index-nth-var {zero} zero p = ⊥-recursionₚ _ $ irrefl 0 p
 index-nth-var {m +1} zero p = refl 0
 index-nth-var {m +1} (n +1) p = ap suc (index-nth-var n (s<s→-<- p))
--- index-nth-var {m +1} zero p = refl 0
--- index-nth-var {m +1}(n +1)(s<s p) = 
 
 contract : ∀ {m n} (v : Var m) (p : index v < n) → Var n
 contract {m +1}{zero} new p = ⊥-recursion (Var 0) (irrefl 0 p)
@@ -63,8 +61,8 @@ data Elim (n : ℕ) : 𝒰 ⁺ ⊔ 𝒱 ˙
 infix 170 [_x:_]→_ λx,_
 data Term n where
   ⋆ : (i : S) → Term n
-  [_x:_]→_ : (ρ : R) (S : Term n) (T : Term (suc n)) → Term n
-  λx,_ : (t : Term (suc n)) → Term n
+  [_x:_]→_ : (ρ : R) (S : Term n) (T : Term (n +1)) → Term n
+  λx,_ : (t : Term (n +1)) → Term n
   ⌊_⌋ : (e : Elim n) → Term n
 
 infix 160 _`_ _꞉_
@@ -94,11 +92,12 @@ type-of-expr (tag Σ., _) = tag
 open import Proposition.Identity
   renaming (Idₚ to Id) hiding (refl)
 open import Proposition.Decidable
-open import Function
+open import Function hiding (_$_)
 
 instance
   DecidableVar== : {v v' : Var n} → Decidable (v == v')
   Injective-old : Injective (old {m})
+  Injective-index : Injective (index {m})
 
 DecidableVar== {v = new} {new} = true (refl new)
 DecidableVar== {v = new} {old _} = false λ ()
@@ -108,3 +107,12 @@ DecidableVar== | true p = true (ap old p)
 DecidableVar== | false ¬p = false λ { (Id.refl (old v)) → ¬p (refl v) }
 
 inj ⦃ Injective-old ⦄ (Het.refl (old v)) = refl v
+
+inj ⦃ Injective-index ⦄ {new} {new} p = Id-refl _
+inj ⦃ Injective-index ⦄ {old v} {old v'} p =
+  ap old $ inj ⦃ Injective-index ⦄ {v}{v'} (ap pred p)
+
+nth-var-index== : ∀ (v : Var m) →
+  nth-var (index v) (index< v) == v
+nth-var-index== v = inj $ subrel $ index-nth-var (index v) (index< v)
+

@@ -19,20 +19,25 @@ open import Proposition.Identity.Coercion
 open import Function hiding (_$_)
 open import Proof
 
-private
-  ap-ren : ∀ {m m' : ℕ}
-    (F : (m : ℕ) → 𝒳 ˙)
-    ⦃ _ : Renameable F ⦄
-    {K : ℕ → ℕ}
-    (ρ : ∀ {m} → Ren m (K m))
-    (e : F m)
-    (p : m == m')
-    → -----------------------
-    rename ρ (coe (ap F p) e) == rename ρ e
-  ap-ren F ρ e (Id.refl m) =
-    ap (rename ρ) $ coe-eval (Id.refl _) e
+old×-old : ∀ k → old× k ∘ old {n = m} ~ old× (k +1)
+old×-old zero = refl old
+old×-old {m} (k +1) v =
+  Id.ap2 (λ i v' → old {n = i} v')
+         (+-suc k m)
+         (old×-old k v)
 
-
+-- private
+--   ap-ren : ∀ {m m' : ℕ}
+--     (F : (m : ℕ) → 𝒳 ˙)
+--     ⦃ _ : Renameable F ⦄
+--     {K : ℕ → ℕ}
+--     (ρ : ∀ {m} → Ren m (K m))
+--     (e : F m)
+--     (p : m == m')
+--     → -----------------------
+--     rename ρ (coe (ap F p) e) == rename ρ e
+--   ap-ren F ρ e (Id-refl m) =
+--     ap (rename ρ) $ coe-eval (Id-refl _) e
 
 -- shift-inside : ∀ k {m}
 --   {F : (m : ℕ) → 𝒮 ˙}

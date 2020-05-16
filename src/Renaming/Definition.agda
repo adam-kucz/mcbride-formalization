@@ -49,7 +49,7 @@ open import Operation.Binary
 
 shift-by :
   {F : (m : ℕ) → 𝒮 ˙}
-  ⦃ _ : Renameable F ⦄
+  ⦃ r : Renameable F ⦄
   (k : ℕ)
   (x : F m)
   → ------------------------------

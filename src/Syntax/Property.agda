@@ -137,3 +137,10 @@ instance
   LiftableElim : Liftable Elim
 
 default-new ⦃ LiftableElim ⦄ = var new
+
+nth-var== : ∀ {m m' n n' p p'}
+  (q : m == m')
+  (q' : n == n')
+  → ------------------
+  nth-var {m = m} n p Het.== nth-var {m = m'} n' p'
+nth-var== (Id-refl m) (Id-refl n) = Het.refl (nth-var {m = m} n _)
