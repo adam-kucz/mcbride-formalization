@@ -10,7 +10,7 @@ module Renaming.Property
 open import Renaming.Definition
 open import Renaming.Syntax
 
-open import Syntax.Definition
+open import Syntax
 open import Liftable
 
 open import Data.Nat
@@ -26,109 +26,75 @@ old×-old {m} (k +1) v =
          (+-suc k m)
          (old×-old k v)
 
--- private
---   ap-ren : ∀ {m m' : ℕ}
---     (F : (m : ℕ) → 𝒳 ˙)
---     ⦃ _ : Renameable F ⦄
---     {K : ℕ → ℕ}
---     (ρ : ∀ {m} → Ren m (K m))
---     (e : F m)
---     (p : m == m')
---     → -----------------------
---     rename ρ (coe (ap F p) e) == rename ρ e
---   ap-ren F ρ e (Id-refl m) =
---     ap (rename ρ) $ coe-eval (Id-refl _) e
+open import Collection
+open import Data.List hiding (_++_)
+open import Data.Functor
+open import Data.Monad
+open import Data.List.Functor
 
--- shift-inside : ∀ k {m}
---   {F : (m : ℕ) → 𝒮 ˙}
---   ⦃ _ : Renameable F ⦄
---   (x : F m)
---   → ------------------------------
---   shift-by (k +1) x == shift-by k (shift x)
--- shift-inside zero x = refl (shift x)
--- shift-inside (k +1){m}{F} x =
---   proof shift-by (k +2) x
---     === shift (coe (ap F $ +-suc k m) (shift-by k (shift x)))
---       :by: ap shift $ go
---     === shift-by (k +1) (shift x)
---       :by: ap-ren F old (shift-by k (shift x)) (+-suc k m)
---   qed
---   where go = proof shift-by (k +1) x
---                === shift-by k (shift x)
---                  :by: shift-inside k x
---                === coe (ap F $ +-suc k m) (shift-by k (shift x))
---                  :by: Id.sym $
---                       coe-eval (ap F $ +-suc k m) (shift-by k (shift x))
---              qed
+open import Axiom.FunctionExtensionality
 
--- rename-shift : ∀ {m n} k {tag}
---   (ρ : Ren m n)
---   (e : expr-of-type tag m)
---   → ---------------------------------------------
---   rename (lift-by k ρ) (shift-by k e)
---   ==
---   shift-by k (rename ⦃ RenameableExpr ⦄ ρ e)
--- rename-shift k {term} ρ (⋆ i) = refl (⋆ i)
--- rename-shift k {term} ρ ([ π x: S ]→ T) = {!!}
--- rename-shift k {term} ρ (λx, t) = {!!}
--- rename-shift k {term} ρ ⌊ e ⌋ = ap ⌊_⌋ (rename-shift k ρ e)
--- rename-shift k {elim} ρ (var v) =
---   proof
---   rename (lift-by k ρ) (shift-by k e)
---   ==
---   shift-by k (rename ⦃ RenameableExpr ⦄ ρ e)
---   qed
--- rename-shift k {elim} ρ (f ` s) = {!!}
--- rename-shift k {elim} ρ (s ꞉ S) = {!!}
--- rename-shift 0 ρ e = refl (rename ρ e)
--- rename-shift (k +1){term} ρ ([ π x: S ]→ T) = {!!}
--- rename-shift (k +1){term} ρ (λx, t) = {!!}
--- rename-shift {m}(k +1){term} ρ ⌊ e ⌋ =
---   proof rename (lift-by (k +1) ρ) (shift-by (k +1) ⌊ e ⌋)
---     === rename (lift-by (k +1) ρ)
---           (coe (ap Term $ +-suc k m) (shift-by k ⌊ shift e ⌋))
---       :by: ap (rename (lift-by (k +1) ρ)) (
---         proof (shift-by (k +1) ⌊ e ⌋)
---           === shift-by k ⌊ shift e ⌋
---             :by: shift-inside k ⌊ e ⌋
---           === coe (ap Term $ +-suc k m) (shift-by k ⌊ shift e ⌋)
---             :by: Id.sym $ coe-eval (ap Term $ +-suc k m) (shift-by k ⌊ shift e ⌋)
---         qed)
---     === shift-by (k +1) (⌊ rename ρ e ⌋)
---       :by: {!rename-shift (k +1) ρ e!}
---   qed
--- rename-shift (k +1){elim} ρ (f ` s) = {!!}
--- rename-shift (k +1){elim} ρ (s ꞉ S) = {!!}
--- rename-shift (k +1){elim} ρ (var v) = go k ρ v
---   where go : ∀ {m n} k
---           (ρ : Ren m n)
---           (v : Var m)
---           → -------------------------------------------
---           rename (lift-by (k +1) ρ) (shift-by (k +1) (var v))
---           ==
---           shift-by (k +1) (rename ρ (var v))
---         go 0 ρ v = refl (var (old (ρ v)))
---         go (k +1) ρ v =
---           proof rename (lift-by (k +2) ρ) (shift-by (k +2) (var v))
---             === rename (lift-by (k +2) ρ) (shift (var (shift-by (k +1) v)))
---               :by: ap (λ — → rename (lift-by (k +2) ρ) (shift —)) $
---                    shift-var (k +1) v
---             === shift (rename (lift-by (k +1) ρ) (var (shift-by (k +1) v)))
---               :by: go 0 (lift-by (k +1) ρ) (shift-by (k +1) v)
---             === shift (rename (lift-by (k +1) ρ) (shift-by (k +1) (var v)))
---               :by: ap (λ — → shift (rename (lift-by (k +1) ρ) —)) $
---                    Id.sym $ shift-var (k +1) v
---             === shift (shift-by (k +1) (var (ρ v)))
---               :by: ap shift $ go k ρ v
---           qed
--- rename-shift (k +1) {term} ρ (⋆ i) =
---   proof rename (lift-by (k +1) ρ) (shift-by (k +1) (⋆ i))
---     === rename (lift-by (k +1) ρ) (⋆ i)
---       :by: ap (rename (lift-by (k +1) ρ)) $ shift-star (k +1) i
---     === ⋆ i
---       :by: Id.refl (⋆ i)
---     === shift-by (k +1) (⋆ i)
---       :by: Id.sym $ shift-star (k +1) i
---     === shift-by (k +1) (rename ρ (⋆ i))
---       :by: Id.refl (shift-by (k +1) (⋆ i))
---   qed
+private
+  prevSafe-lift : (ρ : Ren m n)
+    → ------------------------------------------------------
+    prevSafe ∘ rename (lift ρ) == fmap (rename ρ) ∘ prevSafe
+prevSafe-lift ρ = subrel $ fun-ext λ
+  { new → Het.refl []
+  ; (old v) → Het.refl [ ρ v ]}
+
+fv-ren :
+  (ρ : Ren m n)
+  (e : expr-of-type tag m)
+  → --------------------------------------------------
+  fv (rename ⦃ r = RenameableExpr ⦄ ρ e) == rename ρ <$> fv e
+fv-ren {tag = term} ρ (⋆ i) = Id-refl []
+fv-ren {tag = term} ρ ([ _ x: S ]→ T) =
+  proof fv (rename ⦃ r = RenameableTerm ⦄ ρ S) ++
+        (fv (rename (lift ρ) T) >>= prevSafe)
+    === (rename ρ <$> fv S) ++
+        ((rename (lift ρ) <$> fv T) >>= prevSafe)
+      :by: ap2 (λ s t → s ++ (t >>= prevSafe))
+               (fv-ren ρ S) (fv-ren (lift ρ) T)
+    === (rename ρ <$> fv S) ++ (fv T >>= prevSafe ∘ rename (lift ρ))
+        :by: ap ((rename ρ <$> fv S) ++_) $
+             fmap-bind₀ (fv T) (rename (lift ρ)) prevSafe
+    === (rename ρ <$> fv S) ++ (fv T >>= fmap (rename ρ) ∘ prevSafe)
+        :by: ap (λ — → (rename ρ <$> fv S) ++ (fv T >>= —)) $
+             prevSafe-lift ρ
+    === (rename ρ <$> fv S) ++ (rename ρ <$> (fv T >>= prevSafe))
+        :by: ap ((rename ρ <$> fv S) ++_) $
+             sym $ fmap-bind₁ (fv T) prevSafe (rename ρ)
+    === rename ρ <$> (fv S ++ (fv T >>= prevSafe))
+      :by: sym $ fmap-++ (rename ρ) (fv S) (fv T >>= prevSafe)
+  qed
+fv-ren {tag = term} ρ (λx, t) =
+  proof fv (rename ⦃ r = RenameableTerm ⦄ ρ (λx, t))
+    === fv (rename (lift ρ) t) >>= prevSafe
+      :by: Id-refl _
+    === (rename (lift ρ) <$> fv t) >>= prevSafe
+      :by: ap (_>>= prevSafe) $ fv-ren (lift ρ) t
+    === fv t >>= prevSafe ∘ rename (lift ρ)
+      :by: fmap-bind₀ (fv t) (rename (lift ρ)) prevSafe
+    === fv t >>= fmap (rename ρ) ∘ prevSafe
+      :by: ap (fv t >>=_) $ prevSafe-lift ρ
+    === rename ρ <$> (fv t >>= prevSafe)
+      :by: sym $ fmap-bind₁ (fv t) prevSafe (rename ρ)
+  qed
+fv-ren {tag = term} ρ ⌊ e ⌋ = fv-ren ρ e
+fv-ren {tag = elim} ρ (var v) = Id-refl [ ρ v ]
+fv-ren {tag = elim} ρ (f ` s) =
+  proof fv (rename ⦃ r = RenameableElim ⦄ ρ f) ++
+        fv (rename ⦃ r = RenameableTerm ⦄ ρ s)
+    === (rename ρ <$> fv f) ++ (rename ρ <$> fv s)
+      :by: ap2 _++_ (fv-ren ρ f) (fv-ren ρ s)
+    === rename ρ <$> fv f ++ fv s
+      :by: sym $ fmap-++ (rename ρ) (fv f) (fv s)
+  qed
+fv-ren {tag = elim} ρ (s ꞉ S) =
+  proof fv (rename ⦃ r = RenameableTerm ⦄ ρ s) ++
+        fv (rename ⦃ r = RenameableTerm ⦄ ρ S)
+    === (rename ρ <$> fv s) ++ (rename ρ <$> fv S)
+      :by: ap2 _++_ (fv-ren ρ s) (fv-ren ρ S)
+    === rename ρ <$> fv s ++ fv S
+      :by: sym $ fmap-++ (rename ρ) (fv s) (fv S)
+  qed

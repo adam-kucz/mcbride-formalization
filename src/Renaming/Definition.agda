@@ -10,15 +10,15 @@ module Renaming.Definition
 open import Data.Nat
 open import Syntax.Definition using (Var; new; old)
 
-Ren : (m n : ℕ) → 𝒰₀ ˙
-Ren m n = (v : Var m) → Var n
-
 open import Proposition.Identity
 open import Function
 
+Ren : (m n : ℕ) → 𝒰₀ ˙
+Ren m n = (v : Var m) → Var n
+
 record Renameable (F : (m : ℕ) → 𝒮 ˙): 𝒮 ˙ where
   field
-    rename : (ρ : Ren m n) (x : F m) → F n
+    rename : (ρ : Ren m n)(e : F m) → F n
     rename-id : rename (𝑖𝑑 (Var m)) == 𝑖𝑑 (F m)
     rename-∘ :
       (π : Ren n k)

@@ -1,4 +1,4 @@
-{-# OPTIONS --exact-split --prop #-} -- TODO: add --safe
+{-# OPTIONS --exact-split --prop #-}
 open import Basic using (Rig; wfs)
 open import PropUniverses
 
@@ -8,69 +8,61 @@ module Substitution.Definition
   where
 
 open import Syntax ⦃ rig ⦄ ⦃ wfs ⦄
-open import Liftable
 open import Renaming
 
-open import Data.Nat
-open import Data.Nat.Proof
-open import Proposition.Identity hiding (refl)
-open import Proposition.Identity.Coercion
-open import Proposition.Comparable
-open import Function.Extensionality
-open import Logic hiding (⊥-recursion)
+open import Data.Nat hiding (_⊔_)
+open import Function hiding (_$_)
 open import Proof
 
-Sub : (m n : ℕ) → 𝒰 ⁺ ⊔ 𝒱 ˙
-Sub m n = (v : Var m) → Elim n
+open import Substitution.Basic using (Sub; _⍟_) public
 
-sub :
-  (σ : Sub m n)
-  (e : expr-of-type tag m)
-  → ------------------------------
-  expr-of-type tag n
-sub {tag = term} σ (⋆ i) = ⋆ i
-sub {tag = term} σ ([ ρ x: S ]→ T) = [ ρ x: sub σ S ]→ sub (lift σ) T
-sub {tag = term} σ (λx, e) = λx, sub (lift σ) e
-sub {tag = term} σ ⌊ e ⌋ = ⌊ sub σ e ⌋
-sub {tag = elim} σ (var x) = σ x
-sub {tag = elim} σ (f ` s) = sub σ f ` sub σ s
-sub {tag = elim} σ (s ꞉ S) = sub σ s ꞉ sub σ S
+record Substitutable (F : (m : ℕ) → 𝒮 ˙) : 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒮 ˙ where
+  field
+    ⦃ ren ⦄ : Renameable F
+    sub : (σ : Sub m n)(e : F m) → F n
+    rename-as-sub : (ρ : Ren m n) → rename ρ == sub (var ∘ ρ)
+    sub-id : sub {m} var == id
+    sub-∘ :
+      (σ : Sub n k)
+      (τ : Sub m n)
+      → ------------------------------------
+      sub σ ∘ sub τ == sub (σ ⍟ τ)
 
-nthSub : ∀ m (p : m < n +1)(f : Elim n) → Sub (n +1) n
-nthSub m p f v with compare (index v) _<_ m ⦃ Comparable< ⦄
-nthSub {n} m p f v | lt q = var (contract v (
-  proof index v
-    〉 _<_ 〉 m :by: q
-    〉 _≤_ 〉 n :by: ap pred $ ⟶ -<-↔s≤- p
-  qed))
-nthSub m p f v | eq _ = f
-nthSub m p f new | gt m<0 = ⊥-recursion _ (¬-<0 m m<0)
-  where open import Proposition.Empty
-nthSub m p f (old v) | gt _ = var v
+  open import Type.BinarySum renaming (_+_ to _⊹_)
+  open import Function hiding (_$_)
+  open import Proposition.Empty
 
-newSub : (f : Elim n) → Sub (n +1) n
-newSub {n} = nthSub 0 (z<s n)
+  aux-nthSub : ∀ (x : X){k}
+    (m : ℕ)
+    (p : m < k +1)
+    (v : Var (k +1))
+    → --------------------
+    X ⊹ Elim k
+  aux-nthSub x 0 _ new = inl x
+  aux-nthSub x 0 _ (old v) = inr (var v)
+  aux-nthSub x {zero} (m +1) p new = ⊥-recursion _ (¬-<0 m $ s<s→-<- p)
+  aux-nthSub x {k +1} (m +1) _ new = inr (var new)
+  aux-nthSub x {k +1} (m +1) p (old v) =
+    [ id + shift ] (aux-nthSub x m (s<s→-<- p) v)
+    
+  nthSub : ∀ m (p : m < n +1)(f : Elim n) → Sub (n +1) n
+  nthSub {n} m p f v = [ id , id ] (aux-nthSub f m p v)
+  
+  newSub : (f : Elim n) → Sub (n +1) n
+  newSub {n} = nthSub 0 (z<s n)
+  
+  infix 180 _[_/new] _[_/_[_]]
+  _[_/new] : (e : F (n +1))(f : Elim n) → F n
+  e [ f /new] = sub (newSub f) e
+  
+  _[_/_[_]] :
+    (e : F (n +1))
+    (f : Elim n)
+    (m : ℕ)
+    (p : m < n +1)
+    → -------------------------------------------------------------
+    F n
+  e [ f / m [ p ]] = sub (nthSub m p f) e
 
-infix 180 _[_/new] _[_/_[_]]
-_[_/new] : {n : ℕ} {tag : ExprTag}
-  → -------------------------------------------------------------
-  (e : expr-of-type tag (suc n)) (f : Elim n) → expr-of-type tag n
-e [ f /new] = sub (newSub f) e
+open Substitutable ⦃ … ⦄ public
 
-_[_/_[_]] :
-  (e : expr-of-type tag (n +1))
-  (f : Elim n)
-  (m : ℕ)
-  (p : m < n +1)
-  → -------------------------------------------------------------
-  expr-of-type tag n
-e [ f / m [ p ]] = sub (nthSub m p f) e
-
-open import Function
-
-_⍟_ : {m n k : ℕ}
-  (σ' : Sub n k)
-  (σ : Sub m n)
-  → --------------
-  Sub m k
-σ' ⍟ σ = sub σ' ∘ σ

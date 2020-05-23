@@ -62,7 +62,8 @@ private
   renElim-id~id : ∀ {m} → renElim (𝑖𝑑 (Var m)) ~ id
 
 renTerm-id~id (⋆ i) = Het.refl (⋆ i)
-renTerm-id~id ([ ρ x: S ]→ T) = Het.ap2 ([ ρ x:_]→_) (renTerm-id~id S) (
+renTerm-id~id ([ ρ x: S ]→ T) = Id.ap2 ([ ρ x:_]→_)
+  (subrel {_P_ = _==_} $ renTerm-id~id S) (
   proof renTerm (lift id) T
     ===   renTerm id T :by: ap (λ — → renTerm — T) lift-id==id
     het== T            :by: renTerm-id~id T
@@ -76,9 +77,9 @@ renTerm-id~id ⌊ e ⌋ = ap ⌊_⌋ $ renElim-id~id e
 
 renElim-id~id (var v) = refl (var v)
 renElim-id~id (f ` s) =
-  Het.ap2 _`_ (renElim-id~id f) (renTerm-id~id s)
+  Id.ap2 _`_ (subrel {_P_ = _==_} $ renElim-id~id f) (renTerm-id~id s)
 renElim-id~id (s ꞉ S) =
-  Het.ap2 _꞉_ (renTerm-id~id s) (renTerm-id~id S)
+  Id.ap2 _꞉_ (subrel {_P_ = _==_} $ renTerm-id~id s) (renTerm-id~id S)
 
 renTerm-∘ : ∀ {m n k}
     (π : Ren n k)
@@ -92,8 +93,8 @@ renElim-∘ : ∀ {m n k}
     renElim (π ∘ ρ) ~ renElim π ∘ renElim ρ
 
 renTerm-∘ π ρ (⋆ i) = refl (⋆ i)
-renTerm-∘ π ρ ([ ν x: S ]→ T) = Het.ap2 [ ν x:_]→_
-  (renTerm-∘ π ρ S)
+renTerm-∘ π ρ ([ ν x: S ]→ T) = Id.ap2 [ ν x:_]→_
+  (subrel {_P_ = _==_} $ renTerm-∘ π ρ S)
   (proof renTerm (lift (π ∘ ρ)) T
      === renTerm (lift π ∘ lift ρ) T
        :by: ap (λ — → renTerm — T) (lift-∘ π ρ)
@@ -110,8 +111,10 @@ renTerm-∘ π ρ (λx, t) = ap λx,_ (
 renTerm-∘ π ρ ⌊ e ⌋ = ap ⌊_⌋ (renElim-∘ π ρ e)
 
 renElim-∘ π ρ (var v) = Het.refl (var (π (ρ v)))
-renElim-∘ π ρ (f ` s) = Het.ap2 _`_ (renElim-∘ π ρ f) (renTerm-∘ π ρ s)
-renElim-∘ π ρ (s ꞉ S) = Het.ap2 _꞉_ (renTerm-∘ π ρ s) (renTerm-∘ π ρ S)
+renElim-∘ π ρ (f ` s) =
+  Id.ap2 _`_ (subrel {_P_ = _==_} $ renElim-∘ π ρ f) (renTerm-∘ π ρ s)
+renElim-∘ π ρ (s ꞉ S) =
+  Id.ap2 _꞉_ (subrel {_P_ = _==_}  $ renTerm-∘ π ρ s) (renTerm-∘ π ρ S)
 
 RenameableTerm : Renameable Term
 rename ⦃ RenameableTerm ⦄ = renTerm
@@ -138,9 +141,21 @@ instance
 
 default-new ⦃ LiftableElim ⦄ = var new
 
-nth-var== : ∀ {m m' n n' p p'}
+nth-var== : ∀ {m m' n n'}
+  (p : n < m)
   (q : m == m')
   (q' : n == n')
   → ------------------
-  nth-var {m = m} n p Het.== nth-var {m = m'} n' p'
-nth-var== (Id-refl m) (Id-refl n) = Het.refl (nth-var {m = m} n _)
+  nth-var {m = m} n p
+  Het.==
+  nth-var {m = m'} n' (Id.coe (ap2 _<_ q' q) p)
+nth-var== _ (Id-refl m) (Id-refl n) = Het.refl (nth-var {m = m} n _)
+
+open import Logic
+
+new≠old : ∀ m
+  (v : Var n)
+  (p : m == n)
+  → ------------------------------
+  ¬ (new {n = m} Het.== old v)
+new≠old m v (Id-refl m) ()

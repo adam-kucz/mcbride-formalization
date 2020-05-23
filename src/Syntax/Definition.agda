@@ -112,7 +112,23 @@ inj ⦃ Injective-index ⦄ {new} {new} p = Id-refl _
 inj ⦃ Injective-index ⦄ {old v} {old v'} p =
   ap old $ inj ⦃ Injective-index ⦄ {v}{v'} (ap pred p)
 
+old==old→== : {v : Var m}{v' : Var n}
+  (p : m == n)
+  (q : old v Het.== old v')
+  → -----------------
+  v Het.== v'
+old==old→== (Id-refl m) (Het.refl (old v)) = Het.refl v
+
 nth-var-index== : ∀ (v : Var m) →
   nth-var (index v) (index< v) == v
 nth-var-index== v = inj $ subrel $ index-nth-var (index v) (index< v)
+
+index==→var== :
+  {v : Var m}
+  {v' : Var n}
+  (p : m == n)
+  (q : index v == index v')
+  →
+  v Het.== v'
+index==→var== (Id-refl x) q = subrel $ inj $ subrel q
 
