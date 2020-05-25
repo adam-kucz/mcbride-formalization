@@ -2,7 +2,7 @@
 open import PropUniverses
 open import Basic using (Rig; wfs)
 
-module Computation.Basic
+module Computation.Definition
   {R : 𝒰 ˙} ⦃ rig : Rig R ⦄
   {S : 𝒱 ˙} ⦃ wfs : wfs 𝒲 𝒯 S ⦄
   where
@@ -38,53 +38,53 @@ data 1-hole-ctx
   (n : ℕ) -- number of free variables of the context (n ≤ m)
   → 𝒰 ⁺ ⊔ 𝒱 ˙
   where
-  — : ∀ {n} {e}
+  — : ∀ {e n}
     → ------------
     1-hole-ctx e n e n
   
-  [_x:_]→_↓ : ∀ {e} {m n}
+  [_x:_]→_↓ : ∀ {e m n}
     (ρ : R)
     (S : Term n)
-    (C[—] : 1-hole-ctx e m term (suc n))
+    (C[—] : 1-hole-ctx e m term (n +1))
     → ---------------------
     1-hole-ctx e m term n
 
   [_x:_↓]→_ : ∀ {e} {m n}
     (ρ : R)
     (C[—] : 1-hole-ctx e m term n)
-    (T : Term (suc n))
+    (T : Term (n +1))
     → ----------------------
     1-hole-ctx e m term n
 
-  λx,_ : ∀ {e} {m n}
-    (C[—] : 1-hole-ctx e m term (suc n))
+  λx,_ : ∀ {e m n}
+    (C[—] : 1-hole-ctx e m term (n +1))
     → ----------------------
     1-hole-ctx e m term n
 
-  ⌊_⌋ : ∀ {e} {m n}
+  ⌊_⌋ : ∀ {e m n}
     (C[—] : 1-hole-ctx e m elim n)
     → ---------------------
     1-hole-ctx e m term n
 
-  _`_↓ : ∀ {e} {m n}
+  _`_↓ : ∀ {e m n}
     (f : Elim n)
     (C[—] : 1-hole-ctx e m term n)
     → ----------------------
     1-hole-ctx e m elim n
 
-  _↓`_ : ∀ {e} {m n}
+  _↓`_ : ∀ {e m n}
     (C[—] : 1-hole-ctx e m elim n)
     (s : Term n)
     → ---------------------
     1-hole-ctx e m elim n
 
-  _꞉_↓ : ∀ {e} {m n}
+  _꞉_↓ : ∀ {e m n}
     (s : Term n)
     (C[—] : 1-hole-ctx e m term n)
     →  ----------------------
     1-hole-ctx e m elim n
 
-  _↓꞉_ : ∀ {e} {m n}
+  _↓꞉_ : ∀ {e m n}
     (C[—] : 1-hole-ctx e m term n)
     (S : Term n)
     → ----------------------
@@ -98,9 +98,9 @@ _[_/—] : {m n : ℕ}
   → ----------------------
   expr-of-type tag₂ n
 — [ e /—] = e
-_[_/—] ([ π x: S ]→ C[—] ↓) e = [ π x: S ]→ C[—] [ e /—]
+([ π x: S ]→ C[—] ↓) [ e /—] = [ π x: S ]→ C[—] [ e /—]
 ([ π x: C[—] ↓]→ T) [ e /—] = [ π x: C[—] [ e /—] ]→ T
-_[_/—] (λx, C[—]) e = λx, C[—] [ e /—]
+(λx, C[—]) [ e /—] = λx, C[—] [ e /—]
 ⌊ C[—] ⌋ [ e /—] = ⌊ C[—] [ e /—] ⌋
 (f ` C[—] ↓) [ e /—] = f ` C[—] [ e /—]
 (C[—] ↓` s) [ e /—] = C[—] [ e /—] ` s
@@ -141,8 +141,8 @@ data _⇝_ : RelOnExpr (𝒰 ⁺ ⊔ 𝒱)
     → -------------
     s ⇝ t
 
-  hole : ∀ {tag₁ tag₂} {s t}
-    (C[—] : 1-hole-ctx tag₁ m tag₂ n)
+  hole : ∀ {m n tag₀ tag₁ s t}
+    (C[—] : 1-hole-ctx tag₀ m tag₁ n)
     (reduct : s ⇝ t)
     → --------------------
     C[—] [ s /—] ⇝ C[—] [ t /—]

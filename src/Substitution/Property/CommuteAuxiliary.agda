@@ -1,33 +1,37 @@
 {-# OPTIONS --exact-split --prop #-} -- TODO: add --safe
 open import Basic using (Rig; wfs)
 open import PropUniverses
+open import Data.Nat hiding (l)
 
 module Substitution.Property.CommuteAuxiliary
   {R : 𝒰 ˙} ⦃ rig : Rig R ⦄
   {S : 𝒱 ˙} ⦃ wfs : wfs 𝒲 𝒯 S ⦄
   where
 
+open import Substitution.Basic
 open import Substitution.Definition
+open import Substitution.Syntax
 open import Substitution.Property.NthVarAuxiliary
 
 open import Proposition.Comparable
-open import Data.Nat hiding (l)
 open import Relation.Binary hiding (_~_)
 open import Function hiding (_$_)
 open import Logic
 open import Proof
 
-open import Syntax ⦃ rig ⦄ ⦃ wfs ⦄
 open import Liftable
 open import Renaming
+open import Syntax
 
 open import Proposition.Identity.Coercion
 open import Axiom.FunctionExtensionality
 
 open import Type.BinarySum hiding (_+_)
-{-
+
 private
-  aux-nthSub-inner : ∀ (x : X)(f : X → Y)(p : k < m +1)(v : Var (m +1)) →
+  aux-nthSub-inner :
+    (x : X)(f : X → Y)(p : k < m +1)(v : Var (m +1))
+    → --------------------------------------------------
     [ f + id ] (aux-nthSub x k p v)
     ==
     aux-nthSub (f x) k p v
@@ -37,7 +41,8 @@ aux-nthSub-inner {k = zero} x f p (old v) = Id-refl (inr (var v))
 aux-nthSub-inner {k = k +1} {zero} x f p new =
   ⊥-recursion _ $ ¬-<0 k $ s<s→-<- p
 aux-nthSub-inner {k = k +1} {m +1} x f p new = Id-refl (inr (var new))
-aux-nthSub-inner {k = k +1} {m +1} x f p (old v) = subrel {_R_ = Het._==_} (
+aux-nthSub-inner {k = k +1} {m +1} x f p (old v) =
+  subrel {_R_ = Het._==_} (
   proof [ f + id ] ([ id + shift ] e₀)
     het== [ f + shift ] e₀
       :by: [ f + id ]∘[ id + shift ] e₀
@@ -49,17 +54,18 @@ aux-nthSub-inner {k = k +1} {m +1} x f p (old v) = subrel {_R_ = Het._==_} (
   where e₀ = aux-nthSub x k (s<s→-<- p) v
         e₁ = aux-nthSub (f x) k (s<s→-<- p) v
 
-lift-nthSub : ∀ {k m}
+lift-nthSub : ∀{k m}
   (f : Elim m)
   (p : k < m +1)
   → --------------------------------------------------
-  lift (nthSub k p f) == nthSub (k +1) (s<s p) (shift f)
-lift-nthSub {k}{m} f p = subrel {_R_ = Het._==_} $ fun-ext
+  lift (nthSub k p f)
+  ==
+  nthSub (k +1) (s<s p) (shift f)
+lift-nthSub {k = k}{m} f p =
+  subrel {_R_ = Het._==_} $ fun-ext
   λ { new → Het.refl (var new)
     ; (old v) →
         proof lift (nthSub k p f) (old v)
-          === shift (nthSub k p f v)
-            :by: Id-refl _
           === shift ([ id , id ] (aux-nthSub f k p v))
             :by: Id-refl _
           het== [ shift , shift ] (aux-nthSub f k p v)
@@ -72,8 +78,6 @@ lift-nthSub {k}{m} f p = subrel {_R_ = Het._==_} $ fun-ext
           het== [ id , id ] ([ id + shift ] (aux-nthSub (shift f) k p v))
             :by: sym {𝒰 = 𝒰 ⁺ ⊔ 𝒱}{𝒰 ⁺ ⊔ 𝒱} $
                  [ id , id ]∘[ id + shift ] (aux-nthSub (shift f) k p v)
-          === [ id , id ] (aux-nthSub (shift f) (k +1) (s<s p) (shift v))
-            :by: Id-refl _
           === nthSub (k +1) (s<s p) (shift f) (shift v)
             :by: Id-refl _
         qed}
@@ -83,6 +87,12 @@ open import Data.Functor
 open import Data.Monad
 open import Data.List as L hiding ([_]; index; _++_)
 open import Data.List.Functor
+
+private
+  module Tag {tag : ExprTag} where
+    open WithInstanceArgs ⦃ subst = SubstitutableExpr {tag = tag} ⦄ public
+
+open Tag
 
 nthSub-neutral : ∀ {k m}
   (f : Elim m)
@@ -146,20 +156,11 @@ nthSub-neutral {k} f {elim} (var v) p q =
           qed
           where q' : nth-var k (s<s→-<- p) ≠ v
                 q' nth-var==v = q $ ap old nth-var==v
--}
 
-sub-sub :
-  (σ' : Sub n k)
-  (σ : Sub m n)
-  → ------------------
-  sub σ' ∘ sub σ == sub (sub σ' σ)
-sub-sub = ?
-
-{-
 sub-newSub :
   (σ : Sub m n)
   (f : Elim m)
-  → --------------------------------------------------
+  → ----------------------------------------------------------------------
   σ ⍟ newSub f == newSub (sub σ f) ⍟ lift σ
 sub-newSub {m}{n} σ f = subrel {_R_ = Het._==_} $ fun-ext
   λ { new → Het.refl (sub σ f)
@@ -204,4 +205,4 @@ sub-newSub {m}{n} σ f = subrel {_R_ = Het._==_} $ fun-ext
           Id.coe (ap (λ — → new ∈ fv —) $
                   subrel {_P_ = _==_} $
                   coe-eval (Id-refl _) (e' v)) p
--}
+

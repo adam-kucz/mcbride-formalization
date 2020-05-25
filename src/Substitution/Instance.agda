@@ -8,6 +8,9 @@ module Substitution.Instance
   where
 
 open import Substitution.Definition
+open WithInstanceArgs
+open import Renaming.Instance
+
 open import Data.Nat
 
 instance
@@ -22,11 +25,14 @@ open import Syntax
 open import Function hiding (_$_)
 open import Proof
 
+open import Axiom.FunctionExtensionality
+
+Substitutable.ren (SubstitutableFun ⦃ s = s ⦄) = RenameableFun
 sub ⦃ SubstitutableFun ⦄ σ f x = sub σ (f x)
 sub-id ⦃ SubstitutableFun ⦃ s = s ⦄ ⦄ =
   proof (λ f x → sub var (f x))
     === (λ f x → f x)
-      :by: ap (λ — → λ f x → — (f x)) (sub-id ⦃ r = s ⦄)
+      :by: ap (λ — → λ f x → — (f x)) (sub-id ⦃ subst = s ⦄)
     === id
       :by: Id-refl _
   qed
@@ -35,5 +41,9 @@ sub-∘ ⦃ SubstitutableFun ⦃ s = s ⦄ ⦄ σ τ =
     === (λ f x → (sub σ ∘ sub τ) (f x))
       :by: Id-refl _
     === (λ f x → sub (σ ⍟ τ) (f x))
-      :by: ap (λ — → λ f x → — (f x)) (sub-∘ ⦃ r = s ⦄ σ τ)
+      :by: ap (λ — → λ f x → — (f x)) (sub-∘ ⦃ subst = s ⦄ σ τ)
   qed
+rename-as-sub ⦃ SubstitutableFun ⦃ s = s ⦄ ⦄ ρ =
+  subrel {_P_ = _==_} $ fun-ext λ σ → fun-ext λ x →
+  ==→~ (rename-as-sub ⦃ subst = s ⦄ ρ) (σ x)
+

@@ -7,5 +7,5 @@ module Computation
   {S : 𝒱 ˙} ⦃ wfs : wfs 𝒲 𝒯 S ⦄
   where
 
-open import Computation.Basic ⦃ rig ⦄ ⦃ wfs ⦄ public
+open import Computation.Definition ⦃ rig ⦄ ⦃ wfs ⦄ public
 open import Computation.Property ⦃ rig ⦄ ⦃ wfs ⦄ public

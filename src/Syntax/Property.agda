@@ -116,25 +116,25 @@ renElim-∘ π ρ (f ` s) =
 renElim-∘ π ρ (s ꞉ S) =
   Id.ap2 _꞉_ (subrel {_P_ = _==_}  $ renTerm-∘ π ρ s) (renTerm-∘ π ρ S)
 
-RenameableTerm : Renameable Term
-rename ⦃ RenameableTerm ⦄ = renTerm
-rename-id ⦃ RenameableTerm ⦄ =
-  subrel {_P_ = _==_} $ fun-ext renTerm-id~id
-rename-∘ ⦃ RenameableTerm ⦄ π ρ =
-  subrel {_P_ = _==_} $ fun-ext $ renTerm-∘ π ρ
-
-RenameableElim : Renameable Elim
-rename ⦃ RenameableElim ⦄ = renElim
-rename-id ⦃ RenameableElim ⦄ =
-  subrel {_P_ = _==_} $ fun-ext renElim-id~id
-rename-∘ ⦃ RenameableElim ⦄ π ρ =
-  subrel {_P_ = _==_} $ fun-ext $ renElim-∘ π ρ
-
 instance
   RenameableExpr : ∀ {tag} → Renameable (expr-of-type tag)
+RenameableTerm : Renameable Term
+RenameableElim : Renameable Elim
 
-RenameableExpr {term} = RenameableTerm
-RenameableExpr {elim} = RenameableElim
+rename ⦃ RenameableExpr {term} ⦄ = renTerm
+rename-id ⦃ RenameableExpr {term} ⦄ =
+  subrel {_P_ = _==_} $ fun-ext renTerm-id~id
+rename-∘ ⦃ RenameableExpr {term} ⦄ π ρ =
+  subrel {_P_ = _==_} $ fun-ext $ renTerm-∘ π ρ
+
+rename ⦃ RenameableExpr {elim} ⦄ = renElim
+rename-id ⦃ RenameableExpr {elim} ⦄ =
+  subrel {_P_ = _==_} $ fun-ext renElim-id~id
+rename-∘ ⦃ RenameableExpr {elim} ⦄ π ρ =
+  subrel {_P_ = _==_} $ fun-ext $ renElim-∘ π ρ
+
+RenameableTerm = RenameableExpr {term}
+RenameableElim = RenameableExpr {elim}
 
 instance
   LiftableElim : Liftable Elim

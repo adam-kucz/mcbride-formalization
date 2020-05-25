@@ -92,11 +92,11 @@ del-nth n {term} (⋆ i) p q = ⋆ i
 del-nth n {term} ([ ρ x: S ]→ T) p q =
   [ ρ x:
   del-nth n S p (λ q' → q $ ⟵ (++-prop {l' = lₜ}) $ ∨left q') ]→
-  del-nth (suc n) T (s<s p)
+  del-nth (n +1) T (s<s p)
     (λ q' → q $ ⟵ (++-prop {l = fv S}) $ ∨right $ del-nth-aux {n = n}{p} q')
   where lₜ = fv T >>= prevSafe
 del-nth n {term} (λx, t) p q =
-  λx, del-nth (suc n) t (s<s p)
+  λx, del-nth (n +1) t (s<s p)
     λ q' → q $ del-nth-aux {n = n}{p} q'
 del-nth n {term} ⌊ e ⌋ p q = ⌊ del-nth n e p q ⌋
 del-nth n {elim} (f ` s) p q =

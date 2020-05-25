@@ -10,16 +10,18 @@ module ParallelReduction.Proof
 open import Syntax using (Term; Elim; ExprTag; expr-of-type)
 open Term; open Elim; open ExprTag
 open import ParallelReduction
-open import Substitution
-  using (_[_/new]; rename-[-/new])
+import Substitution as Subs
+open Subs using (rename-[-/new])
 
-open import Proposition.Identity as Id using (_==_)
-open Id.Id renaming (sym to Id-sym)
 open import Proof
 open import Function.Proof
 
 open import Renaming
 open import Liftable
+
+private
+  _[_/new] = Subs._[_/new] ⦃ subst = Subs.SubstitutableElim ⦄
+infix 180 _[_/new]
 
 module comp-▷ {n} {tag}
   where open MakeComposable (_▷_ {n = n} {tag}) public
@@ -53,5 +55,5 @@ rel-preserv ⦃ Relating-rename-▷ {ρ = ρ} ⦄
       :by: lam-comp π (rel-preserv t▷t') (rel-preserv S▷S')
                       (rel-preserv T▷T') (rel-preserv s▷s')
     〉 _==_ 〉 rename ρ ((t' ꞉ T') [ s' ꞉ S' /new])
-      :by: Id-sym $ rename-[-/new] ρ (t' ꞉ T') (s' ꞉ S')
+      :by: sym {R = _==_} $ rename-[-/new] ρ (t' ꞉ T') (s' ꞉ S')
   qed

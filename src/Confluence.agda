@@ -7,84 +7,23 @@ module Confluence
   {S : 𝒱 ˙} ⦃ wfs : wfs 𝒲 𝒯 S ⦄
   where
 
-open import Syntax ⦃ wfs = wfs ⦄
-open import Substitution
+open import Syntax ⦃ rig ⦄ ⦃ wfs ⦄
+open import Substitution as Subs
+  hiding (sub; _[_/new])
+private
+  sub = λ {m}{n}{tag : ExprTag} →
+          Subs.sub ⦃ subst = SubstitutableExpr {tag = tag} ⦄ {m = m}{n}
+  _[_/new] = λ {n}{tag : ExprTag} →
+               Subs._[_/new] ⦃ subst = SubstitutableExpr {tag = tag} ⦄ {n = n}
+infix 180 _[_/new]
+          
 open import Renaming
 open import Liftable
 open import Computation hiding (v)
 open import ParallelReduction
 open _▷_
 
--- Lemma 14 (vectorized substitution)
-
-open import Data.Nat
-open import Proposition.Identity hiding (refl)
-open import Proof
-open import Proposition.Proof
-open import ParallelReduction.Proof
-
-private
-  liftSubVec : ∀ {m n}
-    (σ σ' : Sub m n)
-    (𝒆▷𝒆' : (v : Var m) → σ v ▷ σ' v)
-    → -------------------------------
-    (v : Var (suc m)) → lift σ v ▷ lift σ' v
-
-liftSubVec σ σ' 𝒆▷𝒆' Var.new = refl (var Var.new)
-liftSubVec σ σ' 𝒆▷𝒆' (Var.old v) = ap (shift {F = Elim}) $ 𝒆▷𝒆' v
-
-liftSub-to-▷ : ∀ {m n} {tag}
-  (σ σ' : Sub m n)
-  {t t' : expr-of-type tag m}
-  (t▷t' : t ▷ t')
-  (𝒆▷𝒆' : (v : Var m) → σ v ▷ σ' v)
-  → ------------------------------
-  sub σ t ▷ sub σ' t'
-liftSub-to-▷ σ σ' (sort i) 𝒆▷𝒆' = refl (⋆ i)
-liftSub-to-▷ σ σ' (pi π {S} {S'} {T} {T'} S▷S' T▷T') 𝒆▷𝒆' =
-  pi π (liftSub-to-▷ σ σ' S▷S' 𝒆▷𝒆')
-       (liftSub-to-▷ (lift σ) (lift σ')
-       T▷T'
-       (liftSubVec σ σ' 𝒆▷𝒆'))
-liftSub-to-▷ σ σ' (lam t▷t') 𝒆▷𝒆' =
-  lam (liftSub-to-▷ (lift σ) (lift σ') t▷t' (liftSubVec σ σ' 𝒆▷𝒆'))
-liftSub-to-▷ σ σ' (elim t▷t') 𝒆▷𝒆' = elim (liftSub-to-▷ σ σ' t▷t' 𝒆▷𝒆')
-liftSub-to-▷ σ σ' (elim-comp t▷t' t▷t'') 𝒆▷𝒆' =
-  elim-comp (liftSub-to-▷ σ σ' t▷t' 𝒆▷𝒆')
-            (liftSub-to-▷ σ σ' t▷t'' 𝒆▷𝒆')
-liftSub-to-▷ σ σ' (var v) 𝒆▷𝒆' = 𝒆▷𝒆' v
-liftSub-to-▷ σ σ' (app t▷t' t▷t'') 𝒆▷𝒆' =
-  app (liftSub-to-▷ σ σ' t▷t' 𝒆▷𝒆')
-      (liftSub-to-▷ σ σ' t▷t'' 𝒆▷𝒆')
-liftSub-to-▷ σ σ' (annot t▷t' t▷t'') 𝒆▷𝒆' =
-  annot (liftSub-to-▷ σ σ' t▷t' 𝒆▷𝒆')
-        (liftSub-to-▷ σ σ' t▷t'' 𝒆▷𝒆')
-liftSub-to-▷ σ σ'
-    (lam-comp π {t}{t'}{S}{S'}{T}{T'}{s}{s'} t▷t' t▷t'' t▷t''' t▷t'''')
-    𝒆▷𝒆' =
-  proof (λx, sub (lift σ) t ꞉ [ π x: sub σ S ]→ sub (lift σ) T) ` sub σ s
-    〉 _▷_ 〉 (sub (lift σ') t' ꞉ sub (lift σ') T') [ sub σ' s' ꞉ sub σ' S' /new]
-      :by: lam-comp π
-             (liftSub-to-▷ (lift σ) (lift σ') t▷t' (liftSubVec σ σ' 𝒆▷𝒆'))
-             (liftSub-to-▷ σ σ' t▷t'' 𝒆▷𝒆')
-             (liftSub-to-▷ (lift σ) (lift σ') t▷t''' (liftSubVec σ σ' 𝒆▷𝒆'))
-             (liftSub-to-▷ σ σ' t▷t'''' 𝒆▷𝒆')
-    〉 _==_ 〉 (sub (lift σ') (t' ꞉ T')) [ sub σ' (s' ꞉ S') /new]
-      :by: Id.refl _
-    〉 _==_ 〉 sub σ' ((t' ꞉ T') [ s' ꞉ S' /new])
-      :by: sub-sub-new σ' (t' ꞉ T') (s' ꞉ S')
-    〉 _==_ 〉 sub σ' (t' [ s' ꞉ S' /new]) ꞉ sub σ' (T' [ s' ꞉ S' /new])
-      :by: Id.refl _
-  qed
-
-postulate
-  liftSub-to-↠ : ∀ {m n} {tag}
-    (σ σ' : Sub m n)
-    {t t' : expr-of-type tag m}
-    (t↠t' : t ↠ t')
-    (e↠e' : ∀ v → σ v ↠ σ' v)
-    → ------------------------------
-    sub σ t ↠ sub σ' t'
+open import Confluence.VectorizedSubstitution
 
 -- Lemma 15 (parallel reduction diamond)
 

@@ -1,19 +1,21 @@
-{-# OPTIONS --exact-split --prop #-} -- TODO: add --safe
+{-# OPTIONS --exact-split --prop #-}
 open import Basic using (Rig; wfs)
 open import PropUniverses
 
 module ParallelReduction
-  {𝑅 : 𝒰 ˙} ⦃ r : Rig 𝑅 ⦄
-  {𝑆 : 𝒱 ˙} ⦃ 𝑤𝑓𝑠 : wfs 𝒲 𝒯 𝑆 ⦄
+  {𝑅 : 𝒰 ˙} ⦃ rig : Rig 𝑅 ⦄
+  {𝑆 : 𝒱 ˙} ⦃ wfs : wfs 𝒲 𝒯 𝑆 ⦄
   where
 
 -- Definition 12 (parallel reduction)
 
 open import Syntax
--- using (Term; Elim; ExprTag; expr-of-type)
--- open Term; open Elim; open ExprTag
-open import Substitution as Subs using (_[_/new])
+import Substitution as Subs
 import Computation as Comp
+
+private
+  _[_/new] = Subs._[_/new] ⦃ subst = Subs.SubstitutableElim ⦄
+infix 180 _[_/new]
 
 infix 36 _▷_
 data _▷_ {n} : ∀ {tag} (s t : expr-of-type tag n) → 𝒰 ⁺ ⊔ 𝒱 ᵖ where

@@ -35,3 +35,28 @@ _⍟_ :
   → -------------
   Sub m k
 σ ⍟ τ = subElim σ ∘ τ
+
+open import Renaming
+
+open import Type.BinarySum renaming (_+_ to _⊹_)
+open import Function hiding (_$_)
+open import Proposition.Empty
+
+aux-nthSub : ∀ (x : X){k}
+  (m : ℕ)
+  (p : m < k +1)
+  (v : Var (k +1))
+  → --------------------
+  X ⊹ Elim k
+aux-nthSub x 0 _ new = inl x
+aux-nthSub x 0 _ (old v) = inr (var v)
+aux-nthSub x {zero} (m +1) p new = ⊥-recursion _ (¬-<0 m $ s<s→-<- p)
+aux-nthSub x {k +1} (m +1) _ new = inr (var new)
+aux-nthSub x {k +1} (m +1) p (old v) =
+  [ id + shift ] (aux-nthSub x m (s<s→-<- p) v)
+  
+nthSub : ∀ m (p : m < n +1)(f : Elim n) → Sub (n +1) n
+nthSub {n} m p f v = [ id , id ] (aux-nthSub f m p v)
+
+newSub : (f : Elim n) → Sub (n +1) n
+newSub {n} = nthSub 0 (z<s n)

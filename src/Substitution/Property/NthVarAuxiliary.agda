@@ -1,4 +1,4 @@
-{-# OPTIONS --exact-split --prop #-} -- TODO: add --safe
+{-# OPTIONS --exact-split --prop #-} -- TODO: fix del-k-shift~id λx,_ case
 open import Basic using (Rig; wfs)
 open import PropUniverses
 
@@ -43,14 +43,12 @@ k<k+m+1 k m =
     〉 _≤_ 〉 k + m +1 :by: postfix (_+ m) (k +1)
   qed
 
-postulate
-  nth-var∉shift : ∀ {tag m} k
-    (e : expr-of-type tag (k + m))
-    → --------------------------------------------------
-    nth-var k (postfix (_+ (m +1)) k)
-    ∉
-    fv (rename ⦃ r = RenameableExpr ⦄ (lift-by k old) e)
-{-
+nth-var∉shift : ∀ {tag m} k
+  (e : expr-of-type tag (k + m))
+  → --------------------------------------------------
+  nth-var k (postfix (_+ (m +1)) k)
+  ∉
+  fv (rename ⦃ r = RenameableExpr ⦄ (lift-by k old) e)
 nth-var∉shift {elim} k (var v) p with ⟶ -∈[-]↔== p
 nth-var∉shift {elim}{m} k (var v) p
   | p' = nth-k≠lift-k-old-v k m (postfix (_+ (m +1)) k) v p'
@@ -153,16 +151,14 @@ nth-var∉shift {term} {m} k (λx, t) p | old v , (old-v∈fv-t' , x∈x∷ []) 
           lift-lift-by~ k old)
   old-v∈fv-t'
 nth-var∉shift {term} k ⌊ e ⌋ p = nth-var∉shift k e p
--}
 
--- private
---   delVar== : ∀ {m} k v v'
---     (p : v' Het.== lift-by {m = m} k old v)
---     (q : nth-var k (k<k+m+1 k m) ≠ v')
---     →
---     delVar k v' (k<k+m+1 k m) q Het.== v
+private
+  delVar== : ∀ {m} k v v'
+    (p : v' Het.== lift-by {m = m} k old v)
+    (q : nth-var k (k<k+m+1 k m) ≠ v')
+    →
+    delVar k v' (k<k+m+1 k m) q Het.== v
 
-{-
 delVar== zero v (old v) (Het.refl (old v)) q = Het.refl v
 delVar== (k +1) new new p q = Het.refl new
 delVar== (k +1) (old v) new p q with lemma k v
@@ -200,184 +196,282 @@ delVar== {m}(k +1) (old v) (old v') p q =
                 === old (lift-by k old v)
                   :by: Id-refl _
               qed
--}
 
-open import Data.Applicative
+open import Proposition.Sum
+
+-- open import Data.Applicative
 
 private
   ren = λ {m}{tag} k → rename ⦃ r = RenameableExpr {tag} ⦄ (lift-by {m = m} k old)
 
-postulate
-  del-k-shift~id : ∀ {m tag} k
-    (e : expr-of-type tag (k + m)) →
-    let coer = ap (expr-of-type tag) $ +-suc k m
-        e' = coe coer (ren k e)
-    in
-    (q : nth-var k (k<k+m+1 k m) ∉ fv e')
-    → --------------------------------------------------
-    del-nth k e' (k<k+m+1 k m) q == e
--- del-k-shift~id {m}{term} k (⋆ i) q = {!!}
--- {-
---   proof del-nth k (coe (ap Term $ +-suc k m) (⋆ i)) (k<k+m+1 k m) q
---     === del-nth k (⋆ i) (k<k+m+1 k m) (λ ())
---       :by: subrel {_P_ = _==_} $
---            del-nth== (Id-refl term)(Id-refl (k + m))(Id-refl k)
---              (proof coe (ap Term $ +-suc k m) (⋆ i)
---                 het== ⋆ i
---                   :by: coe-eval (ap Term $ +-suc k m) (⋆ i)
---                 het== ⋆ i
---                   :by: ap (λ — → ⋆ {n = —} i) $ +-suc k m
---               qed)
---     === ⋆ i
---       :by: Id-refl _
---   qed
--- -}
--- del-k-shift~id {tag = term} k ([ π x: S ]→ T) q = {!!}
--- del-k-shift~id {m}{term} k (λx, t) q = {!!}
--- {-
---   proof del-nth k (coe (ap Term $ +-suc k m) (ren k (λx, t)))
---                 (k<k+m+1 k m) q
---     === λx, del-nth (k +1)
---                 (coe (ap Term $ +-suc (k +1) m) (ren (k +1) t))
---                 (k<k+m+1 (k +1) m) q'
---       :by: move-coe (coe (ap Term $ +-suc k m) (ren k (λx, t)))
---              (coe (ap Term $ +-suc (k +1) m) (ren (k +1) t))
---              (k<k+m+1 k m) q q' (
---                proof coe (ap Term $ +-suc k m) (ren k (λx, t))
---                  het== ren k (λx, t)
---                    :by: coe-eval (ap Term $ +-suc k m) (ren k (λx, t))
---                  === λx, rename (lift (lift-by k old)) t
---                    :by: Id-refl _
---                  het== λx, rename (lift-by (k +1) old) t
---                    :by: ap (λ — → λx, rename — t) $
---                         fun-ext $ lift-lift-by~ k old
---                  het== λx, coe (ap Term $ +-suc (k +1) m) (ren (k +1) t)
---                    :by: Id.ap2 (λ i (t : Term (i +1)) → λx, t)
---                           (+-suc k m)
---                           (isym $
---                            coe-eval (ap Term $ +-suc (k +1) m) (ren (k +1) t))
---                qed)
---     === λx, t
---       :by: ap λx,_ $ del-k-shift~id (k +1) t q'
---   qed
---   where ren = λ k → rename ⦃ r = RenameableTerm ⦄ (lift-by k old)
---         move-coe : ∀{k m}
---           (t : Term (m +1))
---           (t' : Term (m +2))
---           (p : k < m +1)
---           (q : nth-var k p ∉ fv t)
---           (q' : nth-var (k +1) (s<s p) ∉ fv t')
---           (eq : t Het.== λx, t')
---           → --------------------------------------------------
---           del-nth k t p q == λx, del-nth (k +1) t' (s<s p) q'
---         move-coe (λx, t') t' p q q' (Het.refl _) = Id-refl _
---         fv==fv : fv {m = k + m +2} Het.== fv {m = k + (m +1) +1}
---         t' = rename (lift (lift-by k old)) t
---         q' : nth-var (k +1) (k<k+m+1 (k +1) m)
---              ∉
---              fv (coe (ap Term $ +-suc (k +1) m) (ren (k +1) t))
---         q' p with ∈fmap⁻¹ (fv (ren k (λx, t))) old
---                     (∈fv-λ v p' (index-nth-var (k +1) pv))
---           where pv = postfix (_+ (m +1)) (k +1)
---                 v = nth-var (k +1) pv
---                 p' : v ∈ fv (ren (k +1) t)
---                 p' = Id.coe (subrel $
---                   Het.ap3 (λ i (v : Var i)(t : Term i) → v ∈ fv t)
---                     (sym $ +-suc (k +1) m)
---                     (nth-var== (k<k+m+1 (k +1) m)
---                                (sym $ +-suc (k +1) m)
---                                (Id-refl (k +1)))
---                     (coe-eval (ap Term $ +-suc (k +1) m) (ren (k +1) t))) p
---                 ∈fv-λ :
---                   (v : Var (k + (m +1) +1))
---                   (p : v ∈ fv (ren (k +1) t))
---                   (q : index v == k +1)
---                   → ----------------------------------------
---                   v ∈ old <$> (fv t' >>= prevSafe)
---                 ∈fv-λ (old v) p q =
---                   ∈fmap old $
---                   ⟵ (∈bind v prevSafe (fv t')) $
---                   (old v , (
---                     Id.coe (ap (λ — → old v ∈ fv (rename — t)) $
---                             sym $ subrel {_P_ = _==_} $ fun-ext $
---                             lift-lift-by~ k old) p ,
---                     x∈x∷ []))
---         q' p | v , (old-v==nth-k+1 , v∈fv-λx,t) =
---           q $
---           Id.coe (
---             subrel $ Het.ap3 (λ i (v : Var i)(t : Term i) → v ∈ fv t)
---               (+-suc k m)
---               (old==old→== (+-suc k m) (
---                  proof old v
---                    === old (nth-var k (postfix (_+ (m +1)) k))
---                      :by: old-v==nth-k+1
---                    het== old (nth-var k (k<k+m+1 k m))
---                      :by: nth-var== (postfix (_+ (m +1)) (k +1))
---                                     (+-suc (k +1) m)
---                                     (Id-refl (k +1))
---                  qed))
---               (isym $ coe-eval (ap Term $ +-suc k m) (λx, t')))
---             v∈fv-λx,t
---         fv==fv = ap (λ i → fv {m = i}{term}) $
---                  subrel {_P_ = Het._==_} $ sym $
---                  +-suc (k +1) m
--- -}
--- del-k-shift~id {m}{term} k ⌊ e ⌋ q = {!!}
--- {-
---   proof del-nth k (coe (ap Term p) (⌊ e' ⌋)) (k<k+m+1 k m) q
---     ===  del-nth k (⌊ coe (ap Elim p) e' ⌋)
---                    (k<k+m+1 k m)
---                    (Id.coe (ap (λ — → nth-var k (k<k+m+1 k m) ∉ fv —) move-coe) q)
---       :by: subrel {𝒰 = 𝒰 ⁺ ⊔ 𝒱}{𝒰 ⁺ ⊔ 𝒱} $
---            del-nth== (Id-refl term)(Id-refl (k + m))(Id-refl k)
---              (subrel {𝒰 = 𝒰 ⁺ ⊔ 𝒱}{𝒰 ⁺ ⊔ 𝒱} move-coe)
---     === ⌊ e ⌋
---       :by: ap ⌊_⌋ $ del-k-shift~id k e _
---   qed
---   where p = +-suc k m
---         e' = rename ⦃ r = RenameableElim ⦄ (lift-by k old) e
---         move-coe :
---           coe (ap Term p) (⌊ e' ⌋) == ⌊ coe (ap Elim p) e' ⌋
---         move-coe = subrel {_R_ = Het._==_} (
---           proof coe (ap Term p) (⌊ e' ⌋)
---             het== ⌊ e' ⌋
---               :by: coe-eval (ap Term p) ⌊ e' ⌋
---             het== ⌊ coe (ap Elim p) e' ⌋
---               :by: Id.ap2 (λ i (t : Elim i) → ⌊ t ⌋)
---                      p (isym $ coe-eval (ap Elim p) e')
---           qed)
--- -}
--- del-k-shift~id {m}{elim} k (var v) q = {!!}
--- {-
---   proof del-nth k (coe (ap Elim p) (var v')) (k<k+m+1 k m) q
---     === del-nth k (var (coe (ap Var p) v'))
---                   (k<k+m+1 k m)
---                   q'
---       :by: subrel {𝒰 = 𝒰 ⁺ ⊔ 𝒱}{𝒰 ⁺ ⊔ 𝒱} $
---            del-nth== {q' = q'} (Id-refl elim)(Id-refl (k + m))(Id-refl k)
---              (subrel {𝒰 = 𝒰 ⁺ ⊔ 𝒱}{𝒰 ⁺ ⊔ 𝒱} move-coe)
---     === var v
---       :by: ap var $ subrel {_R_ = Het._==_}{_P_ = _==_} $
---            delVar== k v (coe (ap Var p) v') (coe-eval (ap Var p) v')
---              (λ {x → q (Id.coe (ap (nth-var k (k<k+m+1 k m) ∈_) $
---                                sym {R = _==_} $ ap fv move-coe) $
---                      ⟵ -∈[-]↔== x)})
---   qed
---   where p = +-suc k m
---         v' = lift-by k old v
---         move-coe :
---           coe (ap Elim p) (var v') == var (coe (ap Var p) v')
---         move-coe = subrel {_R_ = Het._==_}{_P_ = _==_} (
---           proof coe (ap Elim p) (var v')
---             het== var v'
---               :by: coe-eval (ap Elim p) (var v')
---             het== var (coe (ap Var p) v')
---               :by: Id.ap2 (λ i (v : Var i) → var v)
---                      (+-suc k m)
---                      (isym $ coe-eval (ap Var p) v')
---           qed)
---         q' = Id.coe (ap (λ — → nth-var k (k<k+m+1 k m) ∉ fv —) move-coe) q
--- -}
--- del-k-shift~id {tag = elim} k (f ` s) q = {!!}
--- del-k-shift~id {tag = elim} k (s ꞉ S) q = {!!}
-
+del-k-shift~id : ∀ {m tag} k
+  (e : expr-of-type tag (k + m)) →
+  let coer = ap (expr-of-type tag) $ +-suc k m
+      e' = coe coer (ren k e)
+  in
+  (q : nth-var k (k<k+m+1 k m) ∉ fv e')
+  → --------------------------------------------------
+  del-nth k e' (k<k+m+1 k m) q == e
+del-k-shift~id {m}{term} k (⋆ i) q =
+  proof del-nth k (coe (ap Term $ +-suc k m) (⋆ i)) (k<k+m+1 k m) q
+    === del-nth k (⋆ i) (k<k+m+1 k m) (λ ())
+      :by: subrel {_P_ = _==_} $
+           del-nth== (Id-refl term)(Id-refl (k + m))(Id-refl k)
+             (proof coe (ap Term $ +-suc k m) (⋆ i)
+                het== ⋆ i
+                  :by: coe-eval (ap Term $ +-suc k m) (⋆ i)
+                het== ⋆ i
+                  :by: ap (λ — → ⋆ {n = —} i) $ +-suc k m
+              qed)
+    === ⋆ i
+      :by: Id-refl _
+  qed
+del-k-shift~id {m}{term} k ([ π x: S ]→ T) q =
+  proof del-nth k (coe coer ([ π x: ren k S ]→ rename (lift (lift-by k old)) T))
+                  (k<k+m+1 k m) q
+    === del-nth k
+          (coe coer ([ π x: ren k S ]→ ren (k +1) T))
+          (k<k+m+1 k m)
+          q₀
+      :by: ap (λ (— : Σₚ λ ρ → v ∉ fv (coe coer ([ π x: ren k S ]→ rename ρ T))) →
+              del-nth k (coe coer ([ π x: ren k S ]→ rename (elem —) T))
+                        (k<k+m+1 k m) (prop —)) $
+           Σₚ== {σ = _ , q}{ρ = _ , q₀} step₀
+    === del-nth k ([ π x: coe coer (ren k S) ]→
+                     coe (ap Term $ +-suc (k +1) m) (ren (k +1) T))
+                  (k<k+m+1 k m) q₁
+      :by: ap (λ (— : Σₚ λ e → v ∉ fv e) →
+                 del-nth k (elem —) (k<k+m+1 k m) (prop —)) $
+           Σₚ== {σ = _ , q₀}{ρ = _ , q₁} move-coe
+    === [ π x: del-nth k (coe coer (ren k S)) (k<k+m+1 k m) _ ]→
+          del-nth (k +1) (coe (ap Term $ +-suc (k +1) m) (ren (k +1) T))
+                  (k<k+m+1 (k +1) m) _
+      :by: Id-refl _
+    === [ π x: S ]→ T
+      :by: ap2 [ π x:_]→_
+             (del-k-shift~id k S _)
+             (del-k-shift~id (k +1) T _)
+  qed
+  where v = nth-var k (k<k+m+1 k m)
+        coer = ap Term $ +-suc k m
+        step₀ = subrel {_P_ = _==_} $ fun-ext $ lift-lift-by~ k old
+        move-coe :
+          coe coer ([ π x: ren k S ]→ ren (k +1) T)
+          ==
+          [ π x: coe coer (ren k S) ]→
+            coe (ap Term $ +-suc (k +1) m) (ren (k +1) T)
+        move-coe = subrel {_P_ = _==_} (
+          proof coe coer ([ π x: ren k S ]→ ren (k +1) T)
+           het== [ π x: ren k S ]→ ren (k +1) T
+            :by: coe-eval coer ([ π x: ren k S ]→ ren (k +1) T)
+           het== [ π x: coe coer (ren k S) ]→
+                   coe (ap Term $ +-suc (k +1) m) (ren (k +1) T)
+            :by: Het.ap3 (λ i (S : Term i)(T : Term (i +1)) → [ π x: S ]→ T)
+                   (+-suc k m)
+                   (isym $ coe-eval coer (ren k S))
+                   (isym $ coe-eval (ap Term $ +-suc (k +1) m) (ren (k +1) T))
+          qed)
+        q₀ = Id.coe
+          (ap (λ — → v ∉ fv (coe coer ([ π x: ren k S ]→ rename — T))) step₀)
+          q
+        q₁ = Id.coe (ap (λ — → v ∉ fv —) move-coe) q₀
+del-k-shift~id {m}{term} k (λx, t) q =
+  proof del-nth k (coe (ap Term $ +-suc k m) (ren k (λx, t)))
+                (k<k+m+1 k m) q
+    === λx, del-nth (k +1)
+                (coe (ap Term $ +-suc (k +1) m) (ren (k +1) t))
+                (k<k+m+1 (k +1) m) q'
+      :by: move-coe (coe (ap Term $ +-suc k m) (ren k (λx, t)))
+             (coe (ap Term $ +-suc (k +1) m) (ren (k +1) t))
+             (k<k+m+1 k m) q q' (
+               proof coe (ap Term $ +-suc k m) (ren k (λx, t))
+                 het== ren k (λx, t)
+                   :by: coe-eval (ap Term $ +-suc k m) (ren k (λx, t))
+                 === λx, rename (lift (lift-by k old)) t
+                   :by: Id-refl _
+                 het== λx, rename (lift-by (k +1) old) t
+                   :by: ap (λ — → λx, rename — t) $
+                        fun-ext $ lift-lift-by~ k old
+                 het== λx, coe (ap Term $ +-suc (k +1) m) (ren (k +1) t)
+                   :by: Id.ap2 (λ i (t : Term (i +1)) → λx, t)
+                          (+-suc k m)
+                          (isym $
+                           coe-eval (ap Term $ +-suc (k +1) m) (ren (k +1) t))
+               qed)
+    === λx, t
+      :by: ap λx,_ $ del-k-shift~id (k +1) t q'
+  qed
+  where move-coe : ∀{k m}
+          (t : Term (m +1))
+          (t' : Term (m +2))
+          (p : k < m +1)
+          (q : nth-var k p ∉ fv t)
+          (q' : nth-var (k +1) (s<s p) ∉ fv t')
+          (eq : t Het.== λx, t')
+          → --------------------------------------------------
+          del-nth k t p q == λx, del-nth (k +1) t' (s<s p) q'
+        move-coe (λx, t') t' p q q' (Het.refl _) = Id-refl _
+        fv==fv : fv {m = k + m +2} Het.== fv {m = k + (m +1) +1}
+        t' = rename (lift (lift-by k old)) t
+        q' : nth-var (k +1) (k<k+m+1 (k +1) m)
+             ∉
+             fv (coe (ap Term $ +-suc (k +1) m) (ren (k +1) t))
+        q' p with ∈fmap⁻¹ (fv (ren k (λx, t))) old
+                    (∈fv-λ v p' (index-nth-var (k +1) pv))
+          where pv = postfix (_+ (m +1)) (k +1)
+                v = nth-var (k +1) pv
+                p' : v ∈ fv (ren (k +1) t)
+                p' = Id.coe (subrel $
+                  Het.ap3 (λ i (v : Var i)(t : Term i) → v ∈ fv t)
+                    (sym $ +-suc (k +1) m)
+                    (nth-var== (k<k+m+1 (k +1) m)
+                               (sym $ +-suc (k +1) m)
+                               (Id-refl (k +1)))
+                    (coe-eval (ap Term $ +-suc (k +1) m) (ren (k +1) t))) p
+                ∈fv-λ :
+                  (v : Var (k + (m +1) +1))
+                  (p : v ∈ fv (ren (k +1) t))
+                  (q : index v == k +1)
+                  → ----------------------------------------
+                  v ∈ old <$> (fv t' >>= prevSafe)
+                ∈fv-λ (old v) p q =
+                  ∈fmap old $
+                  ⟵ (∈bind v prevSafe (fv t')) $
+                  (old v , (
+                    Id.coe (ap (λ — → old v ∈ fv (rename — t)) $
+                            sym $ subrel {_P_ = _==_} $ fun-ext $
+                            lift-lift-by~ k old) p ,
+                    x∈x∷ []))
+        q' p | v , (old-v==nth-k+1 , v∈fv-λx,t) =
+          q $
+          Id.coe (
+            subrel $ Het.ap3 (λ i (v : Var i)(t : Term i) → v ∈ fv t)
+              (+-suc k m)
+              (old==old→== (+-suc k m) (
+                 proof old v
+                   === old (nth-var k (postfix (_+ (m +1)) k))
+                     :by: old-v==nth-k+1
+                   het== old (nth-var k (k<k+m+1 k m))
+                     :by: nth-var== (postfix (_+ (m +1)) (k +1))
+                                    (+-suc (k +1) m)
+                                    (Id-refl (k +1))
+                 qed))
+              (isym $ coe-eval (ap Term $ +-suc k m) (λx, t')))
+            v∈fv-λx,t
+        fv==fv = ap (λ i → fv {m = i}{term}) $
+                 subrel {_P_ = Het._==_} $ sym $
+                 +-suc (k +1) m
+del-k-shift~id {m}{term} k ⌊ e ⌋ q =
+  proof del-nth k (coe (ap Term p) (⌊ e' ⌋)) (k<k+m+1 k m) q
+    ===  del-nth k (⌊ coe (ap Elim p) e' ⌋)
+                   (k<k+m+1 k m)
+                   (Id.coe (ap (λ — → nth-var k (k<k+m+1 k m) ∉ fv —) move-coe) q)
+      :by: subrel {𝒰 = 𝒰 ⁺ ⊔ 𝒱}{𝒰 ⁺ ⊔ 𝒱} $
+           del-nth== (Id-refl term)(Id-refl (k + m))(Id-refl k)
+             (subrel {𝒰 = 𝒰 ⁺ ⊔ 𝒱}{𝒰 ⁺ ⊔ 𝒱} move-coe)
+    === ⌊ e ⌋
+      :by: ap ⌊_⌋ $ del-k-shift~id k e _
+  qed
+  where p = +-suc k m
+        e' = rename ⦃ r = RenameableElim ⦄ (lift-by k old) e
+        move-coe :
+          coe (ap Term p) (⌊ e' ⌋) == ⌊ coe (ap Elim p) e' ⌋
+        move-coe = subrel {_R_ = Het._==_} (
+          proof coe (ap Term p) (⌊ e' ⌋)
+            het== ⌊ e' ⌋
+              :by: coe-eval (ap Term p) ⌊ e' ⌋
+            het== ⌊ coe (ap Elim p) e' ⌋
+              :by: Id.ap2 (λ i (t : Elim i) → ⌊ t ⌋)
+                     p (isym $ coe-eval (ap Elim p) e')
+          qed)
+del-k-shift~id {m}{elim} k (var v) q =
+  proof del-nth k (coe (ap Elim p) (var v')) (k<k+m+1 k m) q
+    === del-nth k (var (coe (ap Var p) v'))
+                  (k<k+m+1 k m)
+                  q'
+      :by: subrel {𝒰 = 𝒰 ⁺ ⊔ 𝒱}{𝒰 ⁺ ⊔ 𝒱} $
+           del-nth== (Id-refl elim)(Id-refl (k + m))(Id-refl k)
+             (subrel {𝒰 = 𝒰 ⁺ ⊔ 𝒱}{𝒰 ⁺ ⊔ 𝒱} move-coe)
+    === var v
+      :by: ap var $ subrel {_R_ = Het._==_}{_P_ = _==_} $
+           delVar== k v (coe (ap Var p) v') (coe-eval (ap Var p) v')
+             (λ {x → q (Id.coe (ap (nth-var k (k<k+m+1 k m) ∈_) $
+                               sym {R = _==_} $ ap fv move-coe) $
+                     ⟵ -∈[-]↔== x)})
+  qed
+  where p = +-suc k m
+        v' = lift-by k old v
+        move-coe :
+          coe (ap Elim p) (var v') == var (coe (ap Var p) v')
+        move-coe = subrel {_R_ = Het._==_}{_P_ = _==_} (
+          proof coe (ap Elim p) (var v')
+            het== var v'
+              :by: coe-eval (ap Elim p) (var v')
+            het== var (coe (ap Var p) v')
+              :by: Id.ap2 (λ i (v : Var i) → var v)
+                     (+-suc k m)
+                     (isym $ coe-eval (ap Var p) v')
+          qed)
+        q' = Id.coe (ap (λ — → nth-var k (k<k+m+1 k m) ∉ fv —) move-coe) q
+del-k-shift~id {m}{elim} k (f ` s) q =
+  proof del-nth k (coe coer (ren k f ` ren k s))
+                  (k<k+m+1 k m) q
+    === del-nth k (coe coer (ren k f) ` coe (ap Term $ +-suc k m) (ren k s))
+                  (k<k+m+1 k m) q'
+      :by: ap (λ (— : Σₚ λ e → v ∉ fv e) →
+                 del-nth k (elem —) (k<k+m+1 k m) (prop —)) $
+           Σₚ== {σ = _ , q}{ρ = _ , q'} move-coe
+    === del-nth k (coe coer (ren k f)) (k<k+m+1 k m) _ ` 
+        del-nth k (coe (ap Term $ +-suc k m) (ren k s)) (k<k+m+1 k m) _
+      :by: Id-refl _
+    === f ` s
+      :by: ap2 _`_ (del-k-shift~id k f _) (del-k-shift~id k s _)
+  qed
+  where v = nth-var k (k<k+m+1 k m)
+        coer = ap Elim $ +-suc k m
+        move-coe : coe coer (ren k f ` ren k s)
+                   ==
+                   coe coer (ren k f) ` coe (ap Term $ +-suc k m) (ren k s)
+        move-coe = subrel {_P_ = _==_} (
+          proof coe coer (ren k f ` ren k s)
+            het== ren k f ` ren k s
+              :by: coe-eval coer (ren k f ` ren k s)
+            het== coe coer (ren k f) ` coe (ap Term $ +-suc k m) (ren k s)
+              :by: Het.ap3 (λ i (f : Elim i)(s : Term i) → f ` s)
+                           (+-suc k m)
+                           (isym $ coe-eval coer (ren k f))
+                           (isym $ coe-eval (ap Term $ +-suc k m) (ren k s))
+          qed)
+        q' = Id.coe (ap (λ — → v ∉ fv —) move-coe) q
+del-k-shift~id {m}{elim} k (s ꞉ S) q =
+  proof del-nth k (coe coer (ren k s ꞉ ren k S))
+                  (k<k+m+1 k m) q
+    === del-nth k (coe coer' (ren k s) ꞉ coe coer' (ren k S))
+                  (k<k+m+1 k m) q'
+      :by: ap (λ (— : Σₚ λ e → v ∉ fv e) →
+                 del-nth k (elem —) (k<k+m+1 k m) (prop —))
+              (Σₚ== {σ = _ , q}{ρ = _ , q'} move-coe)
+    === del-nth k (coe coer' (ren k s)) (k<k+m+1 k m) _ ꞉ 
+        del-nth k (coe coer' (ren k S)) (k<k+m+1 k m) _
+      :by: Id-refl _
+    === s ꞉ S
+      :by: ap2 _꞉_ (del-k-shift~id k s _) (del-k-shift~id k S _)
+  qed
+  where v = nth-var k (k<k+m+1 k m)
+        coer = ap Elim $ +-suc k m
+        coer' = ap Term $ +-suc k m
+        move-coe : coe coer (ren k s ꞉ ren k S)
+                   ==
+                   coe (ap Term $ +-suc k m) (ren k s) ꞉
+                   coe (ap Term $ +-suc k m) (ren k S)
+        move-coe = subrel {_P_ = _==_} (
+          proof coe coer (ren k s ꞉ ren k S)
+            het== ren k s ꞉ ren k S
+              :by: coe-eval coer (ren k s ꞉ ren k S)
+            het== coe coer' (ren k s) ꞉ coe coer' (ren k S)
+              :by: Het.ap3 (λ i (s S : Term i) → s ꞉ S)
+                           (+-suc k m)
+                           (isym $ coe-eval coer' (ren k s))
+                           (isym $ coe-eval coer' (ren k S))
+          qed)
+        q' = Id.coe (ap (λ — → v ∉ fv —) move-coe) q
