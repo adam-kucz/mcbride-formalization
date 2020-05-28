@@ -7,7 +7,7 @@ module Syntax.Definition
   {S : 𝒱 ˙} ⦃ wfs : wfs 𝒲 𝒯 S ⦄
   where
 
-open import Data.Nat
+open import Data.Nat hiding (_⊔_)
 
 -- Definition 4 (term, elimination)
 
@@ -88,6 +88,9 @@ Expr n = Σ λ e → expr-of-type e n
 
 type-of-expr : (e : Expr n) → ExprTag
 type-of-expr (tag Σ., _) = tag
+
+RelOnExpr : (𝒲 : Universe) → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ⁺ ˙
+RelOnExpr 𝒲 = ∀ {n} {tag} → BinRel 𝒲 (expr-of-type tag n)
 
 open import Proposition.Identity
   renaming (Idₚ to Id) hiding (refl)

@@ -30,103 +30,7 @@ data _⇝v_ {n : ℕ} : (t T : Term n) → 𝒰₀ ᵖ
     → --------------
     ⌊ t ꞉ T ⌋ ⇝v t
 
-data 1-hole-ctx
-  : --------------------------------------------------
-  (hole : ExprTag) -- required type of hole
-  (m : ℕ) -- number of free variables in hole
-  (result : ExprTag) -- type resulting from filling hole
-  (n : ℕ) -- number of free variables of the context (n ≤ m)
-  → 𝒰 ⁺ ⊔ 𝒱 ˙
-  where
-  — : ∀ {e n}
-    → ------------
-    1-hole-ctx e n e n
-  
-  [_x:_]→_↓ : ∀ {e m n}
-    (ρ : R)
-    (S : Term n)
-    (C[—] : 1-hole-ctx e m term (n +1))
-    → ---------------------
-    1-hole-ctx e m term n
-
-  [_x:_↓]→_ : ∀ {e} {m n}
-    (ρ : R)
-    (C[—] : 1-hole-ctx e m term n)
-    (T : Term (n +1))
-    → ----------------------
-    1-hole-ctx e m term n
-
-  λx,_ : ∀ {e m n}
-    (C[—] : 1-hole-ctx e m term (n +1))
-    → ----------------------
-    1-hole-ctx e m term n
-
-  ⌊_⌋ : ∀ {e m n}
-    (C[—] : 1-hole-ctx e m elim n)
-    → ---------------------
-    1-hole-ctx e m term n
-
-  _`_↓ : ∀ {e m n}
-    (f : Elim n)
-    (C[—] : 1-hole-ctx e m term n)
-    → ----------------------
-    1-hole-ctx e m elim n
-
-  _↓`_ : ∀ {e m n}
-    (C[—] : 1-hole-ctx e m elim n)
-    (s : Term n)
-    → ---------------------
-    1-hole-ctx e m elim n
-
-  _꞉_↓ : ∀ {e m n}
-    (s : Term n)
-    (C[—] : 1-hole-ctx e m term n)
-    →  ----------------------
-    1-hole-ctx e m elim n
-
-  _↓꞉_ : ∀ {e m n}
-    (C[—] : 1-hole-ctx e m term n)
-    (S : Term n)
-    → ----------------------
-    1-hole-ctx e m elim n
-
-infix 180 _[_/—]
-_[_/—] : {m n : ℕ}
-  {tag₁ tag₂ : ExprTag}
-  (C[—] : 1-hole-ctx tag₁ m tag₂ n)
-  (e : expr-of-type tag₁ m)
-  → ----------------------
-  expr-of-type tag₂ n
-— [ e /—] = e
-([ π x: S ]→ C[—] ↓) [ e /—] = [ π x: S ]→ C[—] [ e /—]
-([ π x: C[—] ↓]→ T) [ e /—] = [ π x: C[—] [ e /—] ]→ T
-(λx, C[—]) [ e /—] = λx, C[—] [ e /—]
-⌊ C[—] ⌋ [ e /—] = ⌊ C[—] [ e /—] ⌋
-(f ` C[—] ↓) [ e /—] = f ` C[—] [ e /—]
-(C[—] ↓` s) [ e /—] = C[—] [ e /—] ` s
-(s ꞉ C[—] ↓) [ e /—] = s ꞉ C[—] [ e /—]
-(C[—] ↓꞉ S) [ e /—] = C[—] [ e /—] ꞉ S
-
-RelOnExpr : (𝒲 : Universe) → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ⁺ ˙
-RelOnExpr 𝒲 = ∀ {n} {tag} → Rel 𝒲 (expr-of-type tag n) (expr-of-type tag n)
-
-open import Function.Proof using (Relating; ap; rel-preserv)
-
-ContextClosed : (R : RelOnExpr 𝒵) → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒵 ᵖ
-ContextClosed R = ∀ {m n} {tag tag'}
-  {C : 1-hole-ctx tag m tag' n}
-  → ----------------------------
-  Relating (C [_/—]) R R
-
-ctx-closed : ∀ {_R'_ : RelOnExpr 𝒵}
-  ⦃ _ : ContextClosed _R'_ ⦄
-  {m n} {tag tag'}
-  {e e' : expr-of-type tag m}
-  (eRe' : e R' e')
-  (C : 1-hole-ctx tag m tag' n)
-  → ----------------------------
-  C [ e /—] R' C [ e' /—]
-ctx-closed eRe' C = ap (C [_/—]) eRe'
+open import Syntax.Context.OneHole
 
 infix 36 _⇝_
 data _⇝_ : RelOnExpr (𝒰 ⁺ ⊔ 𝒱)
@@ -146,11 +50,6 @@ data _⇝_ : RelOnExpr (𝒰 ⁺ ⊔ 𝒱)
     (reduct : s ⇝ t)
     → --------------------
     C[—] [ s /—] ⇝ C[—] [ t /—]
-
-instance
-  ContextClosed⇝ : ContextClosed _⇝_
-
-rel-preserv ⦃ ContextClosed⇝ {C = C} ⦄ s⇝t = hole C s⇝t
 
 open import Relation.Binary.ReflexiveTransitiveClosure
 
