@@ -316,7 +316,7 @@ del-k-shift~id {m}{term} k (λx, t) q =
         q' : nth-var (k +1) (k<k+m+1 (k +1) m)
              ∉
              fv (coe (ap Term $ +-suc (k +1) m) (ren (k +1) t))
-        q' p with ∈fmap⁻¹ (fv (ren k (λx, t))) old
+        q' p with ∈map⁻¹ (fv (ren k (λx, t))) old
                     (∈fv-λ v p' (index-nth-var (k +1) pv))
           where pv = postfix (_+ (m +1)) (k +1)
                 v = nth-var (k +1) pv
@@ -335,7 +335,7 @@ del-k-shift~id {m}{term} k (λx, t) q =
                   → ----------------------------------------
                   v ∈ old <$> (fv t' >>= prevSafe)
                 ∈fv-λ (old v) p q =
-                  ∈fmap old $
+                  ∈map old $
                   ⟵ (∈bind v prevSafe (fv t')) $
                   (old v , (
                     Id.coe (ap (λ — → old v ∈ fv (rename — t)) $

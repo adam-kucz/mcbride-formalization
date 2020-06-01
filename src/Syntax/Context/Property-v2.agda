@@ -50,18 +50,16 @@ open import Function.Proof
 
 open import Axiom.FunctionExtensionality
 
-postulate
-  sub-ctx-aux : ∀ {m n}
-    (σ : Sub m n)
-    {k}{v' : Holes k}{tag}
-    (C : Context v' tag m)
-    (es : all-types v')
-    {v : Holes k}
-    (p : v' == map [ id × _+ m ] v)
-    → ------------------------------------------------------------------
-    let C' = coe (ap (λ — → Context — tag m) p) C in
-    sub σ (fill-holes es C) == fill-holes (sub-all σ v p es) (subc σ C')
-{-
+sub-ctx-aux : ∀ {m n}
+  (σ : Sub m n)
+  {k}{v' : Holes k}{tag}
+  (C : Context v' tag m)
+  (es : all-types v')
+  {v : Holes k}
+  (p : v' == map [ id × _+ m ] v)
+  → ------------------------------------------------------------------
+  let C' = coe (ap (λ — → Context — tag m) p) C in
+  sub σ (fill-holes es C) == fill-holes (sub-all σ v p es) (subc σ C')
 sub-ctx-aux σ (term t) es {[]} (Id-refl []) = {!!}
 {-  proof sub σ t
     === fill-holes es (term (sub σ t))
@@ -271,5 +269,4 @@ sub-ctx-aux σ (C₀ ꞉ C₁) es p = {!!}
 --            ap2 (λ C e → sub σ C [ subst (lift-by k σ) e /—])
 --                (coe-eval (Id-refl _) C) (coe-eval (Id-refl _) e)
 --   qed
--}
 -}

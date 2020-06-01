@@ -15,7 +15,7 @@ open import Data.Vec
 
 Holes = Vec (ExprTag × ℕ)
 
-data context
+data Context
   : --------------------------------------------------------------------------
   {m : ℕ} -- number of holes
   (holes : Holes m) -- required (type, number of free variables) of holes
@@ -25,102 +25,64 @@ data context
   where
   term : (t : Term n)
     → -------------------
-    context [] term n
+    Context [] term n
 
   elim : (e : Elim n)
     → -------------------
-    context [] elim n
+    Context [] elim n
 
   — : ∀ {tag n}
     → ------------------
-    context [ (tag Σ., n) ] tag n
+    Context [ (tag Σ., n) ] tag n
   
   [_x:_]→_ : ∀ {n m₀ m₁}{v₀ : Holes m₀}{v₁ : Holes m₁}
     (π : R)
-    (C₀ : context v₀ term n)
-    (C₁ : context v₁ term (n +1))
+    (C₀ : Context v₀ term n)
+    (C₁ : Context v₁ term (n +1))
     → ---------------------
-    context (v₀ ++ v₁) term n
+    Context (v₀ ++ v₁) term n
 
   λx,_ : ∀ {n}{v : Holes m}
-    (C : context v term (n +1))
+    (C : Context v term (n +1))
     → ----------------------
-    context v term n
+    Context v term n
 
   ⌊_⌋ : ∀ {n}{v : Holes m}
-    (C : context v elim n)
+    (C : Context v elim n)
     → ---------------------
-    context v term n
+    Context v term n
 
   _`_ : ∀ {n m₀ m₁}{v₀ : Holes m₀}{v₁ : Holes m₁}
-    (C₀ : context v₀ elim n)
-    (C₁ : context v₁ term n)
+    (C₀ : Context v₀ elim n)
+    (C₁ : Context v₁ term n)
     → ----------------------
-    context (v₀ ++ v₁) elim n
+    Context (v₀ ++ v₁) elim n
 
   _꞉_ : ∀ {n m₀ m₁}{v₀ : Holes m₀}{v₁ : Holes m₁}
-    (C₀ : context v₀ term n)
-    (C₁ : context v₁ term n)
+    (C₀ : Context v₀ term n)
+    (C₁ : Context v₁ term n)
     →  ----------------------
-    context (v₀ ++ v₁) elim n
+    Context (v₀ ++ v₁) elim n
 
 open import Logic
 open import Proof
-
-private
-  +==0 : ∀ {a b}(p : a + b == 0) → a == 0 ∧ b == 0
-  +==0 {zero} {zero} p = Id-refl 0 , Id-refl 0
-  ++==[] : ∀ {v₀ : Vec X m}{v₁ : Vec X n}
-    (p : m + n == 0)
-    (q : v₀ ++ v₁ Het.== [] {X = X})
-    → --------------------------------------
-    v₀ Het.== [] {X = X} ∧ v₁ Het.== [] {X = X}
-  ++==[] {m = 0}{0}{[]}{[]} p q = Het.refl [] , Het.refl []
-
-as-expr-aux : ∀{tag m n}{v : Holes n}
-  (C : context v tag m)
-  (p : n == 0)
-  (q : v Het.== [] {X = ExprTag × ℕ})
-  → ------------------------
-  expr-of-type tag m
-as-expr-aux (term t) p q = t
-as-expr-aux ([ π x: C₀ ]→ C₁) p q =
-  [ π x: as-expr-aux C₀ (∧left $ +==0 p) (∧left $ ++==[] p q) ]→
-         as-expr-aux C₁ (∧right $ +==0 p) (∧right $ ++==[] p q)
-as-expr-aux (λx, C) p q = λx, as-expr-aux C p q
-as-expr-aux ⌊ C ⌋ p q = ⌊ as-expr-aux C p q ⌋
-as-expr-aux (elim e) p q = e
-as-expr-aux (C₀ ` C₁) p q =
-  as-expr-aux C₀ (∧left $ +==0 p) (∧left $ ++==[] p q) `
-  as-expr-aux C₁ (∧right $ +==0 p) (∧right $ ++==[] p q)
-as-expr-aux (C₀ ꞉ C₁) p q =
-  as-expr-aux C₀ (∧left $ +==0 p) (∧left $ ++==[] p q) ꞉
-  as-expr-aux C₁ (∧right $ +==0 p) (∧right $ ++==[] p q)
-
-as-expr : ∀{tag}
-  (C : context [] tag m)
-  → ------------------------
-  expr-of-type tag m
-as-expr C = as-expr-aux C (Id-refl 0) (Het.refl [])
-
 open import Function hiding (_$_)
 
-private
-  to-type : ExprTag × ℕ → 𝒰 ⁺ ⊔ 𝒱 ˙
-  all-types : Holes m → 𝒰 ⁺ ⊔ 𝒱 ˙
-  divide-types :
-    (v₀ : Holes m)
-    (v₁ : Holes n)
-    (es : all-types (v₀ ++ v₁))
-    → ---------------------------
-    all-types v₀ × all-types v₁
-  get-nth : 
-    (v : Holes m)
-    (es : all-types v)
-    (n : ℕ)
-    (p : n +1 ≤ m)
-    → ---------------------------
-    to-type (v ! n [ p ])
+to-type : ExprTag × ℕ → 𝒰 ⁺ ⊔ 𝒱 ˙
+all-types : Holes m → 𝒰 ⁺ ⊔ 𝒱 ˙
+divide-types :
+  (v₀ : Holes m)
+  (v₁ : Holes n)
+  (es : all-types (v₀ ++ v₁))
+  → ---------------------------
+  all-types v₀ × all-types v₁
+get-nth : 
+  (v : Holes m)
+  (es : all-types v)
+  (n : ℕ)
+  (p : n +1 ≤ m)
+  → ---------------------------
+  to-type (v ! n [ p ])
 
 open import Type.Unit
 open import Collection
@@ -140,7 +102,7 @@ fill-holes : ∀
   {v : Holes m}
   (es : all-types v)
   {tag n}
-  (C : context v tag n)
+  (C : Context v tag n)
   → ----------------------
   expr-of-type tag n
 fill-holes es (term t) = t
@@ -158,11 +120,17 @@ fill-holes es (_꞉_ {v₀ = v₀}{v₁} C₀ C₁) =
   fill-holes (pr₁ es') C₀ ꞉ fill-holes (pr₂ es') C₁
   where es' = divide-types v₀ v₁ es
 
+as-expr : ∀{tag}
+  (C : Context [] tag m)
+  → ------------------------
+  expr-of-type tag m
+as-expr C = fill-holes (↑type ⋆) C
+
 record ContextClosed (R : RelOnExpr 𝒵) : 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒵 ᵖ where
   field
     ctx-closed : ∀
       {v : Holes m}{tag n}
-      (C : context v tag n)
+      (C : Context v tag n)
       {es es' : all-types v}
       (p : ∀ i (q : i +1 ≤ m) → R (get-nth v es i q) (get-nth v es' i q))
       → -------------------------------------------------------------

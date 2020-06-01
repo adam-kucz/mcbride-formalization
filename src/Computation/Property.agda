@@ -18,7 +18,7 @@ sorts-don't-reduce : {i : S}{e e' : Term n}
   → --------------------------------
   e ≠ ⋆ {n = n} i
 sorts-don't-reduce (v-exact (v _ _)) ()
-sorts-don't-reduce (hole — p) = sorts-don't-reduce p
+sorts-don't-reduce (hole C p) = {!!}
 
 open import Logic
 open import Proof
@@ -31,15 +31,16 @@ pi-reduct-forms : ∀ {π : R}
   (∃ λ S' → S ⇝ S' ∧ e' == [ π x: S' ]→ T)
   ∨
   (∃ λ T' → T ⇝ T' ∧ e' == [ π x: S ]→ T')
-pi-reduct-forms (v-exact (v _ _)) ()
-pi-reduct-forms (hole — p) q = pi-reduct-forms p q
-pi-reduct-forms (hole {s = s}{t} [ ρ x: S ]→ C[—] ↓ p)
-  (Id-refl ([ ρ x: S ]→ .(C[—] [ s /—]))) =
-  ∨right (C[—] [ t /—] , (hole C[—] p , Id-refl _))
-pi-reduct-forms (hole {s = s} {t} ([ ρ x: C[—] ↓]→ T) p)
-  (Id-refl ([ ρ x: .(C[—] [ s /—]) ]→ T)) =
-  ∨left (C[—] [ t /—] , (hole C[—] p , Id-refl _))
+-- pi-reduct-forms (v-exact (v _ _)) ()
+-- pi-reduct-forms (hole — p) q = pi-reduct-forms p q
+-- pi-reduct-forms (hole {s = s}{t} [ ρ x: S ]→ C[—] ↓ p)
+--   (Id-refl ([ ρ x: S ]→ .(C[—] [ s /—]))) =
+--   ∨right (C[—] [ t /—] , (hole C[—] p , Id-refl _))
+-- pi-reduct-forms (hole {s = s} {t} ([ ρ x: C[—] ↓]→ T) p)
+--   (Id-refl ([ ρ x: .(C[—] [ s /—]) ]→ T)) =
+--   ∨left (C[—] [ t /—] , (hole C[—] p , Id-refl _))
 
+{-
 open import Type.Sum hiding (_,_)
 open import Relation.Binary.ReflexiveTransitiveClosure
 
@@ -152,3 +153,4 @@ rel-preserv ⦃ RelatingRename⇝ {ρ = ρ} ⦄ {a}{b} a⇝b =
     〉 _⇝_ 〉 subst (var ∘ ρ) b :by: ap (subst (var ∘ ρ)) a⇝b
     === rename ρ b            :by: ap (λ — → — b) $ sym $ rename-as-sub ρ
   qed
+-}
