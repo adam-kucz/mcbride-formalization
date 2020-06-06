@@ -23,8 +23,8 @@ open import Proposition.Empty
 open import Logic hiding (⊥-recursion)
 open import Proof
 
-index< : ∀ {m} (v : Var m) → index v < m
-index< {m +1} new = ⟵ -<-↔s≤- $ ap suc $ z≤ m
+index< : ∀ {m} (v : Var m) → index v +1 ≤ m
+index< {m +1} new = ap suc $ z≤ m
 index< (old v) = ap suc (index< v)
 
 open import Function using (inj)
@@ -37,18 +37,16 @@ Var== : ∀ {m} {u v : Var m}
 ⟵ (Var== {u = new} {new}) q = refl new
 ⟵ (Var== {u = old u} {old v}) q = ap old $ ⟵ Var== $ ap pred q
 
-nth-var : ∀ {m} (n : ℕ) (p : n < m) → Var m
-nth-var {zero} zero p = ⊥-recursion (Var 0) (irrefl 0 p)
+nth-var : ∀ {m} (n : ℕ) (p : n +1 ≤ m) → Var m
 nth-var {m +1} zero _ = new
-nth-var {m +1} (n +1) p = old (nth-var n (s<s→-<- p))
+nth-var {m +1} (n +1) p = old (nth-var n (ap pred p))
 
 index-nth-var : ∀ {m} n
-  (p : n < m)
+  (p : n +1 ≤ m)
   → ----------------------
   index (nth-var n p) == n
-index-nth-var {zero} zero p = ⊥-recursionₚ _ $ irrefl 0 p
 index-nth-var {m +1} zero p = refl 0
-index-nth-var {m +1} (n +1) p = ap suc (index-nth-var n (s<s→-<- p))
+index-nth-var {m +1} (n +1) p = ap suc (index-nth-var n (ap pred p))
 
 contract : ∀ {m n} (v : Var m) (p : index v < n) → Var n
 contract {m +1}{zero} new p = ⊥-recursion (Var 0) (irrefl 0 p)

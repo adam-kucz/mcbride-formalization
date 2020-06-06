@@ -34,7 +34,7 @@ open Renameable ⦃ … ⦄ public
 
 shift :
   {F : (m : ℕ) → 𝒮 ˙}
-  ⦃ _ : Renameable F ⦄
+  ⦃ ren : Renameable F ⦄
   (x : F m)
   → --------------------
   F (m +1)

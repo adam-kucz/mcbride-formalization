@@ -10,45 +10,48 @@ module Subtyping.Definition
 -- Definition 17 (subtyping)
 
 open import Data.Nat hiding (_⊔_)
-open import Syntax.Definition
+open import Syntax
 open import Computation
 
 infix 36 _~_
-data _~_ : RelOnExpr (𝒰 ⁺ ⊔ 𝒱) where
-  ~sort : ∀ i
-    → ---------------
-    ⋆ {n = n} i ~ ⋆ i
-
-  ~var : ∀ (v : Var m)
-    → ------------
-    var v ~ var v
-
-  ~pi : ∀ π {S S' : Term m}{T T'}
-    (S~S' : S ~ S')
-    (T~T' : T ~ T')
-    → -----------------------------
-    [ π x: S ]→ T ~ [ π x: S' ]→ T'
-
-  ~lam : ∀ {t t' : Term (m +1)}
-    (t~t' : t ~ t')
-    → --------------
-    _~_ {tag = term} (λx, t) (λx, t')
-
-  ~elim : ∀ {e e' : Elim m}
-    (e~e' : e ~ e')
-    → ---------------
-    _~_ {tag = term} (⌊ e ⌋) (⌊ e' ⌋)
-
-  ~app : ∀ {f f'}{s s' : Term m}
-    (f~f' : f ~ f')
-    (s~s' : s ~ s')
-    → ---------------
-    f ` s ~ f' ` s'
-
-  ~annot : ∀ {s s'}(S S' : Term m)
+data _~_ {n} : ∀ {tag} (s t : expr-of-type tag n) → 𝒰 ⁺ ⊔ 𝒱 ᵖ where
+  ~annot : ∀{s s'}(S S' : Term n)
     (p : s ~ s')
+    -- (p' : (q : ∃ λ t → s == λx, t) →
+    --       ∃ λ S₀ → ∃ λ T₀ →
+    --       ∃ λ S₁ → ∃ λ T₁ →
+    --       S ↠ [ π x: ])
     → -------------
     s ꞉ S ~ s' ꞉ S'
+
+  ⋆ : ∀ i → ⋆ i ~ ⋆ i
+
+  var : ∀ v → var v ~ var v
+
+  [_x:_]→_ : ∀ π {S S' T T'}
+    (S▷S' : S ~ S')
+    (T▷T' : T ~ T')
+    → ---------------
+    [ π x: S ]→ T ~ [ π x: S' ]→ T'
+
+  λx,_ : ∀{t t'}
+    (t▷t' : t ~ t')
+    → ------------------------------------
+    λx, t ~ λx, t'
+
+  _`_ : ∀{f f' s s'}
+    (f▷f' : f ~ f')
+    (s▷s' : s ~ s')
+    → ------------------------------------
+    f ` s ~ f' ` s'
+
+  ⌊_⌋ : ∀{e e'}
+    (e▷e' : e ~ e')
+    → --------------------
+    ⌊ e ⌋ ~ ⌊ e' ⌋
+
+
+open import Syntax.Context
 
 open import Relation.Binary
   hiding (_~_; Reflexive~; Transitive~; Symmetric~)
@@ -57,47 +60,67 @@ instance
   Reflexive~ : Reflexive (_~_ {n = n}{tag})
   Transitive~ : Transitive (_~_ {n = n}{tag})
   Symmetric~ : Symmetric (_~_ {n = n}{tag})
+  ContextClosed~ : ContextClosed _~_
 
-refl ⦃ Reflexive~ {tag = term} ⦄ (⋆ i) = ~sort i
-refl ⦃ Reflexive~ {tag = term} ⦄ ([ ρ x: S ]→ T) = ~pi ρ (refl S) (refl T)
-refl ⦃ Reflexive~ {tag = term} ⦄ (λx, t) = ~lam (refl t)
-refl ⦃ Reflexive~ {tag = term} ⦄ ⌊ e ⌋ = ~elim (refl e)
-refl ⦃ Reflexive~ {tag = elim} ⦄ (var v₁) = ~var v₁
-refl ⦃ Reflexive~ {tag = elim} ⦄ (f ` s) = ~app (refl f) (refl s)
-refl ⦃ Reflexive~ {tag = elim} ⦄ (s ꞉ S) = ~annot S S (refl s)
+open import Proof
 
-trans ⦃ Transitive~ ⦄ (~sort i) q = q
-trans ⦃ Transitive~ ⦄ (~var v') q = q
-trans ⦃ Transitive~ ⦄ (~pi π p p₁) (~pi π q q₁) = ~pi π (trans p q) (trans p₁ q₁)
-trans ⦃ Transitive~ ⦄ (~lam p) (~lam q) = ~lam (trans p q)
-trans ⦃ Transitive~ ⦄ (~elim p) (~elim q) = ~elim (trans p q)
-trans ⦃ Transitive~ ⦄ (~app p p₁) (~app q q₁) = ~app (trans p q) (trans p₁ q₁)
-trans ⦃ Transitive~ ⦄ (~annot S S' p) (~annot S″ S‴ q) = ~annot S S‴ (trans p q)
+refl ⦃ Reflexive~ {tag = term} ⦄ (⋆ i) = ⋆ i
+refl ⦃ Reflexive~ {tag = term} ⦄ ([ π x: S ]→ T) =
+  [ π x: refl S ]→ refl T
+refl ⦃ Reflexive~ {tag = term} ⦄ (λx, t) = λx, refl t
+refl ⦃ Reflexive~ {tag = term} ⦄ ⌊ e ⌋ = ⌊ refl e ⌋
+refl ⦃ Reflexive~ {tag = elim} ⦄ (var x) = var x
+refl ⦃ Reflexive~ {tag = elim} ⦄ (f ` s) = refl f ` refl s
+refl ⦃ Reflexive~ {tag = elim} ⦄ (s ꞉ S) = ~annot S S $ refl s
 
-sym ⦃ Symmetric~ ⦄ (~sort i) = ~sort i
-sym ⦃ Symmetric~ ⦄ (~var v₁) = ~var v₁
-sym ⦃ Symmetric~ ⦄ (~pi π p p₁) = ~pi π (sym p) (sym p₁)
-sym ⦃ Symmetric~ ⦄ (~lam p) = ~lam (sym p)
-sym ⦃ Symmetric~ ⦄ (~elim p) = ~elim (sym p)
-sym ⦃ Symmetric~ ⦄ (~app p p₁) = ~app (sym p) (sym p₁)
-sym ⦃ Symmetric~ ⦄ (~annot S S' p) = ~annot S' S (sym p)
+trans ⦃ Transitive~ ⦄ (~annot S _ p)(~annot _ S″ q) =
+  ~annot S S″ $ trans p q
+trans ⦃ Transitive~ ⦄ (⋆ _) q = q
+trans ⦃ Transitive~ ⦄ (var _) q = q
+trans ⦃ Transitive~ ⦄ ([ π x: p₀ ]→ p₁)([ π x: q₀ ]→ q₁) =
+  [ π x: trans p₀ q₀ ]→ trans p₁ q₁
+trans ⦃ Transitive~ ⦄ (λx, p)(λx, q) = λx, trans p q
+trans ⦃ Transitive~ ⦄ (p₀ ` p₁)(q₀ ` q₁) = trans p₀ q₀ ` trans p₁ q₁
+trans ⦃ Transitive~ ⦄ ⌊ p ⌋ ⌊ q ⌋ = ⌊ trans p q ⌋
+
+sym ⦃ Symmetric~ ⦄ (~annot S S' p) = ~annot S' S $ sym p
+sym ⦃ Symmetric~ ⦄ (⋆ i) = ⋆ i
+sym ⦃ Symmetric~ ⦄ (var x) = var x
+sym ⦃ Symmetric~ ⦄ ([ π x: p₀ ]→ p₁) = [ π x: sym p₀ ]→ sym p₁
+sym ⦃ Symmetric~ ⦄ (λx, p) = λx, sym p
+sym ⦃ Symmetric~ ⦄ (p₀ ` p₁) = sym p₀ ` sym p₁
+sym ⦃ Symmetric~ ⦄ ⌊ p ⌋ = ⌊ sym p ⌋
+
+open import Logic
+
+ctx-closed ⦃ ContextClosed~ ⦄ (term t) _ = refl t
+ctx-closed ⦃ ContextClosed~ ⦄ (elim e) _ = refl e
+ctx-closed ⦃ ContextClosed~ ⦄ — p = p
+ctx-closed ⦃ ContextClosed~ ⦄ ([ π x: C₀ ]→ C₁)(p₀ , p₁) =
+  [ π x: ctx-closed C₀ p₀ ]→ ctx-closed C₁ p₁
+ctx-closed ⦃ ContextClosed~ ⦄ (λx, C) p = λx, ctx-closed C p
+ctx-closed ⦃ ContextClosed~ ⦄ ⌊ C ⌋ p = ⌊ ctx-closed C p ⌋
+ctx-closed ⦃ ContextClosed~ ⦄ (C₀ ` C₁)(p₀ , p₁) =
+  ctx-closed C₀ p₀ ` ctx-closed C₁ p₁
+ctx-closed ⦃ ContextClosed~ ⦄ (C₀ ꞉ C₁)(p₀ , p₁) =
+  ~annot _ _ $ ctx-closed C₀ p₀
 
 data _≼_ : RelOnExpr (𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲) where
-  ≼similar : {S T : expr-of-type tag m}
+  similar : {S T : expr-of-type tag n}
     (p : S ~ T)
     → ----------
     S ≼ T
 
-  ≼sort : ∀ {i j}
+  sort : ∀ {i j}
     (p : j ≻ i)
     → ------------
-    ⋆ {n = n} i ≼ ⋆ j
+     _≼_ {n}{term} (⋆ i) (⋆ j)
 
-  ≼pi : ∀ π {S S' : Term m}{T T'}
+  [_x:_]→_ : ∀ π {S S' T T'}
     (p : S' ≼ S)
     (q : T ≼ T')
     → ---------------------
-    [ π x: S ]→ T ≼ [ π x: S' ]→ T'
+    _≼_ {n}{term} ([ π x: S ]→ T)([ π x: S' ]→ T')
 
 -- Lemma 18 (subtyping transitivity)
 
@@ -105,16 +128,15 @@ instance
   Reflexive≼ : Reflexive (_≼_ {n = n}{tag})
   Transitive≼ : Transitive (_≼_ {n = n}{tag})
 
-refl ⦃ Reflexive≼ ⦄ t = ≼similar (refl t)
+refl ⦃ Reflexive≼ ⦄ t = similar (refl t)
 
-trans ⦃ Transitive≼ ⦄ (≼similar p) (≼similar p₁) =
-  ≼similar (trans p p₁)
-trans ⦃ Transitive≼ ⦄ (≼similar (~sort i)) q@(≼sort _) = q
-trans ⦃ Transitive≼ ⦄ (≼similar (~pi π p p₁)) (≼pi π q q₁) =
-  ≼pi π (trans q (≼similar (sym p))) (trans (≼similar p₁) q₁)
-trans ⦃ Transitive≼ ⦄ p@(≼sort _) (≼similar (~sort i)) = p
-trans ⦃ Transitive≼ ⦄ (≼sort p) (≼sort p₁) = ≼sort (trans p₁ p)
-trans ⦃ Transitive≼ ⦄ (≼pi π p p₁) (≼similar (~pi π q q₁)) =
-  ≼pi π (trans (≼similar (sym q)) p) (trans p₁ (≼similar q₁))
-trans ⦃ Transitive≼ ⦄ (≼pi π p p₁) (≼pi π q q₁) =
-  ≼pi π (trans q p) (trans p₁ q₁)
+trans ⦃ Transitive≼ ⦄ (similar p)(similar q) = similar $ trans p q
+trans ⦃ Transitive≼ ⦄ (similar (⋆ i))(sort q) = sort q
+trans ⦃ Transitive≼ ⦄ (similar ([ π x: p₀ ]→ p₁))([ π x: q₀ ]→ q₁) =
+  [ π x: trans q₀ (similar (sym p₀)) ]→ trans (similar p₁) q₁
+trans ⦃ Transitive≼ ⦄ (sort p)(similar (⋆ i)) = sort p
+trans ⦃ Transitive≼ ⦄ (sort p)(sort q) = sort (trans q p)
+trans ⦃ Transitive≼ ⦄ ([ π x: p₀ ]→ p₁)(similar ([ π x: q₀ ]→ q₁)) =
+  [ π x: trans (similar (sym q₀)) p₀ ]→ trans p₁ (similar q₁)
+trans ⦃ Transitive≼ ⦄ ([ π x: p₀ ]→ p₁)([ π x: q₀ ]→ q₁) =
+  [ π x: trans q₀ p₀ ]→ trans p₁ q₁

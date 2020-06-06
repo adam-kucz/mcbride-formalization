@@ -1,7 +1,13 @@
 {-# OPTIONS --exact-split --prop #-}
-module Renaming where
+open import Universes
+open import Basic
 
-open import Renaming.Definition public
-open import Renaming.Syntax public
-open import Renaming.Property public
-open import Renaming.Instance public
+module Renaming
+  {R : 𝒰 ˙} ⦃ rig : Rig R ⦄
+  {𝑆 : 𝒱 ˙} ⦃ wfs : wfs 𝒲 𝒯 𝑆 ⦄
+  where
+
+open import Renaming.Definition ⦃ rig ⦄ ⦃ wfs ⦄ public
+open import Renaming.Syntax ⦃ rig ⦄ ⦃ wfs ⦄ public
+open import Renaming.Property ⦃ rig ⦄ ⦃ wfs ⦄ public
+open import Renaming.Instance ⦃ rig ⦄ ⦃ wfs ⦄ public

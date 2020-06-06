@@ -55,8 +55,8 @@ open import Proof
 
 del-nth : ∀ {m} n {tag}
   (e : expr-of-type tag (m +1))
-  (p : n < m +1)
-  (q : nth-var n p ∉ fv e)
+  (p : n ≤ m)
+  (q : nth-var n (ap suc p) ∉ fv e)
   → ------------------------------
   expr-of-type tag m
 
@@ -77,27 +77,27 @@ open import Data.Nat.Proof
 delVar : ∀ {m}
   (n : ℕ)
   (v : Var (m +1))
-  (p : n < m +1)
-  (q : nth-var n p ≠ v)
+  (p : n ≤ m)
+  (q : nth-var n (ap suc p) ≠ v)
   → --------------------
   Var m
 delVar zero new p q = ⊥-recursion _ (q (Id-refl new))
 delVar zero (old v) p q = v
-delVar {zero}(n +1) new p q = ⊥-recursion _ (¬-<0 n $ s<s→-<- p)
 delVar {m +1}(n +1) new p q = new
 delVar {m +1}(n +1) (old v) p q =
-  old (delVar n v (s<s→-<- p) λ x → q $ ap old x)
+  old (delVar n v (ap pred p) λ x → q $ ap old x)
 
 del-nth n {term} (⋆ i) p q = ⋆ i
 del-nth n {term} ([ ρ x: S ]→ T) p q =
   [ ρ x:
   del-nth n S p (λ q' → q $ ⟵ (++-prop {l' = lₜ}) $ ∨left q') ]→
-  del-nth (n +1) T (s<s p)
-    (λ q' → q $ ⟵ (++-prop {l = fv S}) $ ∨right $ del-nth-aux {n = n}{p} q')
+  del-nth (n +1) T (ap suc p)
+    (λ q' → q $ ⟵ (++-prop {l = fv S}) $ ∨right $
+            del-nth-aux {n = n}{ap suc p} q')
   where lₜ = fv T >>= prevSafe
 del-nth n {term} (λx, t) p q =
-  λx, del-nth (n +1) t (s<s p)
-    λ q' → q $ del-nth-aux {n = n}{p} q'
+  λx, del-nth (n +1) t (ap suc p)
+    λ q' → q $ del-nth-aux {n = n}{ap suc p} q'
 del-nth n {term} ⌊ e ⌋ p q = ⌊ del-nth n e p q ⌋
 del-nth n {elim} (f ` s) p q =
   del-nth n f p (λ q' → q $ ⟵ (++-prop {l' = fv s}) $ ∨left q') `
@@ -111,20 +111,20 @@ del-nth n {elim} (var v) p q =
 del-nth== : ∀ {tag tag' m m' n n'}
   {e : expr-of-type tag (m +1)}
   {e' : expr-of-type tag' (m' +1)}
-  {p q}
+  {p : n ≤ m}{q}
   (eq₀ : tag == tag')
   (eq₁ : m == m')
   (eq₂ : n == n')
   (eq₃ : e Het.== e')
   → ------------------------------
-  let p' = Id.coe (ap2 _<_ eq₂ $ ap suc eq₁) p
+  let p' = Id.coe (ap2 _≤_ eq₂ eq₁) p
       q' :
         (eq₀ : tag == tag')
         (eq₁ : m == m')
         (eq₂ : n == n')
         (eq₃ : e Het.== e')
         → --------------------
-        nth-var n' p' ∉ fv e'
+        nth-var n' (ap suc p') ∉ fv e'
       q' = λ {(Id-refl tag)(Id-refl m)(Id-refl n)(Het.refl e) → q}
   in
   del-nth n e p q

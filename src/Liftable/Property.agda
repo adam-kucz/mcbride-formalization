@@ -89,11 +89,11 @@ lift-by-lift~ {m = m}{n}(k +1){F} σ (old v) =
   qed
   where coer : ∀ k → Var (k + m +1) == Var (k + (m +1))
         coer k = ap Var $ sym $ +-suc k m
-        p' : index v < k + (m +1)
+        p' : index v +1 ≤ k + (m +1)
         v' : Var (k + (m +1))
         v' = nth-var (index v) p'
-        p' = proof index v
-               〉 _<_ 〉 k + m +1
+        p' = proof index v +1
+               〉 _≤_ 〉 k + m +1
                  :by: index< v
                〉 _==_ 〉 k + (m +1)
                  :by: sym $ +-suc k m

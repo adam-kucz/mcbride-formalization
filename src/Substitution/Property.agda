@@ -63,3 +63,51 @@ rename-[-/new] ρ e f =
            subrel {_P_ = _==_} $ isym $
            ==→~ (rename-as-sub (lift ρ)) e
   qed
+
+open import Type.BinarySum renaming (_+_ to _⊹_)
+
+[_+id]∘aux-nthSub : (f : X → Y)(x : X)(q : n ≤ m)
+  → -----------------------------------------------------
+  [ f + id ] ∘ aux-nthSub x n q ~ aux-nthSub (f x) n q
+[_+id]∘aux-nthSub {n = zero}{m} f x q new = Het.refl (inl (f x))
+[_+id]∘aux-nthSub {n = zero}{m} f x q (old v) = Het.refl (inr (var v))
+[_+id]∘aux-nthSub {n = n +1}{m +1} f x q new = Het.refl (inr (var new))
+[_+id]∘aux-nthSub {n = n +1}{m +1} f x q (old v) =
+  proof [ f + id ] ([ id + shift ] n')
+    het== [ f + shift ] n'
+      :by: [ f + id ]∘[ id + shift ] n'
+    het== [ id + shift ] ([ f + id ] n')
+      :by: sym {R = Het._==_} $ [ id + shift ]∘[ f + id ] n'
+    het== [ id + shift ] (aux-nthSub (f x) n (ap pred q) v)
+      :by: ap [ id + shift ] $ [ f +id]∘aux-nthSub x (ap pred q) v
+  qed
+  where n' = aux-nthSub x n (ap pred q) v
+
+private
+  aux-lift-nth : ∀ (f : Elim m) n (q : n ≤ m)(x : Var (m +1))
+    → --------------------------------------------------------
+    shift ([ id , id ] (aux-nthSub f n q x))
+    Het.==
+    [ id , id ] (aux-nthSub (shift f) (n +1) (ap suc q) (old x))
+aux-lift-nth f n q x =
+  proof shift ([ id , id ] x')
+    het== [ shift , shift ] x'
+      :by: (shift ∘[ id , id ]) x'
+    het== [ id , shift ] ([ shift + id ] x')
+      :by: sym {R = Het._==_} $ [ id , shift ]∘[ shift + id ] x'
+    het== [ id , shift ] x″
+      :by: ap [ id , shift ] $ [ shift +id]∘aux-nthSub f q x
+    het== [ id , id ] ([ id + shift ] x″)
+      :by: sym {R = Het._==_} $ [ id , id ]∘[ id + shift ] x″
+  qed
+  where x' = aux-nthSub f n q x
+        x″ = aux-nthSub (shift f) n q x
+
+
+lift-nth : (f : Elim m)(q : n ≤ m)
+  → -----------------------------------------------------
+  lift (nthSub n q f) ~ nthSub (n +1) (ap suc q) (shift f)
+lift-nth {m} {zero} f q new = Het.refl (var new)
+lift-nth {m} {zero} f q (old x) = aux-lift-nth f 0 q x
+lift-nth {m} {n +1} f q new = Het.refl (var new)
+lift-nth {m} {n +1} f q (old x) = aux-lift-nth f (n +1) q x

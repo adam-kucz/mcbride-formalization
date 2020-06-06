@@ -30,7 +30,7 @@ open import Type.BinarySum hiding (_+_)
 
 private
   aux-nthSub-inner :
-    (x : X)(f : X → Y)(p : k < m +1)(v : Var (m +1))
+    (x : X)(f : X → Y)(p : k ≤ m)(v : Var (m +1))
     → --------------------------------------------------
     [ f + id ] (aux-nthSub x k p v)
     ==
@@ -38,8 +38,6 @@ private
 
 aux-nthSub-inner {k = zero} x f p new = Id-refl (inl (f x))
 aux-nthSub-inner {k = zero} x f p (old v) = Id-refl (inr (var v))
-aux-nthSub-inner {k = k +1} {zero} x f p new =
-  ⊥-recursion _ $ ¬-<0 k $ s<s→-<- p
 aux-nthSub-inner {k = k +1} {m +1} x f p new = Id-refl (inr (var new))
 aux-nthSub-inner {k = k +1} {m +1} x f p (old v) =
   subrel {_R_ = Het._==_} (
@@ -49,18 +47,18 @@ aux-nthSub-inner {k = k +1} {m +1} x f p (old v) =
     het== [ id + shift ] ([ f + id ] e₀)
       :by: sym {R = Het._==_} $ [ id + shift ]∘[ f + id ] e₀
     === [ id + shift ] e₁
-      :by: ap [ id + shift ] $ aux-nthSub-inner x f (s<s→-<- p) v
+      :by: ap [ id + shift ] $ aux-nthSub-inner x f (ap pred p) v
   qed)
-  where e₀ = aux-nthSub x k (s<s→-<- p) v
-        e₁ = aux-nthSub (f x) k (s<s→-<- p) v
+  where e₀ = aux-nthSub x k (ap pred p) v
+        e₁ = aux-nthSub (f x) k (ap pred p) v
 
 lift-nthSub : ∀{k m}
   (f : Elim m)
-  (p : k < m +1)
+  (p : k ≤ m)
   → --------------------------------------------------
   lift (nthSub k p f)
   ==
-  nthSub (k +1) (s<s p) (shift f)
+  nthSub (k +1) (ap suc p) (shift f)
 lift-nthSub {k = k}{m} f p =
   subrel {_R_ = Het._==_} $ fun-ext
   λ { new → Het.refl (var new)
@@ -78,7 +76,7 @@ lift-nthSub {k = k}{m} f p =
           het== [ id , id ] ([ id + shift ] (aux-nthSub (shift f) k p v))
             :by: sym {𝒰 = 𝒰 ⁺ ⊔ 𝒱}{𝒰 ⁺ ⊔ 𝒱} $
                  [ id , id ]∘[ id + shift ] (aux-nthSub (shift f) k p v)
-          === nthSub (k +1) (s<s p) (shift f) (shift v)
+          === nthSub (k +1) (ap suc p) (shift f) (shift v)
             :by: Id-refl _
         qed}
 
@@ -98,8 +96,8 @@ nthSub-neutral : ∀ {k m}
   (f : Elim m)
   {tag}
   (e : expr-of-type tag (m +1))
-  (p : k < m +1)
-  (q : nth-var k p ∉ fv e)
+  (p : k ≤ m)
+  (q : nth-var k (ap suc p) ∉ fv e)
   → --------------------------------------------------
   sub (nthSub k p f) e == del-nth k e p q
 nthSub-neutral f {term} (⋆ i) p q = Id-refl (⋆ i)
@@ -107,23 +105,24 @@ nthSub-neutral {k} f {term} ([ ρ x: S ]→ T) p q =
   ap2 [ ρ x:_]→_
     (nthSub-neutral f S p λ q' → q $ ⟵ (++-prop {l' = l'}) $ ∨left q')
     (proof sub (lift (nthSub k p f)) T
-       === sub (nthSub (k +1) (s<s p) (shift f)) T
+       === sub (nthSub (k +1) (ap suc p) (shift f)) T
          :by: ap (λ — → sub — T) $ lift-nthSub f p
-       === del-nth (k +1) T (s<s p) q'
-         :by: nthSub-neutral (shift f) T (s<s p) q'
+       === del-nth (k +1) T (ap suc p) q'
+         :by: nthSub-neutral (shift f) T (ap suc p) q'
      qed)
   where l' = fv T >>= prevSafe
-        q' = λ q' → q $ ⟵ extend-prop $ ∨left $ del-nth-aux {p = p} q'
+        q' = λ q' → q $ ⟵ extend-prop $ ∨left $
+                    del-nth-aux {p = ap suc p} q'
 nthSub-neutral {k} f {term} (λx, t) p q =
   proof sub (nthSub k p f) (λx, t)
     === λx, sub (lift (nthSub k p f)) t
       :by: Id-refl _
-    === λx, sub (nthSub (k +1) (s<s p) (shift f)) t
+    === λx, sub (nthSub (k +1) (ap suc p) (shift f)) t
       :by: ap (λ — → λx, sub — t) $ lift-nthSub f p
-    === λx, del-nth (k +1) t (s<s p) _
+    === λx, del-nth (k +1) t (ap suc p) _
       :by: ap λx,_ $
-           nthSub-neutral (shift f) t (s<s p)
-           (λ q' → q $ del-nth-aux {n = k}{p} q')
+           nthSub-neutral (shift f) t (ap suc p)
+           (λ q' → q $ del-nth-aux {n = k}{ap suc p} q')
     === del-nth k (λx, t) p q
       :by: Id-refl _
   qed
@@ -143,18 +142,17 @@ nthSub-neutral {k} f {elim} (var v) p q =
           aux-nthSub x k p v == inr (var (delVar k v p q))
         delVar-aux zero new _ p q = ⊥-recursion _ $ q $ Id-refl new
         delVar-aux zero (old v) _ p q = Id-refl (inr (var v))
-        delVar-aux {m = zero}(k +1) new _ p q = ⊥-recursion _ $ ¬-<0 k $ s<s→-<- p
         delVar-aux {m = m +1}(k +1) new _ p q = Id-refl (inr (var new))
         delVar-aux {m = m +1}(k +1) (old v) x p q = 
           proof aux-nthSub x (k +1) p (old v)
-            === [ id + shift ] (aux-nthSub x k (s<s→-<- p) v)
+            === [ id + shift ] (aux-nthSub x k (ap pred p) v)
               :by: Id-refl _
-            === [ id + shift ] (inr (var (delVar k v (s<s→-<- p) q')))
-              :by: ap [ id + shift ] (delVar-aux k v x (s<s→-<- p) q')
+            === [ id + shift ] (inr (var (delVar k v (ap pred p) q')))
+              :by: ap [ id + shift ] (delVar-aux k v x (ap pred p) q')
             === inr (var (old (delVar k v _ _)))
               :by: Id-refl _
           qed
-          where q' : nth-var k (s<s→-<- p) ≠ v
+          where q' : nth-var k p ≠ v
                 q' nth-var==v = q $ ap old nth-var==v
 
 sub-newSub :
@@ -171,10 +169,10 @@ sub-newSub {m}{n} σ f = subrel {_R_ = Het._==_} $ fun-ext
         === del-nth
               0
               (coe (Id-refl _) (rename (lift-by 0 old) (σ v)))
-              (z<s _)
+              (z≤ n)
               (q v)
           :by: sym {R = _==_} $ del-k-shift~id 0 (σ v) (q v)
-        === del-nth 0 (shift (σ v)) (z<s _) (nth-var∉shift 0 (σ v))
+        === del-nth 0 (shift (σ v)) (z≤ n) (nth-var∉shift 0 (σ v))
           :by: subrel {_P_ = _==_} $
                del-nth== (Id-refl elim)(Id-refl n)(Id-refl 0)
                  (proof coe (Id-refl _) (rename (lift-by 0 old) (σ v))
@@ -185,7 +183,7 @@ sub-newSub {m}{n} σ f = subrel {_R_ = Het._==_} $ fun-ext
                   qed)
         === sub (newSub (sub σ f)) (shift (σ v))
           :by: sym {𝒰 = 𝒰 ⁺ ⊔ 𝒱} $
-               nthSub-neutral (sub σ f) (shift (σ v)) (z<s n) _
+               nthSub-neutral (sub σ f) (shift (σ v)) (z≤ n) _
         === (newSub (sub σ f) ⍟ lift σ) (old v)
           :by: Id-refl _
       qed}

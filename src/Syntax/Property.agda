@@ -142,13 +142,13 @@ instance
 default-new ⦃ LiftableElim ⦄ = var new
 
 nth-var== : ∀ {m m' n n'}
-  (p : n < m)
+  (p : n +1 ≤ m)
   (q : m == m')
   (q' : n == n')
   → ------------------
   nth-var {m = m} n p
   Het.==
-  nth-var {m = m'} n' (Id.coe (ap2 _<_ q' q) p)
+  nth-var {m = m'} n' (Id.coe (ap2 (λ m n → m +1 ≤ n) q' q) p)
 nth-var== _ (Id-refl m) (Id-refl n) = Het.refl (nth-var {m = m} n _)
 
 open import Logic
