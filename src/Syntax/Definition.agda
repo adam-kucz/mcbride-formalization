@@ -61,15 +61,15 @@ data Elim (n : ℕ) : 𝒰 ⁺ ⊔ 𝒱 ˙
 infix 170 [_x:_]→_ λx,_
 data Term n where
   ⋆ : (i : S) → Term n
-  [_x:_]→_ : (ρ : R) (S : Term n) (T : Term (n +1)) → Term n
+  [_x:_]→_ : (ρ : R)(S : Term n)(T : Term (n +1)) → Term n
   λx,_ : (t : Term (n +1)) → Term n
   ⌊_⌋ : (e : Elim n) → Term n
 
 infix 160 _`_ _꞉_
 data Elim n where
   var : (v : Var n) → Elim  n
-  _`_ : (f : Elim n) (s : Term n) → Elim n
-  _꞉_ : (s : Term n) (S : Term n) → Elim n
+  _`_ : (f : Elim n)(s : Term n) → Elim n
+  _꞉_ : (s : Term n)(S : Term n) → Elim n
 
 data ExprTag : 𝒰₀ ˙ where
   term elim : ExprTag
@@ -135,3 +135,6 @@ index==→var== :
   v Het.== v'
 index==→var== (Id-refl x) q = subrel $ inj $ subrel q
 
+instance
+  Injective-⌊⌋ : Injective (⌊_⌋ {m})
+inj ⦃ Injective-⌊⌋ ⦄ (Het.refl ⌊ e ⌋) = Id.refl e

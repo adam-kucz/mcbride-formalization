@@ -7,12 +7,12 @@ module Syntax.Context.Property
   {S : 𝒱 ˙} ⦃ wfs : wfs 𝒲 𝒯 S ⦄
   where
 
-open import Syntax.Context.Arbitrary
-open import Syntax.Context.Substitutable
+open import Syntax.Context.Arbitrary renaming ([_] to [[_]])
+open import Syntax.Context.Substitutable public
 
 open import Type.Sum hiding (_,_)
 open import Data.Nat
-open import Data.Vec as V hiding ([_])
+open import Data.Tree.Binary
 open import Function hiding (_$_)
 
 open import Syntax
@@ -24,26 +24,33 @@ private
   subst = λ {tag}{m}{n} →
     sub ⦃ subst = SubstitutableExpr {tag = tag} ⦄ {m = m}{n}
   _[_/new] = Subs._[_/new] ⦃ subst = SubstitutableElim ⦄
-  subc = λ {tag}{k}{v}{m}{n} →
-    sub ⦃ subst = SubstitutableContext {tag = tag}{k}{v} ⦄ {m = m}{n}
+  subc = λ {tag}{t}{m}{n} →
+    sub ⦃ subst = SubstitutableContext {t = t}{tag} ⦄ {m = m}{n}
 infix 180 _[_/new]
 
 open import Proof
 
 open import Proposition.Identity.Coercion
 
+import Data.Functor as F
+open import Data.Functor.Construction
+open import Data.Maybe.Functor
+open import Data.Tree.Binary.Functor
+open F.Functor (ComposeFunctor ⦃ BinaryTreeFunctor ⦄ ⦃ MaybeFunctor ⦄)
+
+instance
+  UptoBinaryTreeFunctor =
+    ComposeFunctor ⦃ BinaryTreeFunctor ⦄ ⦃ MaybeFunctor ⦄
+
 sub-all : ∀{m n}
   (σ : Sub m n)
-  {k}(v : Holes k)
-  {v' : Holes k}
-  (p : v' == map [ id × _+ m ] v)
-  (es : all-types v')
+  (t : Holes)
+  (es : all-types (fmap [ id × _+ m ] t))
   → -------------------------------------
-  all-types (map [ id × _+ n ] v)
-sub-all σ [] {[]} p es = es
-sub-all {m} σ ((tag Σ., l) ∷ v) {(tag' Σ., l') ∷ v'} p (e Σ., es) =
-  subst (lift-by l σ) (coe (ap (to-type ∘ head) p) e) Σ.,
-  sub-all σ v (ap tail p) es
+  all-types (fmap [ id × _+ n ] t)
+sub-all σ ◻ es = es
+sub-all σ [[ tag Σ., k ]] es = subst (lift-by k σ) es
+sub-all σ (l /\ r) (es-l Σ., es-r) = sub-all σ l es-l Σ., sub-all σ r es-r
 
 open import Logic
 open import Function.Proof
@@ -51,16 +58,14 @@ open import Function.Proof
 open import Axiom.FunctionExtensionality
 
 postulate
-  sub-ctx-aux : ∀ {m n}
+  sub-ctx-prop : ∀ {m n}
     (σ : Sub m n)
-    {k}{v' : Holes k}{tag}
-    (C : Context v' tag m)
-    (es : all-types v')
-    {v : Holes k}
-    (p : v' == map [ id × _+ m ] v)
+    {t : Holes}{tag}
+    (C : Context (fmap [ id × _+ m ] t) tag m)
+    (es : all-types (fmap [ id × _+ m ] t))
     → ------------------------------------------------------------------
-    let C' = coe (ap (λ — → Context — tag m) p) C in
-    sub σ (fill-holes es C) == fill-holes (sub-all σ v p es) (subc σ C')
+    sub σ (fill-holes es C) == fill-holes (sub-all σ t es) (subc σ C)
+
 {-
 sub-ctx-aux σ (term t) es {[]} (Id-refl []) = {!!}
 {-  proof sub σ t

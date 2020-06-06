@@ -31,9 +31,9 @@ record WellFoundedSorts (𝒰 𝒱 : Universe) (S : 𝒲 ˙) : (𝒰 ⊔ 𝒱) �
 
     ⦃ Transitive≻ ⦄ : Transitive _≻_ 
     
-    wf : ∀ {j} {P : S → 𝒱 ˙}
-      (all≺ : ∀ i { j≻i : j ≻ i } → P i)
-      → ------------------------
+    wf : ∀ {P : S → 𝒱 ᵖ}
+      (p : ∀ {j}(all≺ : ∀ {i}(j≻i : j ≻ i) → P i) → P j)
+      → --------------------------------------------------
       ∀ k → P k
 
 open WellFoundedSorts ⦃ ... ⦄ public

@@ -50,7 +50,8 @@ data _~_ : RelOnExpr (𝒰 ⁺ ⊔ 𝒱) where
     → -------------
     s ꞉ S ~ s' ꞉ S'
 
-open import Relation.Binary hiding (_~_)
+open import Relation.Binary
+  hiding (_~_; Reflexive~; Transitive~; Symmetric~)
 
 instance
   Reflexive~ : Reflexive (_~_ {n = n}{tag})

@@ -9,16 +9,22 @@ module Computation.Property
 
 open import Computation.Definition
 
-open import Proposition.Identity hiding (refl)
 open import Data.Nat
-open import Syntax
+open import Syntax ⦃ rig ⦄ ⦃ wfs ⦄
+open import Syntax.Context ⦃ rig ⦄ ⦃ wfs ⦄
+open import Proof
 
 sorts-don't-reduce : {i : S}{e e' : Term n}
   (p : e ⇝ e')
   → --------------------------------
   e ≠ ⋆ {n = n} i
 sorts-don't-reduce (v-exact (v _ _)) ()
-sorts-don't-reduce (hole C p) = {!!}
+sorts-don't-reduce (hole — p) (Id-refl (⋆ i)) =
+  sorts-don't-reduce p $ Id-refl (⋆ i)
+sorts-don't-reduce (hole [ π x: S ]→ C ↓ p) ()
+sorts-don't-reduce (hole ([ π x: C ↓]→ T) p) ()
+sorts-don't-reduce (hole (λx, C) p) ()
+sorts-don't-reduce (hole ⌊ C ⌋ p) ()
 
 open import Logic
 open import Proof
@@ -31,24 +37,20 @@ pi-reduct-forms : ∀ {π : R}
   (∃ λ S' → S ⇝ S' ∧ e' == [ π x: S' ]→ T)
   ∨
   (∃ λ T' → T ⇝ T' ∧ e' == [ π x: S ]→ T')
--- pi-reduct-forms (v-exact (v _ _)) ()
--- pi-reduct-forms (hole — p) q = pi-reduct-forms p q
--- pi-reduct-forms (hole {s = s}{t} [ ρ x: S ]→ C[—] ↓ p)
---   (Id-refl ([ ρ x: S ]→ .(C[—] [ s /—]))) =
---   ∨right (C[—] [ t /—] , (hole C[—] p , Id-refl _))
--- pi-reduct-forms (hole {s = s} {t} ([ ρ x: C[—] ↓]→ T) p)
---   (Id-refl ([ ρ x: .(C[—] [ s /—]) ]→ T)) =
---   ∨left (C[—] [ t /—] , (hole C[—] p , Id-refl _))
+pi-reduct-forms (v-exact ()) (Id-refl _)
+pi-reduct-forms (hole — p) (Id-refl _) = pi-reduct-forms p (Id-refl _)
+pi-reduct-forms (hole {t = t} [ π x: S ]→ C[—] ↓ p) (Id-refl _) =
+  ∨right (C[—] [ t /—] , (hole C[—] p , Id-refl _))
+pi-reduct-forms (hole {t = t} ([ π x: C[—] ↓]→ T) p) (Id-refl _) =
+  ∨left (C[—] [ t /—] , (hole C[—] p , Id-refl _))
 
-{-
-open import Type.Sum hiding (_,_)
-open import Relation.Binary.ReflexiveTransitiveClosure
+open import Type.Sum hiding (_,_) renaming (_×_ to _χ_)
 
 pi-compute-forms : ∀ {π : R}
-  {S : Term n}{T}{e'}
+  {S : Term n}{T : Term (n +1)}{e' : Term n}
   (p : [ π x: S ]→ T ↠ e')
   → --------------------------------
-  ∃ {X = Term n × Term (n +1)}
+  ∃ {X = Term n χ Term (n +1)}
     (λ {(S' Σ., T') → S ↠ S' ∧ T ↠ T' ∧ e' == [ π x: S' ]→ T'})
 pi-compute-forms (rfl ([ π x: S ]→ T)) =
   (S Σ., T) , (refl S , refl T , refl ([ π x: S ]→ T))
@@ -67,77 +69,68 @@ pi-compute-forms (step [πx:S]→T⇝e″ p)
   | (S' Σ., T') , (S↠S' , T″↠T' , Id-refl _) =
   (S' Σ., T') , (S↠S' , step T⇝T″ T″↠T' , Id-refl _)
 
-mk-pi-compute : ∀ (π : R){S S' : Term n}{T T'}
-  (p : S ↠ S')
-  (q : T ↠ T')
-  → ----------------
-  [ π x: S ]→ T ↠ [ π x: S' ]→ T'
-mk-pi-compute π (rfl S) q = ctx-closed q ([ π x: S ]→ — ↓)
-mk-pi-compute π {T = T} (step S⇝S″ S″↠S') q =
-  step (hole ([ π x: — ↓]→ T) S⇝S″) (mk-pi-compute π S″↠S' q)
-
 open import Function.Proof
 
 instance
-  1-ContextClosed⇝ : 1-ContextClosed _⇝_
+  OneContextClosed⇝ : OneContextClosed _⇝_
 
-rel-preserv ⦃ 1-ContextClosed⇝ {C = C} ⦄ s⇝t = hole C s⇝t
+rel-preserv ⦃ OneContextClosed⇝ {C = C} ⦄ s⇝t = hole C s⇝t
 
-sub-compute : ∀{m n tag}
-  (σ : Sub m n)
-  {e e' : expr-of-type tag m}
-  (p : e ⇝ e')
-  → ------------------------------
-  subst σ e ⇝ subst σ e'
+open import Substitution hiding (sub-∘; rename-as-sub)
+open import Liftable
+private
+  module Tag {tag : ExprTag} where
+    open import Substitution
+    open WithInstanceArgs ⦃ subst = SubstitutableExpr {tag = tag} ⦄ public
+open Tag renaming (sub to subst)
+
+open import Data.Functor
+open import Function hiding (_$_)
+open import Computation.Proof
+
+postulate
+  sub-compute : ∀{m n tag}
+    (σ : Sub m n)
+    {e e' : expr-of-type tag m}
+    (p : e ⇝ e')
+    → ------------------------------
+    subst σ e ⇝ subst σ e'
+{-
+sub-compute σ (v-exact (v t T)) = v-exact (v (subst σ t) (subst σ T))
 sub-compute σ (β-exact (β π s S t T)) =
-  proof (λx, subst (lift σ) t ꞉ [ π x: subst σ S ]→ subst (lift σ) T) ` subst σ s
+  proof (λx, subst (lift σ) t ꞉ [ π x: subst σ S ]→ subst (lift σ) T) `
+          subst σ s
     〉 _⇝_ 〉 (subst (lift σ) (t ꞉ T)) [ subst σ (s ꞉ S) /new]
-      :by: β-exact (β π (subst σ s) (subst σ S) (subst (lift σ) t) (subst (lift σ) T))
+      :by: β-exact (β π (subst σ s) (subst σ S)
+                        (subst (lift σ) t) (subst (lift σ) T))
     === subst new-σ (subst (lift σ) (t ꞉ T))
       :by: Id-refl _
     === subst (new-σ ⍟ lift σ) (t ꞉ T)
-      :by: ap (λ — → — (t ꞉ T)) $ sub-∘ new-σ (lift σ)  -- sym $ sub-newSub σ (s ꞉ S)
+      :by: ap (λ — → — (t ꞉ T)) {r = _==_} $ sub-∘ new-σ (lift σ)
     === subst (σ ⍟ newSub (s ꞉ S)) (t ꞉ T)
       :by: ap (λ — → subst — (t ꞉ T)) $ sym {R = _==_} $
            sub-newSub σ (s ꞉ S)
     === subst σ ((t ꞉ T) [ s ꞉ S /new])
-      :by: ap (λ — → — (t ꞉ T)) $ sym $ sub-∘ σ (newSub (s ꞉ S))
+      :by: ap (λ — → — (t ꞉ T)) {r = _==_} $ sym {R = _==_} $
+           sub-∘ σ (newSub (s ꞉ S))
   qed
   where new-σ = newSub (subst σ (s ꞉ S))
-sub-compute σ (v-exact (v t T)) = v-exact (v (subst σ t) (subst σ T))
-sub-compute σ (hole C[—] p) with ⟶ ≤-↔-∃+ $ 1-hole-ctx-inhabited C[—]
-sub-compute {m}{n} σ (hole {m'}{n'}{tag₀}{tag₁}{s}{t} C[—] p) | k , q =
+sub-compute {m}{n}{tag} σ (hole {s = s}{t} C[—] p) =
   proof subst σ (C[—] [ s /—])
-    === C' [ s' /—]
-      :by: sub-ctx-aux σ s C[—] k (sym q)
-    === C' [ s″ /—]
-      :by: ap (C' [_/—]) $ move-coe s
-    〉 _⇝_ 〉 C' [ t″ /—]
-      :by: hole C' $ sub-compute σ' p
-    === C' [ t' /—]
-      :by: sym {R = _==_} $ ap (C' [_/—]) $ move-coe t
-    === subst σ (C[—] [ t /—])
-      :by: sym {R = _==_} $ sub-ctx-aux σ t C[—] k (sym q)
+    === subst σ (fill-holes (as-filling C[—] s) (as-arbitrary C[—]))
+      :by: ap (subst σ) $ context-equivalence C[—] s
+    === fill-holes (sub-all σ (hole-loc C[—]) e') (sub σ C')
+      :by: {!sub-compute (lift-by m σ)!}
+    〉 _⇝_ 〉 subst σ (C[—] [ t /—])
+      :by: {!!}
   qed
-  where C' = sub σ (coe (ap (λ — → 1-hole-ctx tag₀ — tag₁ m) $ sym q) C[—])
-        s' t' s″ t″ : expr-of-type tag₀ (k + n)
-        coer = ap (expr-of-type tag₀) $ sym q
-        s' = subst (lift-by k σ) (coe coer s)
-        t' = subst (lift-by k σ) (coe coer t)
-        σ-coer = ap (λ — → Var — → Elim (k + n)) q
-        σ' = coe σ-coer (lift-by k σ)
-        s″ = subst σ' s
-        t″ = subst σ' t
-        move-coe :
-          (e : expr-of-type tag₀ m')
-          → ----------------------------------------
-          subst (lift-by k σ) (coe coer e) == subst σ' e
-        move-coe e =
-          subrel {_P_ = _==_} $
-          Het.ap3 (λ i (σ : Sub i (k + n))(e : expr-of-type tag₀ i) → subst σ e)
-                  q
-                  (isym $ coe-eval σ-coer (lift-by k σ) )
-                  (coe-eval coer e)
+  where e' : all-types (fmap [ id × _+ m ] (hole-loc C[—]))
+        e' = {!!}
+        C' : Context (fmap [ id × _+ m ] (hole-loc C[—])) tag m
+        C' = {!!}
+-}
+
+open import Renaming
 
 instance
   RelatingSub⇝ : ∀{tag}{σ : Sub m n} →
@@ -149,8 +142,43 @@ rel-preserv ⦃ RelatingSub⇝ {σ = σ} ⦄ = sub-compute σ
 
 rel-preserv ⦃ RelatingRename⇝ {ρ = ρ} ⦄ {a}{b} a⇝b =
   proof rename ρ a
-    === subst (var ∘ ρ) a     :by: ap (λ — → — a) $ rename-as-sub ρ
-    〉 _⇝_ 〉 subst (var ∘ ρ) b :by: ap (subst (var ∘ ρ)) a⇝b
-    === rename ρ b            :by: ap (λ — → — b) $ sym $ rename-as-sub ρ
+    === subst (var ∘ ρ) a
+      :by: ap (λ — → — a) {r = _==_} $ rename-as-sub ρ
+    〉 _⇝_ 〉 subst (var ∘ ρ) b
+      :by: ap (subst (var ∘ ρ)) {a = a}{b} a⇝b
+    === rename ρ b
+      :by: ap (λ — → — b) {r = _==_ } $ sym {R = _==_} $
+           rename-as-sub ρ
   qed
--}
+
+instance
+  ContextClosed↠ : ContextClosed _↠_
+
+ctx-closed ⦃ ContextClosed↠ ⦄ (term t) p = refl t
+ctx-closed ⦃ ContextClosed↠ ⦄ (elim e) p = refl e
+ctx-closed ⦃ ContextClosed↠ ⦄ — p = p
+ctx-closed ⦃ ContextClosed↠ ⦄ ([ π x: C₀ ]→ C₁){l Σ., r}{l' Σ., r'}(p₀ , p₁) =
+  proof [ π x: fill-holes l C₀ ]→ fill-holes r C₁
+    〉 _↠_ 〉 [ π x: fill-holes l C₀ ]→ fill-holes r' C₁
+      :by: 1-ctx-closed (ctx-closed C₁ p₁) ([ π x: fill-holes l C₀ ]→ — ↓)
+    〉 _↠_ 〉 [ π x: fill-holes l' C₀ ]→ fill-holes r' C₁
+      :by: 1-ctx-closed (ctx-closed C₀ p₀) ([ π x: — ↓]→ fill-holes r' C₁)
+  qed
+ctx-closed ⦃ ContextClosed↠ ⦄ (λx, C) p =
+  1-ctx-closed (ctx-closed C p) (λx, —)
+ctx-closed ⦃ ContextClosed↠ ⦄ ⌊ C ⌋ p =
+  1-ctx-closed (ctx-closed C p) ⌊ — ⌋
+ctx-closed ⦃ ContextClosed↠ ⦄ (C₀ ` C₁){l Σ., r}{l' Σ., r'}(p₀ , p₁) =
+  proof fill-holes l C₀ ` fill-holes r C₁
+    〉 _↠_ 〉 fill-holes l C₀ ` fill-holes r' C₁
+      :by: 1-ctx-closed (ctx-closed C₁ p₁) (fill-holes l C₀ ` — ↓)
+    〉 _↠_ 〉 fill-holes l' C₀ ` fill-holes r' C₁
+      :by: 1-ctx-closed (ctx-closed C₀ p₀) (— ↓` fill-holes r' C₁)
+  qed
+ctx-closed ⦃ ContextClosed↠ ⦄ (C₀ ꞉ C₁){l Σ., r}{l' Σ., r'}(p₀ , p₁) =
+  proof fill-holes l C₀ ꞉ fill-holes r C₁
+    〉 _↠_ 〉 fill-holes l C₀ ꞉ fill-holes r' C₁
+      :by: 1-ctx-closed (ctx-closed C₁ p₁) (fill-holes l C₀ ꞉ — ↓)
+    〉 _↠_ 〉 fill-holes l' C₀ ꞉ fill-holes r' C₁
+      :by: 1-ctx-closed (ctx-closed C₀ p₀) (— ↓꞉ fill-holes r' C₁)
+  qed

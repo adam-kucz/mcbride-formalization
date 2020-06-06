@@ -11,7 +11,6 @@ open import Syntax
 open import Computation
 open import Context
 open import Renaming
-open import Substitution
 
 open import Data.Nat hiding (_⊔_; zero; _*_)
 open import Structure.Hemiring using (zero; _*_)
@@ -130,6 +129,14 @@ data var-in-ctx {n} (Γ : Precontext n) (ρ : R) (S : Term n)
     (p : var-in-ctx Γ ρ S Δ)
     → -------------------------------------------------------
     var-in-ctx Γ ρ S {suc m} (Δ ∥ zero ,x: S')
+
+open import Substitution using ()
+open import Liftable
+private
+  module Tag {tag : ExprTag} where
+    open import Substitution
+    open WithInstanceArgs ⦃ subst = SubstitutableExpr {tag = tag} ⦄ public
+open Tag
 
 data _⊢_,_∈_ where
   post : ∀ {n} {ρ} {Δ : Context n} {S R} {e}

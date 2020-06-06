@@ -46,7 +46,7 @@ data _⇝_ : RelOnExpr (𝒰 ⁺ ⊔ 𝒱)
     s ⇝ t
 
   hole : ∀ {m n tag₀ tag₁ s t}
-    (C[—] : 1-hole-ctx tag₀ m tag₁ n)
+    (C[—] : OneHoleContext tag₀ m tag₁ n)
     (reduct : s ⇝ t)
     → --------------------
     C[—] [ s /—] ⇝ C[—] [ t /—]

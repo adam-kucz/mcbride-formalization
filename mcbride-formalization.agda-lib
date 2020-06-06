@@ -1,0 +1,3 @@
+name:  mcbride-formalization
+depend: stdlib-adam-kucz
+include: src

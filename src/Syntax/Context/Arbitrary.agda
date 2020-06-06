@@ -11,128 +11,203 @@ open import Syntax
 
 open import Type.Sum hiding (_,_)
 open import Data.Nat hiding (_⊔_)
-open import Data.Vec
+open import Data.Maybe
+open import Data.Tree.Binary
 
-Holes = Vec (ExprTag × ℕ)
+HoleType = Maybe (ExprTag × ℕ)
+Holes = BinaryTree HoleType
+
+pattern ◻ = leaf nothing
+pattern [_] x = leaf (just x)
 
 data Context
   : --------------------------------------------------------------------------
-  {m : ℕ} -- number of holes
-  (holes : Holes m) -- required (type, number of free variables) of holes
+  (holes : Holes) -- required (type, number of free variables) of holes
   (result : ExprTag) -- type resulting from filling all holes
   (n : ℕ) -- number of free variables of the context (∀ m ∈ ms → n ≤ m)
   → 𝒰 ⁺ ⊔ 𝒱 ˙
   where
   term : (t : Term n)
     → -------------------
-    Context [] term n
+    Context ◻ term n
 
   elim : (e : Elim n)
     → -------------------
-    Context [] elim n
+    Context ◻ elim n
 
   — : ∀ {tag n}
     → ------------------
-    Context [ (tag Σ., n) ] tag n
-  
-  [_x:_]→_ : ∀ {n m₀ m₁}{v₀ : Holes m₀}{v₁ : Holes m₁}
+    Context [ tag Σ., n ] tag n
+
+  [_x:_]→_ : ∀ {n l r}
     (π : R)
-    (C₀ : Context v₀ term n)
-    (C₁ : Context v₁ term (n +1))
+    (C₀ : Context l term n)
+    (C₁ : Context r term (n +1))
     → ---------------------
-    Context (v₀ ++ v₁) term n
+    Context (l /\ r) term n
 
-  λx,_ : ∀ {n}{v : Holes m}
-    (C : Context v term (n +1))
+  λx,_ : ∀ {n t}
+    (C : Context t term (n +1))
     → ----------------------
-    Context v term n
+    Context t term n
 
-  ⌊_⌋ : ∀ {n}{v : Holes m}
-    (C : Context v elim n)
+  ⌊_⌋ : ∀ {n t}
+    (C : Context t elim n)
     → ---------------------
-    Context v term n
+    Context t term n
 
-  _`_ : ∀ {n m₀ m₁}{v₀ : Holes m₀}{v₁ : Holes m₁}
-    (C₀ : Context v₀ elim n)
-    (C₁ : Context v₁ term n)
+  _`_ : ∀ {n l r}
+    (C₀ : Context l elim n)
+    (C₁ : Context r term n)
     → ----------------------
-    Context (v₀ ++ v₁) elim n
+    Context (l /\ r) elim n
 
-  _꞉_ : ∀ {n m₀ m₁}{v₀ : Holes m₀}{v₁ : Holes m₁}
-    (C₀ : Context v₀ term n)
-    (C₁ : Context v₁ term n)
+  _꞉_ : ∀ {n l r}
+    (C₀ : Context l term n)
+    (C₁ : Context r term n)
     →  ----------------------
-    Context (v₀ ++ v₁) elim n
-
-open import Logic
-open import Proof
-open import Function hiding (_$_)
-
-to-type : ExprTag × ℕ → 𝒰 ⁺ ⊔ 𝒱 ˙
-all-types : Holes m → 𝒰 ⁺ ⊔ 𝒱 ˙
-divide-types :
-  (v₀ : Holes m)
-  (v₁ : Holes n)
-  (es : all-types (v₀ ++ v₁))
-  → ---------------------------
-  all-types v₀ × all-types v₁
-get-nth : 
-  (v : Holes m)
-  (es : all-types v)
-  (n : ℕ)
-  (p : n +1 ≤ m)
-  → ---------------------------
-  to-type (v ! n [ p ])
+    Context (l /\ r) elim n
 
 open import Type.Unit
-open import Collection
 
-to-type = uncurry expr-of-type
+to-type : HoleType → 𝒰 ⁺ ⊔ 𝒱 ˙
+to-type nothing = Lift𝒰 𝟙
+to-type (just (tag Σ., m)) = expr-of-type tag m
 
-all-types = foldr _×_ (Lift𝒰 𝟙) ∘ map to-type
-
-divide-types [] v₁ es = ↑type ⋆ Σ., es
-divide-types (h ∷ v₀) v₁ (eh Σ., es) = (eh Σ., pr₁ es') Σ., pr₂ es'
-  where es' = divide-types v₀ v₁ es
-
-get-nth (h ∷ _) (eh Σ., _) zero _ = eh
-get-nth (_ ∷ v) (_ Σ., es) (n +1) p = get-nth v es n (ap pred p)
+all-types : Holes → 𝒰 ⁺ ⊔ 𝒱 ˙
+all-types (leaf x) = to-type x
+all-types (l /\ r) = all-types l × all-types r
 
 fill-holes : ∀
-  {v : Holes m}
-  (es : all-types v)
+  {t : Holes}
+  (es : all-types t)
   {tag n}
-  (C : Context v tag n)
+  (C : Context t tag n)
   → ----------------------
   expr-of-type tag n
 fill-holes es (term t) = t
 fill-holes es (elim e) = e
-fill-holes (e Σ., _) — = e
-fill-holes es ([_x:_]→_ {v₀ = v₀}{v₁} π C₀ C₁) =
-  [ π x: fill-holes (pr₁ es') C₀ ]→ fill-holes (pr₂ es') C₁
-  where es' = divide-types v₀ v₁ es
+fill-holes es — = es
+fill-holes (l Σ., r) ([ π x: C₀ ]→ C₁) =
+  [ π x: fill-holes l C₀ ]→ fill-holes r C₁
 fill-holes es (λx, C) = λx, fill-holes es C
 fill-holes es ⌊ C ⌋ = ⌊ fill-holes es C ⌋
-fill-holes es (_`_ {v₀ = v₀}{v₁} C₀ C₁) =
-  fill-holes (pr₁ es') C₀ ` fill-holes (pr₂ es') C₁
-  where es' = divide-types v₀ v₁ es
-fill-holes es (_꞉_ {v₀ = v₀}{v₁} C₀ C₁) =
-  fill-holes (pr₁ es') C₀ ꞉ fill-holes (pr₂ es') C₁
-  where es' = divide-types v₀ v₁ es
+fill-holes (l Σ., r) (C₀ ` C₁) = fill-holes l C₀ ` fill-holes r C₁
+fill-holes (l Σ., r) (C₀ ꞉ C₁) = fill-holes l C₀ ꞉ fill-holes r C₁
 
-as-expr : ∀{tag}
-  (C : Context [] tag m)
+open import Proposition.Empty
+import Data.List as L
+open import Collection
+
+HolesListable : Listable _ Holes (ExprTag × ℕ)
+HolesListable = NestedListable (ExprTag × ℕ) HoleType Holes
+private
+  instance
+    _ = HolesListable
+
+open import Structure.Monoid hiding (e)
+open import Logic
+open import Proof
+
+holes-to-list = to-list ⦃ HolesListable ⦄
+
+holes-to-list-∙ : ∀ l r
+  → ------------------------------------------------------------
+  holes-to-list l ∙ holes-to-list r == holes-to-list (l /\ r)
+holes-to-list-∙ l r =
+  proof holes-to-list l ∙ holes-to-list r
+    === mconcat (L.map f (to-list l) ∙ L.map f (to-list r))
+      :by: sym $ mconcat-∪ (L.map f (to-list l)) (L.map f (to-list r))
+    === holes-to-list (l /\ r)
+      :by: ap mconcat $ sym $ L.map++ (to-list l) (to-list r) f
+  qed
+  where f = to-list {Col = HoleType}
+
+private
+  to-list/\==∅ : (l r : Holes)
+    (p : holes-to-list (l /\ r) == L.[])
+    → --------------------------------------------
+    holes-to-list l == L.[] ∧ holes-to-list r == L.[]
+to-list/\==∅ l r p with (
+  proof holes-to-list l ∙ holes-to-list r
+    === holes-to-list (l /\ r)            :by: holes-to-list-∙ l r
+    === L.[]                              :by: p
+  qed)
+... | q with holes-to-list l | holes-to-list r
+to-list/\==∅ l r p | q | L.[] | L.[] = Id-refl L.[] , Id-refl L.[]
+
+as-expr : ∀{t tag m}
+  (C : Context t tag m)
+  (p : to-list t == L.[] {X = ExprTag × ℕ})
   → ------------------------
   expr-of-type tag m
-as-expr C = fill-holes (↑type ⋆) C
+as-expr (term t) p = t
+as-expr (elim e) p = e
+as-expr {l /\ r} ([ π x: C₀ ]→ C₁) p =
+  [ π x: as-expr C₀ (∧left $ to-list/\==∅ l r p) ]→
+         as-expr C₁ (∧right $ to-list/\==∅ l r p)
+as-expr (λx, C) p = λx, as-expr C p
+as-expr ⌊ C ⌋ p = ⌊ as-expr C p ⌋
+as-expr {l /\ r} (C₀ ` C₁) p =
+  as-expr C₀ (∧left $ to-list/\==∅ l r p) `
+  as-expr C₁ (∧right $ to-list/\==∅ l r p)
+as-expr {l /\ r} (C₀ ꞉ C₁) p =
+  as-expr C₀ (∧left $ to-list/\==∅ l r p) ꞉
+  as-expr C₁ (∧right $ to-list/\==∅ l r p)
+
+open import Proposition.Unit
+open import Relation.Binary
+
+all-related : (R : RelOnExpr 𝒵)(t : Holes) → BinRel 𝒵 (all-types t)
+all-related R ◻ es es' = Lift𝒰ᵖ ⊤ 
+all-related R [ x ] e₀ e₁ = R e₀ e₁
+all-related R (l /\ r) (es₀-l Σ., es₀-r) (es₁-l Σ., es₁-r) =
+  all-related R l es₀-l es₁-l ∧ all-related R r es₀-r es₁-r
+
+Reflexive-all-related :
+  {R : RelOnExpr 𝒵}
+  ⦃ reflexive : ∀ {n}{tag} → Reflexive (R {n}{tag}) ⦄
+  {t : Holes}
+  → ---------------------------
+  Reflexive (all-related R t)
+Transitive-all-related :
+  {R : RelOnExpr 𝒵}
+  ⦃ transitive : ∀ {n}{tag} → Transitive (R {n}{tag}) ⦄
+  {t : Holes}
+  → ---------------------------
+  Transitive (all-related R t)
+Symmetric-all-related :
+  {R : RelOnExpr 𝒵}
+  ⦃ symmetric : ∀ {n}{tag} → Symmetric (R {n}{tag}) ⦄
+  {t : Holes}
+  → ---------------------------
+  Symmetric (all-related R t)
+
+refl ⦃ Reflexive-all-related {t = ◻} ⦄ _ = ↑prop ⋆ₚ
+refl ⦃ Reflexive-all-related ⦃ r ⦄ {[ tag Σ., n ]} ⦄ = refl ⦃ r ⦄
+refl ⦃ Reflexive-all-related {t = l /\ r} ⦄ (es₀ Σ., es₁) =
+  refl ⦃ Reflexive-all-related {t = l} ⦄ es₀ ,
+  refl ⦃ Reflexive-all-related {t = r} ⦄ es₁
+
+trans ⦃ Transitive-all-related {t = ◻} ⦄ _ _ = ↑prop ⋆ₚ
+trans ⦃ Transitive-all-related ⦃ t ⦄ {[ x ]} ⦄ = trans ⦃ t ⦄
+trans ⦃ Transitive-all-related {t = l /\ r} ⦄ (p₀ , p₁) (q₀ , q₁) =
+  trans ⦃ Transitive-all-related {t = l} ⦄ p₀ q₀ ,
+  trans ⦃ Transitive-all-related {t = r} ⦄ p₁ q₁
+
+sym ⦃ Symmetric-all-related {t = ◻} ⦄ _ = ↑prop ⋆ₚ
+sym ⦃ Symmetric-all-related ⦃ s ⦄ {[ x ]} ⦄ = sym ⦃ s ⦄
+sym ⦃ Symmetric-all-related {t = l /\ r} ⦄ (p₀ , p₁) =
+  sym ⦃ Symmetric-all-related {t = l} ⦄ p₀ ,
+  sym ⦃ Symmetric-all-related {t = r} ⦄ p₁
 
 record ContextClosed (R : RelOnExpr 𝒵) : 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒵 ᵖ where
   field
     ctx-closed : ∀
-      {v : Holes m}{tag n}
-      (C : Context v tag n)
-      {es es' : all-types v}
-      (p : ∀ i (q : i +1 ≤ m) → R (get-nth v es i q) (get-nth v es' i q))
+      {t tag n}
+      (C : Context t tag n)
+      {es es' : all-types t}
+      (p : all-related R t es es')
       → -------------------------------------------------------------
       R (fill-holes es C) (fill-holes es' C)
 

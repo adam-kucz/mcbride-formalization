@@ -3,26 +3,38 @@ module Relation.Binary.Diamond where
 
 open import PropUniverses
 
-open import Relation.Binary using (Rel)
+open import Proposition.Identity hiding (refl)
 open import Relation.Binary using (
-    refl ; _⊆_; subrel;
-    refl-trans-close; rfl; step; subrel-rtc-to-rtc-subrel-rtc)
+  BinRel;
+  refl; _⊆_; subrel;
+  refl-trans-close; rfl; step; subrel-rtc-to-rtc-subrel-rtc)
 open import Logic
   using (∃; _∧_; _,_)
 
 -- Definition 10 (diamond property)
 
-diamond : {X : 𝒵 ˙} (R : Rel 𝒴 X X) → 𝒵 ⊔ 𝒴 ᵖ
+diamond : {X : 𝒵 ˙} (R : BinRel 𝒴 X) → 𝒵 ⊔ 𝒴 ᵖ
 diamond _R_ = ∀ {s p q}
   (sRp : s R p)
   (sRq : s R q)
   → ------------
   ∃ λ r → p R r ∧ q R r
 
+diamond' : {X : 𝒵 ˙}(R : BinRel 𝒴 X) → 𝒵 ⊔ 𝒴 ᵖ
+diamond' _R_ = ∀{a a' b c}
+  (aRb : a R b)
+  (a'Rc : a' R c)
+  (a==a' : a == a')
+  → ------------
+  ∃ λ d → b R d ∧ c R d
+
+diamond-of-diamond' : {R : BinRel 𝒴 X}(p : diamond' R) → diamond R
+diamond-of-diamond' p {s} sRp sRq = p sRp sRq (Id.refl s)
+
 -- Lemma 11 (parallelogram)
 
 diamond-to-rtc-diamond :
-  {R : Rel 𝒴 X X}
+  {R : BinRel 𝒴 X}
   (diamond-R : diamond R)
   → ----------------------
   diamond (refl-trans-close R)
@@ -48,8 +60,8 @@ diamond-to-rtc-diamond {R = _R_} diamond-R = go
                   q' , (step s'Rt' t'R*q' , qRq')
 
 parallelogram :
-  (R : Rel 𝒴 X X)
-  {P : Rel 𝒵 X X} ⦃ R⊆P : R ⊆ P ⦄ ⦃ P⊂R* : P ⊆ refl-trans-close R ⦄
+  (R : BinRel 𝒴 X)
+  {P : BinRel 𝒵 X} ⦃ R⊆P : R ⊆ P ⦄ ⦃ P⊂R* : P ⊆ refl-trans-close R ⦄
   (diamond-P : diamond P)
   → ----------------------
   diamond (refl-trans-close R)
