@@ -81,7 +81,7 @@ module Auxiliary where
   f m n = [ id × (λ l → n + l - m) ]
 
   f-id m = subrel $ fun-ext λ { (tag Σ., l) →
-    subrel $ Σ== (Id-refl tag) (
+    subrel $ Σ== (Id.refl tag) (
       proof m + l - m
         === l + m - m :by: ap (_- m) $ comm m l
         het== l       :by: left-inverse-of (_+ m) l
@@ -117,7 +117,7 @@ private
     (p : ∀{tag : ExprTag}{k : ℕ}(q : just (tag Σ., k) ∈ t) → m ≤ k)
     → ------------------------------
     fmap (f n l) (fmap (f m n) t) == fmap (f m l) t
-fmap-aux m n l ◻ p = Id-refl ◻
+fmap-aux m n l ◻ p = Id.refl ◻
 fmap-aux m n l [[ tag Σ., k ]] p = ap (λ x → [[ tag Σ., x ]]) (
   proof l + (n + k - m) - n
     === n + k - m + l - n

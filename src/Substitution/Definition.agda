@@ -68,4 +68,4 @@ rename-∘ ⦃ Substitutable.ren (DirectSubstitutable sub sub-id sub-∘) ⦄ π
     === sub (var ∘ π) ∘ sub (var ∘ ρ)
       :by: sym $ sub-∘ (var ∘ π) (var ∘ ρ)
   qed
-Substitutable.rename-as-sub (DirectSubstitutable sub sub-id sub-∘) _ = Id-refl _
+Substitutable.rename-as-sub (DirectSubstitutable sub sub-id sub-∘) _ = Id.refl _

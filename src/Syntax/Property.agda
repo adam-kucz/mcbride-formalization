@@ -149,7 +149,7 @@ nth-var== : ∀ {m m' n n'}
   nth-var {m = m} n p
   Het.==
   nth-var {m = m'} n' (Id.coe (ap2 (λ m n → m +1 ≤ n) q' q) p)
-nth-var== _ (Id-refl m) (Id-refl n) = Het.refl (nth-var {m = m} n _)
+nth-var== _ (Id.refl m) (Id.refl n) = Het.refl (nth-var {m = m} n _)
 
 open import Logic
 
@@ -158,4 +158,4 @@ new≠old : ∀ m
   (p : m == n)
   → ------------------------------
   ¬ (new {n = m} Het.== old v)
-new≠old m v (Id-refl m) ()
+new≠old m v (Id.refl m) ()

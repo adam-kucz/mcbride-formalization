@@ -134,7 +134,7 @@ to-list/\==∅ l r p with (
     === L.[]                              :by: p
   qed)
 ... | q with holes-to-list l | holes-to-list r
-to-list/\==∅ l r p | q | L.[] | L.[] = Id-refl L.[] , Id-refl L.[]
+to-list/\==∅ l r p | q | L.[] | L.[] = Id.refl L.[] , Id.refl L.[]
 
 as-expr : ∀{t tag m}
   (C : Context t tag m)

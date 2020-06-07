@@ -76,26 +76,28 @@ instance
 
 rel-preserv ⦃ OneContextClosed⇝ {C = C} ⦄ s⇝t = hole C s⇝t
 
-open import Substitution hiding (sub-∘; rename-as-sub)
 open import Liftable
-private
-  module Tag {tag : ExprTag} where
-    open import Substitution
-    open WithInstanceArgs ⦃ subst = SubstitutableExpr {tag = tag} ⦄ public
-open Tag renaming (sub to subst)
+open import Substitution
+  hiding (sub-∘; rename-as-sub; _[_/new])
 
 open import Data.Functor
 open import Function hiding (_$_)
 open import Computation.Proof
 
-postulate
-  sub-compute : ∀{m n tag}
-    (σ : Sub m n)
-    {e e' : expr-of-type tag m}
-    (p : e ⇝ e')
-    → ------------------------------
-    subst σ e ⇝ subst σ e'
-{-
+private
+  subc = λ {t}{tag}{m}{n} →
+    sub ⦃ subst = SubstitutableContext {t = t}{tag} ⦄ {m}{n}
+  module Tag {tag : ExprTag} where
+    open import Substitution
+    open WithInstanceArgs ⦃ subst = SubstitutableExpr {tag = tag} ⦄ public
+open Tag renaming (sub to subst)
+
+sub-compute : ∀{m n tag}
+  (σ : Sub m n)
+  {e e' : expr-of-type tag m}
+  (p : e ⇝ e')
+  → ------------------------------
+  subst σ e ⇝ subst σ e'
 sub-compute σ (v-exact (v t T)) = v-exact (v (subst σ t) (subst σ T))
 sub-compute σ (β-exact (β π s S t T)) =
   proof (λx, subst (lift σ) t ꞉ [ π x: subst σ S ]→ subst (lift σ) T) `
@@ -119,7 +121,7 @@ sub-compute {m}{n}{tag} σ (hole {s = s}{t} C[—] p) =
   proof subst σ (C[—] [ s /—])
     === subst σ (fill-holes (as-filling C[—] s) (as-arbitrary C[—]))
       :by: ap (subst σ) $ context-equivalence C[—] s
-    === fill-holes (sub-all σ (hole-loc C[—]) e') (sub σ C')
+    === fill-holes (sub-all σ (hole-loc C[—]) e') (subc σ C')
       :by: {!sub-compute (lift-by m σ)!}
     〉 _⇝_ 〉 subst σ (C[—] [ t /—])
       :by: {!!}
@@ -128,7 +130,6 @@ sub-compute {m}{n}{tag} σ (hole {s = s}{t} C[—] p) =
         e' = {!!}
         C' : Context (fmap [ id × _+ m ] (hole-loc C[—])) tag m
         C' = {!!}
--}
 
 open import Renaming
 

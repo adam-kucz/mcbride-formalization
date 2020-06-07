@@ -109,7 +109,7 @@ DecidableVar== | false ¬p = false λ { (Id.refl (old v)) → ¬p (refl v) }
 
 inj ⦃ Injective-old ⦄ (Het.refl (old v)) = refl v
 
-inj ⦃ Injective-index ⦄ {new} {new} p = Id-refl _
+inj ⦃ Injective-index ⦄ {new} {new} p = Id.refl _
 inj ⦃ Injective-index ⦄ {old v} {old v'} p =
   ap old $ inj ⦃ Injective-index ⦄ {v}{v'} (ap pred p)
 
@@ -118,7 +118,7 @@ old==old→== : {v : Var m}{v' : Var n}
   (q : old v Het.== old v')
   → -----------------
   v Het.== v'
-old==old→== (Id-refl m) (Het.refl (old v)) = Het.refl v
+old==old→== (Id.refl m) (Het.refl (old v)) = Het.refl v
 
 nth-var-index== : ∀ (v : Var m) →
   nth-var (index v) (index< v) == v
@@ -131,7 +131,7 @@ index==→var== :
   (q : index v == index v')
   →
   v Het.== v'
-index==→var== (Id-refl x) q = subrel $ inj $ subrel q
+index==→var== (Id.refl x) q = subrel $ inj $ subrel q
 
 instance
   Injective-⌊⌋ : Injective (⌊_⌋ {m})

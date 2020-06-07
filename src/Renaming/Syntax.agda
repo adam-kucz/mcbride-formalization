@@ -81,7 +81,7 @@ delVar : ∀ {m}
   (q : nth-var n (ap suc p) ≠ v)
   → --------------------
   Var m
-delVar zero new p q = ⊥-recursion _ (q (Id-refl new))
+delVar zero new p q = ⊥-recursion _ (q (Id.refl new))
 delVar zero (old v) p q = v
 delVar {m +1}(n +1) new p q = new
 delVar {m +1}(n +1) (old v) p q =
@@ -125,10 +125,10 @@ del-nth== : ∀ {tag tag' m m' n n'}
         (eq₃ : e Het.== e')
         → --------------------
         nth-var n' (ap suc p') ∉ fv e'
-      q' = λ {(Id-refl tag)(Id-refl m)(Id-refl n)(Het.refl e) → q}
+      q' = λ {(Id.refl tag)(Id.refl m)(Id.refl n)(Het.refl e) → q}
   in
   del-nth n e p q
   Het.==
   del-nth n' e' p' (q' eq₀ eq₁ eq₂ eq₃)
-del-nth== (Id-refl tag)(Id-refl m)(Id-refl n)(Het.refl e) =
+del-nth== (Id.refl tag)(Id.refl m)(Id.refl n)(Het.refl e) =
   Het.refl (del-nth n e _ _)

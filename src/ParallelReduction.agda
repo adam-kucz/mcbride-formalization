@@ -1,5 +1,11 @@
 {-# OPTIONS --exact-split --prop #-}
-module ParallelReduction where
+open import Basic using (Rig; wfs)
+open import PropUniverses
 
-open import ParallelReduction.Definition public
-open import ParallelReduction.Property public
+module ParallelReduction
+  {R : 𝒰 ˙} ⦃ rig : Rig R ⦄
+  {S : 𝒱 ˙} ⦃ wfs : wfs 𝒲 𝒯 S ⦄
+  where
+
+open import ParallelReduction.Definition ⦃ rig ⦄ ⦃ wfs ⦄ public
+open import ParallelReduction.Property ⦃ rig ⦄ ⦃ wfs ⦄ public

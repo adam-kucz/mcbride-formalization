@@ -26,6 +26,7 @@ step-▷-preserves-~ : {S S' T : expr-of-type tag m}
   (q : S ▷ S')
   → -------------------------
   ∃ λ T' → S' ~ T' ∧ T ▷ T'
+{-
 step-▷-preserves-~ (⋆ i) (⋆ i) =
   ⋆ i , (refl (⋆ i) , refl (⋆ i))
 step-▷-preserves-~ (var v₁) (var v₁) =
@@ -58,11 +59,15 @@ step-▷-preserves-~
 step-▷-preserves-~
   (~annot ([ π x: _ ]→ _) S' (λx, t~t') ` s~s')
   (lam-comp π t▷t″ S▷S″ T▷T″ s▷s″)
-  | t‴ , (t'~t‴ , t″▷t‴) | s‴ , (s'~s‴ , s″▷s‴) =
-  (t‴ ꞉ {!!}) [ s‴ ꞉ {!!} /new] ,
-  ({!!} ,
-   {!lam-comp π t″▷t‴ ? ? s″▷s‴!})
-step-▷-preserves-~ ⌊ p ⌋ (elim-comp T q) = {!!}
+  | t‴ , (t'~t‴ , t″▷t‴) | s‴ , (s'~s‴ , s″▷s‴) = {!!}
+  -- (t‴ ꞉ {!!}) [ s‴ ꞉ {!!} /new] ,
+  -- ({!!} ,
+  --  {!lam-comp π t″▷t‴ ? ? s″▷s‴!})
+step-▷-preserves-~ ⌊ ~annot S S' s~s' ⌋ (elim-comp S s▷s″)
+  with step-▷-preserves-~ s~s' s▷s″
+step-▷-preserves-~ ⌊ ~annot S S' s~s' ⌋ (elim-comp S s▷s″)
+  | s‴ , (s'~s‴ , s″▷s‴) = s‴ , (s'~s‴ , elim-comp S' s″▷s‴)
+-}
 
 open import Confluence
 
@@ -74,19 +79,59 @@ steps-▷-confluent-~ : {S S' T T' : expr-of-type tag m}
   ∃ λ S″ →
   ∃ λ T″ →
   S″ ~ T″ ∧ S' ▷ S″ ∧ T' ▷ T″
--- steps-▷-confluent-~ (~id S) q q' with diamond-▷ q q'
--- steps-▷-confluent-~ (~id S) q q' | S″ , (S'▷S″ , T'▷S″) =
---   S″ , (S″ , (
---   refl S″ , S'▷S″ , T'▷S″))
--- steps-▷-confluent-~ (~annot S T (~id s))(annot s▷s' S▷S')(annot s▷t' S▷T')
---   with diamond-▷ s▷s' s▷t'
--- steps-▷-confluent-~ {S' = s' ꞉ S'}{T' = t' ꞉ T'}
---   (~annot S T (~id s))(annot s▷s' S▷S')(annot s▷t' S▷T')
---   | s″ , (s'▷s″ , t'▷s″) =
---   s″ ꞉ S' , (s″ ꞉ T' , (
---   ~annot S' T' (~id s″) ,
---   annot s'▷s″ (refl S') ,
---   annot t'▷s″ (refl T')))
+{-
+steps-▷-confluent-~ (⋆ i)(⋆ i)(⋆ i) =
+  ⋆ i , (⋆ i , (⋆ i , ⋆ i , ⋆ i))
+steps-▷-confluent-~ (var x)(var x)(var x) =
+  var x , (var x , (var x , var x , var x))
+steps-▷-confluent-~
+  ([ π x: p₀ ]→ p₁)([ π x: q₀ ]→ q₁)([ π x: q'₀ ]→ q'₁)
+  with steps-▷-confluent-~ p₀ q₀ q'₀ | steps-▷-confluent-~ p₁ q₁ q'₁
+steps-▷-confluent-~ _ _ ([ π x: _ ]→ _)
+  | S″₀ , (T″₀ , (S″₀~T″₀ , S'₀▷S″₀ , T'₀▷T″₀))
+  | S″₁ , (T″₁ , (S″₁~T″₁ , S'₁▷S″₁ , T'₁▷T″₁)) =
+  [ π x: S″₀ ]→ S″₁ , (
+  [ π x: T″₀ ]→ T″₁ ,
+  ([ π x: S″₀~T″₀ ]→ S″₁~T″₁ ,
+   [ π x: S'₀▷S″₀ ]→ S'₁▷S″₁ ,
+   [ π x: T'₀▷T″₀ ]→ T'₁▷T″₁))
+steps-▷-confluent-~ (λx, p)(λx, q)(λx, q')
+  with steps-▷-confluent-~ p q q'
+steps-▷-confluent-~ _ _ _ | S″ , (T″ , (S″~T″ , S'▷S″ , T'▷T″)) =
+  λx, S″ , (λx, T″ , (λx, S″~T″ , λx, S'▷S″ , λx, T'▷T″))
+steps-▷-confluent-~ (~annot S T p₀)(q₀ ꞉ q₁)(q'₀ ꞉ q'₁)
+  with steps-▷-confluent-~ p₀ q₀ q'₀
+steps-▷-confluent-~ (~annot S T p₀)(_꞉_ {S' = S₁} q₀ q₁)(_꞉_ {S' = T₁} q'₀ q'₁)
+  | S″ , (T″ , (S″~T″ , S'▷S″ , T'▷T″)) =
+  S″ ꞉ S₁ , (
+  T″ ꞉ T₁ ,
+  (~annot S₁ T₁ S″~T″ , S'▷S″ ꞉ refl S₁ , T'▷T″ ꞉ refl T₁))
+steps-▷-confluent-~ ⌊ p ⌋ ⌊ q ⌋ ⌊ q' ⌋ with steps-▷-confluent-~ p q q'
+... | S″ , (T″ , (S″~T″ , S'▷S″ , T'▷T″)) =
+  ⌊ S″ ⌋ , (⌊ T″ ⌋ , (⌊ S″~T″ ⌋ , ⌊ S'▷S″ ⌋ , ⌊ T'▷T″ ⌋))
+steps-▷-confluent-~ (p₀ ` p₁)(q₀ ` q₁)(q'₀ ` q'₁)
+  with steps-▷-confluent-~ p₀ q₀ q'₀ | steps-▷-confluent-~ p₁ q₁ q'₁
+steps-▷-confluent-~ (p₀ ` p₁)(q₀ ` q₁)(q'₀ ` q'₁)
+  | S″₀ , (T″₀ , (S″~T″₀ , S'▷S″₀ , T'▷T″₀))
+  | S″₁ , (T″₁ , (S″~T″₁ , S'▷S″₁ , T'▷T″₁)) =
+  S″₀ ` S″₁ , (T″₀ ` T″₁ ,
+  (S″~T″₀ ` S″~T″₁ , S'▷S″₀ ` S'▷S″₁ , T'▷T″₀ ` T'▷T″₁))
+steps-▷-confluent-~ ⌊ ~annot S T p ⌋ ⌊ q₀ ꞉ q₁ ⌋ (elim-comp T q')
+  with steps-▷-confluent-~ p q₀ q'
+steps-▷-confluent-~ ⌊ ~annot S T p ⌋ ⌊ q₀ ꞉ q₁ ⌋ (elim-comp T q')
+  | S″ , (T″ , (S″~T″ , S'▷S″ , T'▷T″)) =
+  S″ , (T″ , (S″~T″ , elim-comp _ S'▷S″ , T'▷T″))
+steps-▷-confluent-~ ⌊ ~annot S T p ⌋ (elim-comp S q) ⌊ q'₀ ꞉ q'₁ ⌋
+  with steps-▷-confluent-~ p q q'₀
+steps-▷-confluent-~ ⌊ ~annot S T p ⌋ (elim-comp S q) ⌊ q'₀ ꞉ q'₁ ⌋
+  | S″ , (T″ , (S″~T″ , S'▷S″ , T'▷T″)) =
+  S″ , (T″ , (S″~T″ , S'▷S″ , elim-comp _ T'▷T″))
+steps-▷-confluent-~ ⌊ p ⌋ (elim-comp T q)(elim-comp T₁ q') = {!!}
+steps-▷-confluent-~ (~annot S _ (λx, p₀) ` p₁)(q₀ ` q₁)(lam-comp π q'₀ q'₁ q'₂ q'₃) = {!!}
+steps-▷-confluent-~ (p₀ ` p₁)
+  (lam-comp π q₀ q₁ q₂ q₃)(lam-comp π₁ q'₀ q'₁ q'₂ q'₃) = {!!}
+steps-▷-confluent-~ (p₀ ` p₁) (lam-comp π q₀ q₁ q₂ q₃)(q'₀ ` q'₁) = {!!}
+-}
 
 open import Proposition.Identity hiding (refl)
 open import Relation.Binary.ReflexiveTransitiveClosure

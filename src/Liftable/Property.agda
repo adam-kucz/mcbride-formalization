@@ -45,11 +45,11 @@ lift-lift-by~ (k +1) σ (old v) = Het.refl (shift (lift-by (k +1) σ v))
 
 import Data.Nat.Proof
 
-lift-by-lift~ zero σ v = ap (lift σ) $ sym $ coe-eval (Id-refl _) v
+lift-by-lift~ zero σ v = ap (lift σ) $ sym $ coe-eval (Id.refl _) v
 lift-by-lift~ {m = m}{n}(k +1) σ new =
   proof lift-by (k +2) σ new
     === default {m = k + n +1}
-      :by: Id-refl _
+      :by: Id.refl _
     het== default {m = k + (n +1)}
       :by: ap (λ — → default {m = —}) $ sym $ +-suc k n
     === lift-by (k +1) (lift σ) (coe coer new)
@@ -67,7 +67,7 @@ lift-by-lift~ {m = m}{n}(k +1) σ new =
 lift-by-lift~ {m = m}{n}(k +1){F} σ (old v) =
   proof lift-by (k +2) σ (old v)
     === shift (lift-by (k +1) σ v)
-      :by: Id-refl _
+      :by: Id.refl _
     het== shift (lift-by k (lift σ) (coe (coer k) v))
       :by: Id.ap2 (λ i (e : F i) → shift {m = i} e)
              (sym $ +-suc k n)

@@ -47,7 +47,7 @@ fv-ren :
   (e : expr-of-type tag m)
   → --------------------------------------------------
   fv (rename ⦃ r = RenameableExpr ⦄ ρ e) == rename ρ <$> fv e
-fv-ren {tag = term} ρ (⋆ i) = Id-refl []
+fv-ren {tag = term} ρ (⋆ i) = Id.refl []
 fv-ren {tag = term} ρ ([ _ x: S ]→ T) =
   proof fv (rename ⦃ r = RenameableTerm ⦄ ρ S) ++
         (fv (rename (lift ρ) T) >>= prevSafe)
@@ -70,7 +70,7 @@ fv-ren {tag = term} ρ ([ _ x: S ]→ T) =
 fv-ren {tag = term} ρ (λx, t) =
   proof fv (rename ⦃ r = RenameableTerm ⦄ ρ (λx, t))
     === fv (rename (lift ρ) t) >>= prevSafe
-      :by: Id-refl _
+      :by: Id.refl _
     === (rename (lift ρ) <$> fv t) >>= prevSafe
       :by: ap (_>>= prevSafe) $ fv-ren (lift ρ) t
     === fv t >>= prevSafe ∘ rename (lift ρ)
@@ -81,7 +81,7 @@ fv-ren {tag = term} ρ (λx, t) =
       :by: sym $ fmap-bind₁ (fv t) prevSafe (rename ρ)
   qed
 fv-ren {tag = term} ρ ⌊ e ⌋ = fv-ren ρ e
-fv-ren {tag = elim} ρ (var v) = Id-refl [ ρ v ]
+fv-ren {tag = elim} ρ (var v) = Id.refl [ ρ v ]
 fv-ren {tag = elim} ρ (f ` s) =
   proof fv (rename ⦃ r = RenameableElim ⦄ ρ f) ++
         fv (rename ⦃ r = RenameableTerm ⦄ ρ s)

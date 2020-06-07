@@ -34,12 +34,12 @@ sub-id ⦃ SubstitutableFun ⦃ s = s ⦄ ⦄ =
     === (λ f x → f x)
       :by: ap (λ — → λ f x → — (f x)) (sub-id ⦃ subst = s ⦄)
     === id
-      :by: Id-refl _
+      :by: Id.refl _
   qed
 sub-∘ ⦃ SubstitutableFun ⦃ s = s ⦄ ⦄ σ τ =
   proof (λ f x → sub σ (f x)) ∘ (λ f x → sub τ (f x))
     === (λ f x → (sub σ ∘ sub τ) (f x))
-      :by: Id-refl _
+      :by: Id.refl _
     === (λ f x → sub (σ ⍟ τ) (f x))
       :by: ap (λ — → λ f x → — (f x)) (sub-∘ ⦃ subst = s ⦄ σ τ)
   qed
