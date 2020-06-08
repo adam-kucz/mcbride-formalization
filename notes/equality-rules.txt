@@ -1,0 +1,34 @@
+Terms
+
+T,t,t' ::= ...
+       | Id T t t'
+       | refl
+
+Eliminations
+
+e : ::= ...
+    | J(e , x,y.T, t)  [with x and y binding over T]
+
+Typing rules
+
+∗ᵢ ∋ T
+T ∋ t₀
+T ∋ t₁
+---------------
+∗ᵢ ∋ Id T t₀ t₁
+
+----------------- t₀ = t₁
+Id T t₀ t₁ ∋ refl
+
+# in J rule, where do we know ᵢ for ∗ᵢ from?
+
+e ∈ Id T t₀ t₁
+x : T, y : Id T t₀ ⌞x⌟ ⊢ ∗ᵢ ∋ T'
+T'[(t₀:T)/x, (refl:Id T t₀ t₀)/y] ∋ t
+-------------------------------------
+J(e, x,y.T', t) ∈ T'[(t₁:T)/x , e/y]
+
+
+Reduction rule
+
+J((refl : Id T tₒ tₒ), x,y.T', t) ↝ (t : T'[(t₀:T)/x, (refl:Id T t₀ t₀)/y])

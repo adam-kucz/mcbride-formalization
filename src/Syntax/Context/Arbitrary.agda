@@ -95,10 +95,28 @@ fill-holes es ⌊ C ⌋ = ⌊ fill-holes es C ⌋
 fill-holes (l Σ., r) (C₀ ` C₁) = fill-holes l C₀ ` fill-holes r C₁
 fill-holes (l Σ., r) (C₀ ꞉ C₁) = fill-holes l C₀ ꞉ fill-holes r C₁
 
-open import Proposition.Empty
-import Data.List as L
-open import Collection
+-- open import Proposition.Empty
+-- import Data.List as L
+-- open import Collection
 
+open import Logic
+open import Proof
+
+join : (l r : Holes) → Holes
+join ◻ r = r
+join l@([ _ ]) ◻ = l
+join l@([ _ ]) r@([ _ ]) = l /\ r
+join l@([ _ ]) r@(_ /\ _) = l /\ r
+join l@(_ /\ _) ◻ = l
+join l@(_ /\ _) r@([ _ ]) = l /\ r
+join l@(_ /\ _) r@(_ /\ _) = l /\ r
+
+collect-trim : Holes → Holes
+collect-trim ◻ = ◻
+collect-trim [ x ] = [ x ]
+collect-trim (l /\ r) = join (collect-trim l)(collect-trim r)
+
+{-
 HolesListable : Listable _ Holes (ExprTag × ℕ)
 HolesListable = NestedListable (ExprTag × ℕ) HoleType Holes
 private
@@ -106,8 +124,6 @@ private
     _ = HolesListable
 
 open import Structure.Monoid hiding (e)
-open import Logic
-open import Proof
 
 holes-to-list = to-list ⦃ HolesListable ⦄
 
@@ -154,6 +170,7 @@ as-expr {l /\ r} (C₀ ` C₁) p =
 as-expr {l /\ r} (C₀ ꞉ C₁) p =
   as-expr C₀ (∧left $ to-list/\==∅ l r p) ꞉
   as-expr C₁ (∧right $ to-list/\==∅ l r p)
+-}
 
 open import Proposition.Unit
 open import Relation.Binary

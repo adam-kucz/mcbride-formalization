@@ -30,7 +30,8 @@ data _⇝v_ {n : ℕ} : (t T : Term n) → 𝒰₀ ᵖ
     → --------------
     ⌊ t ꞉ T ⌋ ⇝v t
 
-open import Syntax.Context.OneHole
+open import Syntax.Context.OneHole.Definition
+open import Logic
 
 infix 36 _⇝_
 data _⇝_ : RelOnExpr (𝒰 ⁺ ⊔ 𝒱)

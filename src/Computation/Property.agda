@@ -11,7 +11,7 @@ open import Computation.Definition
 
 open import Data.Nat
 open import Syntax ⦃ rig ⦄ ⦃ wfs ⦄
-open import Syntax.Context ⦃ rig ⦄ ⦃ wfs ⦄
+open import Syntax.Context.OneHole.Definition ⦃ rig ⦄ ⦃ wfs ⦄
 open import Proof
 
 sorts-don't-reduce : {i : S}{e e' : Term n}
@@ -19,8 +19,8 @@ sorts-don't-reduce : {i : S}{e e' : Term n}
   → --------------------------------
   e ≠ ⋆ {n = n} i
 sorts-don't-reduce (v-exact (v _ _)) ()
-sorts-don't-reduce (hole — p) (Id-refl (⋆ i)) =
-  sorts-don't-reduce p $ Id-refl (⋆ i)
+sorts-don't-reduce (hole — p) (Id.refl (⋆ i)) =
+  sorts-don't-reduce p $ Id.refl (⋆ i)
 sorts-don't-reduce (hole [ π x: S ]→ C ↓ p) ()
 sorts-don't-reduce (hole ([ π x: C ↓]→ T) p) ()
 sorts-don't-reduce (hole (λx, C) p) ()
@@ -37,12 +37,12 @@ pi-reduct-forms : ∀ {π : R}
   (∃ λ S' → S ⇝ S' ∧ e' == [ π x: S' ]→ T)
   ∨
   (∃ λ T' → T ⇝ T' ∧ e' == [ π x: S ]→ T')
-pi-reduct-forms (v-exact ()) (Id-refl _)
-pi-reduct-forms (hole — p) (Id-refl _) = pi-reduct-forms p (Id-refl _)
-pi-reduct-forms (hole {t = t} [ π x: S ]→ C[—] ↓ p) (Id-refl _) =
-  ∨right (C[—] [ t /—] , (hole C[—] p , Id-refl _))
-pi-reduct-forms (hole {t = t} ([ π x: C[—] ↓]→ T) p) (Id-refl _) =
-  ∨left (C[—] [ t /—] , (hole C[—] p , Id-refl _))
+pi-reduct-forms (v-exact ()) (Id.refl _)
+pi-reduct-forms (hole — p) (Id.refl _) = pi-reduct-forms p (Id.refl _)
+pi-reduct-forms (hole {t = t} [ π x: S ]→ C[—] ↓ p) (Id.refl _) =
+  ∨right (C[—] [ t /—] , (hole C[—] p , Id.refl _))
+pi-reduct-forms (hole {t = t} ([ π x: C[—] ↓]→ T) p) (Id.refl _) =
+  ∨left (C[—] [ t /—] , (hole C[—] p , Id.refl _))
 
 open import Type.Sum hiding (_,_) renaming (_×_ to _χ_)
 
@@ -55,19 +55,19 @@ pi-compute-forms : ∀ {π : R}
 pi-compute-forms (rfl ([ π x: S ]→ T)) =
   (S Σ., T) , (refl S , refl T , refl ([ π x: S ]→ T))
 pi-compute-forms (step [πx:S]→T⇝e″ p)
-  with pi-reduct-forms [πx:S]→T⇝e″ (Id-refl _)
+  with pi-reduct-forms [πx:S]→T⇝e″ (Id.refl _)
 pi-compute-forms (step [πx:S]→T⇝e″ p)
-  | ∨left (S″ , (S⇝S″ , Id-refl _)) with pi-compute-forms p
+  | ∨left (S″ , (S⇝S″ , Id.refl _)) with pi-compute-forms p
 pi-compute-forms (step [πx:S]→T⇝e″ p)
-  | ∨left (S″ , (S⇝S″ , Id-refl _))
-  | (S' Σ., T') , (S″↠S' , T↠T' , Id-refl _) =
-  (S' Σ., T') , (step S⇝S″ S″↠S' , T↠T' , Id-refl _)
+  | ∨left (S″ , (S⇝S″ , Id.refl _))
+  | (S' Σ., T') , (S″↠S' , T↠T' , Id.refl _) =
+  (S' Σ., T') , (step S⇝S″ S″↠S' , T↠T' , Id.refl _)
 pi-compute-forms (step [πx:S]→T⇝e″ p)
-  | ∨right (T″ , (T⇝T″ , Id-refl _)) with pi-compute-forms p
+  | ∨right (T″ , (T⇝T″ , Id.refl _)) with pi-compute-forms p
 pi-compute-forms (step [πx:S]→T⇝e″ p)
-  | ∨right (T″ , (T⇝T″ , Id-refl _))
-  | (S' Σ., T') , (S↠S' , T″↠T' , Id-refl _) =
-  (S' Σ., T') , (S↠S' , step T⇝T″ T″↠T' , Id-refl _)
+  | ∨right (T″ , (T⇝T″ , Id.refl _))
+  | (S' Σ., T') , (S↠S' , T″↠T' , Id.refl _) =
+  (S' Σ., T') , (S↠S' , step T⇝T″ T″↠T' , Id.refl _)
 
 open import Function.Proof
 
@@ -78,64 +78,69 @@ rel-preserv ⦃ OneContextClosed⇝ {C = C} ⦄ s⇝t = hole C s⇝t
 
 open import Liftable
 open import Substitution
-  hiding (sub-∘; rename-as-sub; _[_/new])
+  hiding (sub; sub-∘; rename-as-sub; _[_/new])
 
 open import Data.Functor
 open import Function hiding (_$_)
 open import Computation.Proof
 
 private
-  subc = λ {t}{tag}{m}{n} →
-    sub ⦃ subst = SubstitutableContext {t = t}{tag} ⦄ {m}{n}
   module Tag {tag : ExprTag} where
     open import Substitution
     open WithInstanceArgs ⦃ subst = SubstitutableExpr {tag = tag} ⦄ public
-open Tag renaming (sub to subst)
+open Tag
 
 sub-compute : ∀{m n tag}
   (σ : Sub m n)
   {e e' : expr-of-type tag m}
   (p : e ⇝ e')
   → ------------------------------
-  subst σ e ⇝ subst σ e'
-sub-compute σ (v-exact (v t T)) = v-exact (v (subst σ t) (subst σ T))
+  sub σ e ⇝ sub σ e'
+sub-compute σ (v-exact (v t T)) = v-exact (v (sub σ t) (sub σ T))
 sub-compute σ (β-exact (β π s S t T)) =
-  proof (λx, subst (lift σ) t ꞉ [ π x: subst σ S ]→ subst (lift σ) T) `
-          subst σ s
-    〉 _⇝_ 〉 (subst (lift σ) (t ꞉ T)) [ subst σ (s ꞉ S) /new]
-      :by: β-exact (β π (subst σ s) (subst σ S)
-                        (subst (lift σ) t) (subst (lift σ) T))
-    === subst new-σ (subst (lift σ) (t ꞉ T))
-      :by: Id-refl _
-    === subst (new-σ ⍟ lift σ) (t ꞉ T)
+  proof (λx, sub (lift σ) t ꞉ [ π x: sub σ S ]→ sub (lift σ) T) `
+          sub σ s
+    〉 _⇝_ 〉 (sub (lift σ) (t ꞉ T)) [ sub σ (s ꞉ S) /new]
+      :by: β-exact (β π (sub σ s) (sub σ S)
+                        (sub (lift σ) t) (sub (lift σ) T))
+    === sub new-σ (sub (lift σ) (t ꞉ T))
+      :by: Id.refl _
+    === sub (new-σ ⍟ lift σ) (t ꞉ T)
       :by: ap (λ — → — (t ꞉ T)) {r = _==_} $ sub-∘ new-σ (lift σ)
-    === subst (σ ⍟ newSub (s ꞉ S)) (t ꞉ T)
-      :by: ap (λ — → subst — (t ꞉ T)) $ sym {R = _==_} $
+    === sub (σ ⍟ newSub (s ꞉ S)) (t ꞉ T)
+      :by: ap (λ — → sub — (t ꞉ T)) $ sym {R = _==_} $
            sub-newSub σ (s ꞉ S)
-    === subst σ ((t ꞉ T) [ s ꞉ S /new])
+    === sub σ ((t ꞉ T) [ s ꞉ S /new])
       :by: ap (λ — → — (t ꞉ T)) {r = _==_} $ sym {R = _==_} $
            sub-∘ σ (newSub (s ꞉ S))
   qed
-  where new-σ = newSub (subst σ (s ꞉ S))
-sub-compute {m}{n}{tag} σ (hole {s = s}{t} C[—] p) =
-  proof subst σ (C[—] [ s /—])
-    === subst σ (fill-holes (as-filling C[—] s) (as-arbitrary C[—]))
-      :by: ap (subst σ) $ context-equivalence C[—] s
-    === fill-holes (sub-all σ (hole-loc C[—]) e') (subc σ C')
-      :by: {!sub-compute (lift-by m σ)!}
-    〉 _⇝_ 〉 subst σ (C[—] [ t /—])
-      :by: {!!}
-  qed
-  where e' : all-types (fmap [ id × _+ m ] (hole-loc C[—]))
-        e' = {!!}
-        C' : Context (fmap [ id × _+ m ] (hole-loc C[—])) tag m
-        C' = {!!}
+  where new-σ = newSub (sub σ (s ꞉ S))
+--- TODO: figure out why this case introduces non-termination
+sub-compute σ (hole {s = s}{t} — s⇝t) = p
+  where postulate
+          p : sub σ s ⇝ sub σ t
+sub-compute σ (hole [ π x: S ]→ C[—] ↓ s⇝t) =
+  1-ctx-closed (sub-compute (lift σ) (hole C[—] s⇝t)) ([ π x: sub σ S ]→ — ↓)
+sub-compute σ (hole ([ π x: C[—] ↓]→ T) s⇝t) =
+  1-ctx-closed (sub-compute σ (hole C[—] s⇝t)) ([ π x: — ↓]→ sub (lift σ) T)
+sub-compute σ (hole (λx, C[—]) s⇝t) =
+  1-ctx-closed (sub-compute (lift σ) (hole C[—] s⇝t)) (λx, —)
+sub-compute σ (hole ⌊ C[—] ⌋ s⇝t) =
+  1-ctx-closed (sub-compute σ (hole C[—] s⇝t)) ⌊ — ⌋
+sub-compute σ (hole (f ` C[—] ↓) s⇝t) =
+  1-ctx-closed (sub-compute σ (hole C[—] s⇝t)) (sub σ f ` — ↓)
+sub-compute σ (hole (C[—] ↓` s) s⇝t) =
+  1-ctx-closed (sub-compute σ (hole C[—] s⇝t)) (— ↓` sub σ s)
+sub-compute σ (hole (s ꞉ C[—] ↓) s⇝t) =
+  1-ctx-closed (sub-compute σ (hole C[—] s⇝t)) (sub σ s ꞉ — ↓)
+sub-compute σ (hole (C[—] ↓꞉ S) s⇝t) =
+  1-ctx-closed (sub-compute σ (hole C[—] s⇝t)) (— ↓꞉ sub σ S)
 
 open import Renaming
 
 instance
   RelatingSub⇝ : ∀{tag}{σ : Sub m n} →
-    Relating (subst {tag} σ) _⇝_ _⇝_
+    Relating (sub {tag} σ) _⇝_ _⇝_
   RelatingRename⇝ : ∀{tag : ExprTag}{ρ : Ren m n} →
     Relating (rename ⦃ r = RenameableExpr {tag = tag} ⦄ ρ) _⇝_ _⇝_
 
@@ -143,14 +148,16 @@ rel-preserv ⦃ RelatingSub⇝ {σ = σ} ⦄ = sub-compute σ
 
 rel-preserv ⦃ RelatingRename⇝ {ρ = ρ} ⦄ {a}{b} a⇝b =
   proof rename ρ a
-    === subst (var ∘ ρ) a
+    === sub (var ∘ ρ) a
       :by: ap (λ — → — a) {r = _==_} $ rename-as-sub ρ
-    〉 _⇝_ 〉 subst (var ∘ ρ) b
-      :by: ap (subst (var ∘ ρ)) {a = a}{b} a⇝b
+    〉 _⇝_ 〉 sub (var ∘ ρ) b
+      :by: ap (sub (var ∘ ρ)) {a = a}{b} a⇝b
     === rename ρ b
       :by: ap (λ — → — b) {r = _==_ } $ sym {R = _==_} $
            rename-as-sub ρ
   qed
+
+open import Syntax.Context.Arbitrary
 
 instance
   ContextClosed↠ : ContextClosed _↠_
