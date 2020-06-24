@@ -47,7 +47,7 @@ module Generic
       ⌊ e ⌋ ~ ⌊ e' ⌋
   
   
-  open import Syntax.Context
+  open import Syntax.Context.Arbitrary
   
   open import Relation.Binary
     hiding (_~_; Reflexive~; Transitive~; Symmetric~)

@@ -11,7 +11,7 @@ module ParallelReduction.Definition
 
 open import Syntax ⦃ rig ⦄ ⦃ wfs ⦄
 import Substitution as Subs
-import Computation as Comp
+open import Computation
 
 private
   _[_/new] = Subs._[_/new] ⦃ subst = Subs.SubstitutableElim ⦄
@@ -106,7 +106,7 @@ refl ⦃ Reflexive▷ {tag = term} ⦄ ([ π x: S ]→ T) =
   [ π x: refl S ]→ refl T
 refl ⦃ Reflexive▷ {tag = term} ⦄ (λx, t) = λx, refl t
 refl ⦃ Reflexive▷ {tag = term} ⦄ ⌊ e ⌋ = ⌊ refl e ⌋
-refl ⦃ Reflexive▷ {tag = elim} ⦄ (var v) = var v
+refl ⦃ Reflexive▷ {tag = elim} ⦄ (var x) = var x
 refl ⦃ Reflexive▷ {tag = elim} ⦄ (f ` s) = refl f ` refl s
 refl ⦃ Reflexive▷ {tag = elim} ⦄ (s ꞉ S) = refl s ꞉ refl S
 
@@ -173,15 +173,13 @@ ctx-closed ⦃ ContextClosed▷ ⦄ (C₀ ꞉ C₁)(p₀ , p₁) =
 OneContextClosed▷ = OneCtxClosed-of-CtxClosed
 
 open import Data.Nat
-open Comp using (_⇝_; _↠_; _⇝v_; _⇝β_)
-open _⇝_
 
 instance
   ⇝-⊆-▷ : (_⇝_ {n = n}{tag}) ⊆ (_▷_ {n = n}{tag})
 
-subrel ⦃ ⇝-⊆-▷ ⦄ (β-exact (Comp.β π s S t T)) =
+subrel ⦃ ⇝-⊆-▷ ⦄ (β π s S t T) =
   lam-comp π (refl t) (refl S) (refl T) (refl s)
-subrel ⦃ ⇝-⊆-▷ ⦄ (v-exact (Comp.v t T)) = elim-comp T (refl t)
+subrel ⦃ ⇝-⊆-▷ ⦄ (v t T) = elim-comp T (refl t)
 subrel ⦃ ⇝-⊆-▷ ⦄ (hole C[—] x⇝y) = 1-ctx-closed (subrel ⦃ ⇝-⊆-▷ ⦄ x⇝y) C[—]
 
 open import Proof
@@ -192,7 +190,7 @@ instance
 
 subrel ⦃ ▷-⊆-↠ ⦄ (elim-comp {t}{t'} T t▷t') =
   proof ⌊ t ꞉ T ⌋
-    〉 _⇝v_ 〉 t :by: Comp.v t T
+    〉 _⇝_ 〉 t  :by: v t T
     〉 _↠_ 〉 t' :by: subrel t▷t'
   qed
 subrel ⦃ ▷-⊆-↠ ⦄
@@ -202,11 +200,11 @@ subrel ⦃ ▷-⊆-↠ ⦄
       :by: ctx-closed
              ((λx, — ꞉ [ π x: — ]→ —) ` —)
              (subrel t▷t' , (subrel S▷S' , subrel T▷T') , subrel s▷s')
-    〉 _⇝β_ 〉 (t' ꞉ T') [ s' ꞉ S' /new]
-      :by: Comp.β π s' S' t' T'
+    〉 _⇝_ 〉 (t' ꞉ T') [ s' ꞉ S' /new]
+      :by: β π s' S' t' T'
   qed
 subrel ⦃ ▷-⊆-↠ ⦄ (⋆ i) = refl (⋆ i)
-subrel ⦃ ▷-⊆-↠ ⦄ (var v) = refl (var v)
+subrel ⦃ ▷-⊆-↠ ⦄ (var x) = refl (var x)
 subrel ⦃ ▷-⊆-↠ ⦄ ([ π x: S▷S' ]→ T▷T') =
   ctx-closed ([ π x: — ]→ —) (subrel S▷S' , subrel T▷T')
 subrel ⦃ ▷-⊆-↠ ⦄ (λx, t▷t') =

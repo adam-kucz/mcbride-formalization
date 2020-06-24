@@ -72,6 +72,6 @@ SubstitutableOneHoleContext {hole}{m}{tag} = DirectSubstitutable
   (λ {m}{n} σ C →
     as-one-hole (one-hole-fmap n C) (
       subc σ (coe (ap (λ t → Context t tag m) (hole-loc-as-fmap C))
-                  (as-arbitrary C))))
+                  (as-arbitvrary C))))
   {!as-one-hole-as-arbitrary!}
   {!!}

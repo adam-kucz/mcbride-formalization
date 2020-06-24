@@ -20,7 +20,7 @@ T ∋ t₁
 ----------------- t₀ = t₁
 Id T t₀ t₁ ∋ refl
 
-# in J rule, where do we know ᵢ for ∗ᵢ from?
+# in J rule, where do we know T' and ᵢ for ∗ᵢ from?
 
 e ∈ Id T t₀ t₁
 x : T, y : Id T t₀ ⌞x⌟ ⊢ ∗ᵢ ∋ T'

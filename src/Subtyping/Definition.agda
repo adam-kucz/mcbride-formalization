@@ -51,7 +51,7 @@ data _~_ {n} : ∀ {tag} (s t : expr-of-type tag n) → 𝒰 ⁺ ⊔ 𝒱 ᵖ wh
     ⌊ e ⌋ ~ ⌊ e' ⌋
 
 
-open import Syntax.Context
+open import Syntax.Context.Arbitrary
 
 open import Relation.Binary
   hiding (_~_; Reflexive~; Transitive~; Symmetric~)
@@ -111,7 +111,7 @@ data _≼_ : RelOnExpr (𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲) where
     → ----------
     S ≼ T
 
-  sort : ∀ {i j}
+  sort : ∀{i j}
     (p : j ≻ i)
     → ------------
      _≼_ {n}{term} (⋆ i) (⋆ j)

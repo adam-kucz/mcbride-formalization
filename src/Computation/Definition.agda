@@ -8,7 +8,6 @@ module Computation.Definition
   where
 
 open import Syntax
-open import Substitution using (_[_/new])
 
 open import Proposition.Identity hiding (refl)
 open import Proposition.Function using (_$_)
@@ -18,33 +17,24 @@ open import Data.Nat hiding (_⊔_)
 
 -- Definition 5 (contraction, reduction, computation)
 
-infix 36 _⇝β_ _⇝v_
-data _⇝β_ {n : ℕ} : (e e' : Elim n) → 𝒰₀ ᵖ where
-  β : ∀ π s S t T
-    → ----------------------------------------------------
-    (λx, t ꞉ ([ π x: S ]→ T)) ` s ⇝β (t ꞉ T) [ s ꞉ S /new]
-
-data _⇝v_ {n : ℕ} : (t T : Term n) → 𝒰₀ ᵖ
-  where
-  v : ∀ t T
-    → --------------
-    ⌊ t ꞉ T ⌋ ⇝v t
+private
+  module Tag {tag : ExprTag} where
+    open import Substitution
+    open WithInstanceArgs ⦃ subst = SubstitutableExpr {tag = tag} ⦄ public
+open Tag
 
 open import Syntax.Context.OneHole.Definition
 open import Logic
 
 infix 36 _⇝_
-data _⇝_ : RelOnExpr (𝒰 ⁺ ⊔ 𝒱)
-  where
-  β-exact : {s t : Elim n}
-    (β : s ⇝β t)
-    → -------------
-    s ⇝ t
+data _⇝_ : RelOnExpr (𝒰 ⁺ ⊔ 𝒱) where
+  β : ∀ π (s S : Term n)(t T : Term (n +1))
+    → ----------------------------------------------------
+    (λx, t ꞉ ([ π x: S ]→ T)) ` s ⇝ (t ꞉ T) [ s ꞉ S /new]
 
-  v-exact : {s t : Term n}
-    (v : s ⇝v t)
-    → -------------
-    s ⇝ t
+  v : (t T : Term n)
+    → --------------
+    ⌊ t ꞉ T ⌋ ⇝ t
 
   hole : ∀ {m n tag₀ tag₁ s t}
     (C[—] : OneHoleContext tag₀ m tag₁ n)

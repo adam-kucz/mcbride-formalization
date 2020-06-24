@@ -36,34 +36,34 @@ hole-loc (C[—] ↓` _) = hole-loc C[—] /\ ◻
 hole-loc (_ ꞉ C[—] ↓) = ◻ /\ hole-loc C[—]
 hole-loc (C[—] ↓꞉ _) = hole-loc C[—] /\ ◻
 
-as-arbitrary : ∀{hole m result n}
-  (C[—] : OneHoleContext hole m result n)
-  → ----------------------------------------
-  Context (fmap [ id × _+ n ] (hole-loc C[—])) result n
+-- as-arbitrary : ∀{hole m result n}
+--   (C[—] : OneHoleContext hole m result n)
+--   → ----------------------------------------
+--   Context (fmap [ id × _+ n ] (hole-loc C[—])) result n
 
 open import Data.Nat
 open import Proof
 
 open import Proposition.Identity.Coercion
 
-as-arbitrary — = —
-as-arbitrary [ π x: S ]→ C[—] ↓ =
-  [ π x: term S ]→ coe {!!} (as-arbitrary C[—])
-as-arbitrary ([ π x: C[—] ↓]→ T) = [ π x: as-arbitrary C[—] ]→ term T
-as-arbitrary {n = n} (λx, C[—]) =
-  λx, coe (ap (λ f → Context (f (hole-loc C[—])) term (n +1)) (
-    proof fmap [ id × _+ (n +1) ]
-      === fmap ([ id × _+ n ] ∘ [ id × suc ])
-        :by: ap fmap ?
-      === fmap [ id × _+ n ] ∘ fmap [ id × suc ]
-        :by: fmap-∘ [ id × _+ n ] [ id × suc ]
-    qed))
-    (as-arbitrary C[—])
-as-arbitrary ⌊ C[—] ⌋ = ⌊ as-arbitrary C[—] ⌋
-as-arbitrary (f ` C[—] ↓) = elim f ` as-arbitrary C[—]
-as-arbitrary (C[—] ↓` s) = as-arbitrary C[—] ` term s
-as-arbitrary (s ꞉ C[—] ↓) = term s ꞉ as-arbitrary C[—]
-as-arbitrary (C[—] ↓꞉ S) = as-arbitrary C[—] ꞉ term S
+-- as-arbitrary — = —
+-- as-arbitrary [ π x: S ]→ C[—] ↓ =
+--   [ π x: term S ]→ coe {!!} (as-arbitrary C[—])
+-- as-arbitrary ([ π x: C[—] ↓]→ T) = [ π x: as-arbitrary C[—] ]→ term T
+-- as-arbitrary {n = n} (λx, C[—]) =
+--   λx, coe (ap (λ f → Context (f (hole-loc C[—])) term (n +1)) (
+--     proof fmap [ id × _+ (n +1) ]
+--       === fmap ([ id × _+ n ] ∘ [ id × suc ])
+--         :by: ap fmap {!!}
+--       === fmap [ id × _+ n ] ∘ fmap [ id × suc ]
+--         :by: fmap-∘ [ id × _+ n ] [ id × suc ]
+--     qed))
+--     (as-arbitrary C[—])
+-- as-arbitrary ⌊ C[—] ⌋ = ⌊ as-arbitrary C[—] ⌋
+-- as-arbitrary (f ` C[—] ↓) = elim f ` as-arbitrary C[—]
+-- as-arbitrary (C[—] ↓` s) = as-arbitrary C[—] ` term s
+-- as-arbitrary (s ꞉ C[—] ↓) = term s ꞉ as-arbitrary C[—]
+-- as-arbitrary (C[—] ↓꞉ S) = as-arbitrary C[—] ꞉ term S
 -- as-arbitrary [ π x: S ]→ C[—] ↓ = [ π x: term S ]→ as-arbitrary C[—]
 -- as-arbitrary (λx, C[—]) = λx, as-arbitrary C[—]
 
@@ -144,10 +144,10 @@ as-one-hole (right p q)(C₀ ` C₁) = as-expr p C₀ ` as-one-hole q C₁ ↓
 as-one-hole (left p q)(C₀ ꞉ C₁) = as-one-hole p C₀ ↓꞉ as-expr q C₁
 as-one-hole (right p q)(C₀ ꞉ C₁) = as-expr p C₀ ꞉ as-one-hole q C₁ ↓
 
-one-hole-hole-loc :  ∀{hole m result n}
-  (C[—] : OneHoleContext hole m result n)
-  → ----------------------------------------
-  one-hole hole m (fmap [ id × _+ n ] (hole-loc C[—]))
+-- one-hole-hole-loc :  ∀{hole m result n}
+--   (C[—] : OneHoleContext hole m result n)
+--   → ----------------------------------------
+--   one-hole hole m (fmap [ id × _+ n ] (hole-loc C[—]))
 {-
 one-hole-hole-loc — = leaf
 one-hole-hole-loc [ _ x: _ ]→ C[—] ↓ =
@@ -166,10 +166,10 @@ one-hole-hole-loc (C[—] ↓꞉ _) =
   left (one-hole-hole-loc C[—]) ⋆ₚ
 -}
 
-as-one-hole-as-arbitrary : ∀{hole m result n}
-  (C[—] : OneHoleContext hole m result n)
-  → --------------------------------------------------------------
-  as-one-hole (one-hole-hole-loc C[—]) (as-arbitrary C[—]) == C[—]
+-- as-one-hole-as-arbitrary : ∀{hole m result n}
+--   (C[—] : OneHoleContext hole m result n)
+--   → --------------------------------------------------------------
+--   as-one-hole (one-hole-hole-loc C[—]) (as-arbitrary C[—]) == C[—]
 {-
 as-one-hole-as-arbitrary — = Id.refl —
 as-one-hole-as-arbitrary [ π x: S ]→ C[—] ↓ =
@@ -225,11 +225,11 @@ as-arbitrary-as-one-hole leaf — = Het.refl —
 
 open import Type.Unit
 
-as-filling : ∀{hole m result n}
-  (C[—] : OneHoleContext hole m result n)
-  (e : expr-of-type hole m)
-  → --------------------------------------
-  all-types (fmap [ id × _+ n ] (hole-loc C[—]))
+-- as-filling : ∀{hole m result n}
+--   (C[—] : OneHoleContext hole m result n)
+--   (e : expr-of-type hole m)
+--   → --------------------------------------
+--   all-types (fmap [ id × _+ n ] (hole-loc C[—]))
 {-
 as-filling — e = e
 as-filling [ _ x: _ ]→ C[—] ↓ e = ↑type ⋆ Σ., as-filling C[—] e
@@ -242,11 +242,11 @@ as-filling (_ ꞉ C[—] ↓) e = ↑type ⋆ Σ., as-filling C[—] e
 as-filling (C[—] ↓꞉ _) e = as-filling C[—] e Σ., ↑type ⋆
 -}
 
-context-equivalence : ∀{m n tag₀ tag₁}
-  (C[—] : OneHoleContext tag₀ m tag₁ n)
-  (e : expr-of-type tag₀ m)
-  → ----------------------------------------
-  C[—] [ e /—] == fill-holes (as-filling C[—] e) (as-arbitrary C[—])
+-- context-equivalence : ∀{m n tag₀ tag₁}
+--   (C[—] : OneHoleContext tag₀ m tag₁ n)
+--   (e : expr-of-type tag₀ m)
+--   → ----------------------------------------
+--   C[—] [ e /—] == fill-holes (as-filling C[—] e) (as-arbitrary C[—])
 {-
 context-equivalence — e = Id.refl e
 context-equivalence [ π x: S ]→ C[—] ↓ e =

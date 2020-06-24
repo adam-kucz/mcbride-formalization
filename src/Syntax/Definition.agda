@@ -79,19 +79,18 @@ expr-of-type : (e : ExprTag) (n : ℕ) → 𝒰 ⁺ ⊔ 𝒱 ˙
 expr-of-type term = Term
 expr-of-type elim = Elim
 
-open import Type.Sum hiding (_,_)
+open import Type.Sum renaming (_,_ to _Σ,_)
 
 Expr : (n : ℕ) → 𝒰 ⁺ ⊔ 𝒱 ˙
 Expr n = Σ λ e → expr-of-type e n
 
 type-of-expr : (e : Expr n) → ExprTag
-type-of-expr (tag Σ., _) = tag
+type-of-expr (tag Σ, _) = tag
 
 RelOnExpr : (𝒲 : Universe) → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ⁺ ˙
 RelOnExpr 𝒲 = ∀ {n} {tag} → BinRel 𝒲 (expr-of-type tag n)
 
-open import Proposition.Identity
-  renaming (Idₚ to Id) hiding (refl)
+open import Proposition.Identity hiding (refl)
 open import Proposition.Decidable
 open import Function hiding (_$_)
 

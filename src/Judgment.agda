@@ -66,8 +66,6 @@ _⊢₀_∋_ Γ T t = ctx Γ zero ⊢ zero , T ∋ t
 
 open import Subtyping.Definition
 
-open import Proposition.Identity
-
 data _⊢_,_∋_ {n} where
   pre : ∀ {ρ}{Δ : Context n}{T R t : Term n}
     (Δ⊢ρT∋t : Δ ⊢ ρ , R ∋ t)
@@ -77,29 +75,27 @@ data _⊢_,_∋_ {n} where
 
   -- _⊢₀_∋_ interacts badly with pattern matching
   
-  -- sort : ∀ {j i} {Γ : Precontext n}
-  --   (j≻i : j ≻ i)
-  --   → --------------
-  --   Γ ⊢₀ ⋆ j ∋ ⋆ i
-   
-  -- fun : ∀ {i} π {Γ : Precontext n} {T S}
-  --   (Γ⊢₀*ᵢ∋S : Γ ⊢₀ ⋆ i ∋ S)
-  --   (Γ,x:S⊢₀*ᵢ∋T : Γ ∥x: S ⊢₀ ⋆ i ∋ T)
-  --   → --------------------------------------
-  --   Γ ⊢₀ ⋆ i ∋ [ π x: S ]→ T
-
-  sort : ∀ {j i}{Γ : Precontext n}
-    (p : Δ == ctx Γ zero)
+  sort : ∀ {j i} {Γ : Precontext n}
     (j≻i : j ≻ i)
     → --------------
-    Δ ⊢ zero , ⋆ j ∋ ⋆ i
+    Γ ⊢₀ ⋆ j ∋ ⋆ i
    
-  fun : ∀ {i} π {T S}
-    (p : Δ == ctx Γ zero)
+  fun : ∀ {i} π {Γ : Precontext n} {T S}
     (Γ⊢₀*ᵢ∋S : Γ ⊢₀ ⋆ i ∋ S)
     (Γ,x:S⊢₀*ᵢ∋T : Γ ∥x: S ⊢₀ ⋆ i ∋ T)
     → --------------------------------------
-    Δ ⊢ zero , ⋆ i ∋ [ π x: S ]→ T
+    Γ ⊢₀ ⋆ i ∋ [ π x: S ]→ T
+
+  -- sort : ∀ {j i}{Γ : Precontext n}
+  --   (j≻i : j ≻ i)
+  --   → --------------
+  --   ctx Γ zero ⊢ zero , ⋆ j ∋ ⋆ i
+   
+  -- fun : ∀ {i} π {T S}
+  --   (Γ⊢₀*ᵢ∋S : Γ ⊢₀ ⋆ i ∋ S)
+  --   (Γ,x:S⊢₀*ᵢ∋T : Γ ∥x: S ⊢₀ ⋆ i ∋ T)
+  --   → --------------------------------------
+  --   ctx Γ zero ⊢ zero , ⋆ i ∋ [ π x: S ]→ T
 
   lam : ∀ {π ρ} {Δ : Context n} {T S t}
     (Δ,ρπx:S⊢ρT∋t : Δ ∥ ρ * π ,x: S ⊢ ρ , T ∋ t)
@@ -112,14 +108,14 @@ data _⊢_,_∋_ {n} where
     → --------------------------------------
     Δ ⊢ ρ , T ∋ ⌊ e ⌋
 
-open import Function.Proof using (postfix)
+open import Proof
 
 -- used in alternative formulation of var
 data var-in-ctx {n} (Γ : Precontext n) (ρ : R) (S : Term n)
   : {m : ℕ} (Δ : Context (m + suc n)) → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ˙
   where
   Γ'==∅ :
-    (p : ctx Γ zero ∥ ρ ,x: S ⊢ ρ , var (nth-var n (postfix suc n)) ∈ extend S)
+    (p : ctx Γ zero ∥ ρ ,x: S ⊢ ρ , var (nth-var n (refl (n +1))) ∈ extend S)
     → -------------------------------------------------------
     var-in-ctx Γ ρ S {0} (ctx Γ zero ∥ ρ ,x: S)
 
@@ -149,11 +145,11 @@ data _⊢_,_∈_ where
   -- achieves the same result when weakening is added
   var : ∀ {n} {ρ : R} {Γ : Precontext n} {S : Term n}
     → ----------------------------------------------------
-    ctx Γ zero ∥ ρ ,x: S ⊢ ρ , var (nth-var n (postfix suc n)) ∈ extend S
+    ctx Γ zero ∥ ρ ,x: S ⊢ ρ , var (nth-var n (refl (n +1))) ∈ extend S
 
   -- necessary to make our version of var equivalent to mcbride's
   weaken : ∀ {n} {ρ} {Δ : Context (suc n)} {S S' : Term (suc n)}
-    → let v = var (nth-var n (postfix suc n)) in (p : Δ ⊢ ρ , v ∈ S)
+    → let v = var (nth-var n (refl (n +1))) in (p : Δ ⊢ ρ , v ∈ S)
     → ----------------------------------------------------------
     Δ ∥ zero ,x: S' ⊢ ρ , extend v ∈ extend S
 
