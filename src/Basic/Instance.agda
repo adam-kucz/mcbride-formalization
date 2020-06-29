@@ -24,6 +24,6 @@ wf ⦃ WellFoundedSortsℕ ⦄ {P} p k = go (k +1) k $ postfix suc k
         go (j +1) (i +1) i+1<j+1 =
           p {i +1} λ {m} m<i+1 → go j m (
             proof m
-              〉 _≤_ 〉 i :by: ap pred $ ⟶ -<-↔s≤- m<i+1
+              〉 _≤_ 〉 i :by: ap pred $ ⟶ -<-↔s≤- m<i+1 [: _≤_ ]
               〉 _<_ 〉 j :by: s<s→-<- i+1<j+1
             qed)

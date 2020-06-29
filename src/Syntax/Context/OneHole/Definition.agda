@@ -89,7 +89,7 @@ _[_/—] : ∀{m n tag₀ tag₁}
 open import Function.Proof
 
 OneContextClosed : (R : RelOnExpr 𝒵) → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒵 ᵖ
-OneContextClosed R = ∀ {m n} {tag tag'}
+OneContextClosed R = ∀{m n}{tag tag'}
   {C : OneHoleContext tag m tag' n}
   → ----------------------------
   Relating (C [_/—]) R R

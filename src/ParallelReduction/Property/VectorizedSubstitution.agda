@@ -2,7 +2,7 @@
 open import Basic using (Rig; wfs)
 open import PropUniverses
 
-module Confluence.VectorizedSubstitution
+module ParallelReduction.Property.VectorizedSubstitution
   {R : 𝒰 ˙} ⦃ rig : Rig R ⦄
   {S : 𝒱 ˙} ⦃ wfs : wfs 𝒲 𝒯 S ⦄
   where
@@ -14,22 +14,22 @@ open import Substitution as Subs
           
 open import Renaming
 open import Liftable
-open import Computation.Property.Simple
-open import ParallelReduction
+open import ParallelReduction.Definition
+open import ParallelReduction.Property
 
 private
   sub = λ {m}{n}{tag : ExprTag} →
           Subs.sub ⦃ subst = SubstitutableExpr {tag = tag} ⦄ {m = m}{n}
-  sub-ctx =
-    λ {m}{n}{t : Holes}{tag} →
-      Subs.sub
-        ⦃ subst = SubstitutableContext {t = t}{tag} ⦄
-        {m = m}{n}
+  -- sub-ctx =
+  --   λ {m}{n}{t : Holes}{tag} →
+  --     Subs.sub
+  --       ⦃ subst = SubstitutableContext {t = t}{tag} ⦄
+  --       {m = m}{n}
   _[_/new] = λ {n}{tag : ExprTag} →
                Subs._[_/new] ⦃ subst = SubstitutableExpr {tag = tag} ⦄ {n = n}
 infix 180 _[_/new]
 
--- Lemma 14 (vectorized substitution)
+-- Lemma 14 (vectorized substitution) (part 1)
 
 open import Type.Sum hiding (_,_)
 open import Data.Nat

@@ -2,13 +2,13 @@
 open import Basic using (Rig; wfs)
 open import PropUniverses
 
-module ParallelReduction.Proof
+module ParallelReduction.Property
   {R : 𝒰 ˙} ⦃ rig : Rig R ⦄
   {S : 𝒱 ˙} ⦃ wfs : wfs 𝒲 𝒯 S ⦄
   where
 
 open import Syntax
-open import ParallelReduction
+open import ParallelReduction ⦃ rig ⦄ ⦃ wfs ⦄
 open import Substitution as Subs hiding (sub; _[_/new])
 
 open import Proof
@@ -57,7 +57,8 @@ rel-preserv ⦃ Relating-sub-▷ {σ = σ} ⦄
       :by: ap (λ — → sub — (t' ꞉ T')) $ sym {R = _==_} $
            Subs.sub-newSub σ (s' ꞉ S')
     === sub σ (sub (newSub (s' ꞉ S')) (t' ꞉ T'))
-      :by: ap (λ — → — (t' ꞉ T')) $ sym $ sub-∘ σ (newSub (s' ꞉ S')) 
+      :by: ap (λ — → — (t' ꞉ T')) $ sym $
+           sub-∘ ⦃ subst = SubstitutableExpr ⦄ σ (newSub (s' ꞉ S'))
   qed
 rel-preserv ⦃ Relating-sub-▷ ⦄ (⋆ i) = ⋆ i
 rel-preserv ⦃ Relating-sub-▷ {σ = σ} ⦄ (var v) = refl (σ v)
@@ -76,5 +77,6 @@ rel-preserv ⦃ Relating-rename-▷ {ρ = ρ} ⦄ {a}{b} a▷b =
   proof rename ρ a
     === sub (var ∘ ρ) a    :by: ap (λ — → — a) $ rename-as-sub ρ
     〉 _▷_ 〉 sub (var ∘ ρ) b :by: ap (sub (var ∘ ρ)) a▷b
-    === rename ρ b         :by: ap (λ — → — b) $ sym $ rename-as-sub ρ
+    === rename ρ b
+      :by: ap (λ — → — b) $ sym $ rename-as-sub ⦃ subst = SubstitutableExpr ⦄ ρ
   qed

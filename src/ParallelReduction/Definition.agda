@@ -11,7 +11,8 @@ module ParallelReduction.Definition
 
 open import Syntax ⦃ rig ⦄ ⦃ wfs ⦄
 import Substitution as Subs
-open import Computation
+open import Computation.Definition
+open import Computation.Property.General
 
 private
   _[_/new] = Subs._[_/new] ⦃ subst = Subs.SubstitutableElim ⦄
@@ -20,8 +21,8 @@ infix 180 _[_/new]
 open import Data.Nat
 
 infix 36 _▷_
-data _▷_ {n} : ∀ {tag} (s t : expr-of-type tag n) → 𝒰 ⁺ ⊔ 𝒱 ᵖ where
-  elim-comp : ∀{t t'} T
+data _▷_ {n} : ∀{tag : ExprTag}(s t : expr-of-type tag n) → 𝒰 ⁺ ⊔ 𝒱 ᵖ where
+  elim-comp : ∀{t t' : Term n} T
     (t▷t' : t ▷ t')
     → ---------------
     ⌊ t ꞉ T ⌋ ▷ t'
@@ -34,37 +35,37 @@ data _▷_ {n} : ∀ {tag} (s t : expr-of-type tag n) → 𝒰 ⁺ ⊔ 𝒱 ᵖ 
     → ---------------
     (λx, t ꞉ [ π x: S ]→ T) ` s ▷ (t' ꞉ T') [ (s' ꞉ S') /new]
 
-  ⋆ : ∀ i → ⋆ i ▷ ⋆ i
+  ⋆ : (i : S) → _▷_ {n}{term} (⋆ i)(⋆ i)
 
   var : ∀ v → var v ▷ var v
 
-  [_x:_]→_ : ∀ π {S S' T T'}
+  [_x:_]→_ : (π : R){S S' : Term n}{T T' : Term (n +1)}
     (S▷S' : S ▷ S')
     (T▷T' : T ▷ T')
     → ---------------
-    [ π x: S ]→ T ▷ [ π x: S' ]→ T'
+    _▷_ {n}{term} ([ π x: S ]→ T)([ π x: S' ]→ T')
 
-  λx,_ : ∀{t t'}
+  λx,_ : {t t' : Term (n +1)}
     (t▷t' : t ▷ t')
     → ------------------------------------
-    λx, t ▷ λx, t'
+    _▷_ {n}{term} (λx, t)(λx, t')
 
-  _`_ : ∀{f f' s s'}
+  _`_ : {f f' : Elim n}{s s' : Term n}
     (f▷f' : f ▷ f')
     (s▷s' : s ▷ s')
     → ------------------------------------
-    f ` s ▷ f' ` s'
+    _▷_ {n}{elim} (f ` s)(f' ` s')
 
-  _꞉_ : ∀{s s' S S'}
+  _꞉_ : {s s' S S' : Term n}
     (s▷s' : s ▷ s')
     (S▷S' : S ▷ S')
-    → --------------------
-    s ꞉ S ▷ s' ꞉ S'
+    → -----------------------
+    _▷_ {n}{elim} (s ꞉ S)(s' ꞉ S')
 
-  ⌊_⌋ : ∀{e e'}
+  ⌊_⌋ : {e e' : Elim n}
     (e▷e' : e ▷ e')
     → --------------------
-    ⌊ e ⌋ ▷ ⌊ e' ⌋
+    _▷_ {n}{term} ⌊ e ⌋ ⌊ e' ⌋
 
 -- open import Syntax.Context
 
@@ -206,11 +207,13 @@ subrel ⦃ ▷-⊆-↠ ⦄
 subrel ⦃ ▷-⊆-↠ ⦄ (⋆ i) = refl (⋆ i)
 subrel ⦃ ▷-⊆-↠ ⦄ (var x) = refl (var x)
 subrel ⦃ ▷-⊆-↠ ⦄ ([ π x: S▷S' ]→ T▷T') =
-  ctx-closed ([ π x: — ]→ —) (subrel S▷S' , subrel T▷T')
+  ctx-closed ([ π x: — ]→ —)
+    (subrel {_P_ = _↠_} S▷S' , subrel {_P_ = _↠_} T▷T')
 subrel ⦃ ▷-⊆-↠ ⦄ (λx, t▷t') =
-  ctx-closed (λx, —) $ subrel t▷t'
+  ctx-closed (λx, —) $ subrel {_P_ = _↠_} t▷t'
 subrel ⦃ ▷-⊆-↠ ⦄ (f▷f' ` s▷s') =
-  ctx-closed (— ` —) (subrel f▷f' , subrel s▷s')
+  ctx-closed (— ` —) (subrel {_P_ = _↠_} f▷f' , subrel {_P_ = _↠_} s▷s')
 subrel ⦃ ▷-⊆-↠ ⦄ (s▷s' ꞉ S▷S') =
-  ctx-closed (— ꞉ —) (subrel s▷s' , subrel S▷S')
-subrel ⦃ ▷-⊆-↠ ⦄ ⌊ e▷e' ⌋ = ctx-closed ⌊ — ⌋ $ subrel e▷e'
+  ctx-closed (— ꞉ —) (subrel {_P_ = _↠_} s▷s' , subrel {_P_ = _↠_} S▷S')
+subrel ⦃ ▷-⊆-↠ ⦄ ⌊ e▷e' ⌋ =
+  ctx-closed ⌊ — ⌋ $ subrel {_P_ = _↠_} e▷e'

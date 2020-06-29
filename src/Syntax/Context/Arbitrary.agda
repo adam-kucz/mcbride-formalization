@@ -9,7 +9,7 @@ module Syntax.Context.Arbitrary
 
 open import Syntax
 
-open import Type.Sum hiding (_,_)
+open import Type.Sum renaming (_,_ to _Σ,_)
 open import Data.Nat hiding (_⊔_)
 open import Data.Maybe
 open import Data.Tree.Binary
@@ -37,7 +37,7 @@ data Context
 
   — : ∀ {tag n}
     → ------------------
-    Context [ tag Σ., n ] tag n
+    Context [ tag Σ, n ] tag n
 
   [_x:_]→_ : ∀ {n l r}
     (π : R)
@@ -72,7 +72,7 @@ open import Type.Unit
 
 to-type : HoleType → 𝒰 ⁺ ⊔ 𝒱 ˙
 to-type nothing = Lift𝒰 𝟙
-to-type (just (tag Σ., m)) = expr-of-type tag m
+to-type (just (tag Σ, m)) = expr-of-type tag m
 
 all-types : Holes → 𝒰 ⁺ ⊔ 𝒱 ˙
 all-types (leaf x) = to-type x
@@ -88,12 +88,12 @@ fill-holes : ∀
 fill-holes es (term t) = t
 fill-holes es (elim e) = e
 fill-holes es — = es
-fill-holes (l Σ., r) ([ π x: C₀ ]→ C₁) =
+fill-holes (l Σ, r) ([ π x: C₀ ]→ C₁) =
   [ π x: fill-holes l C₀ ]→ fill-holes r C₁
 fill-holes es (λx, C) = λx, fill-holes es C
 fill-holes es ⌊ C ⌋ = ⌊ fill-holes es C ⌋
-fill-holes (l Σ., r) (C₀ ` C₁) = fill-holes l C₀ ` fill-holes r C₁
-fill-holes (l Σ., r) (C₀ ꞉ C₁) = fill-holes l C₀ ꞉ fill-holes r C₁
+fill-holes (l Σ, r) (C₀ ` C₁) = fill-holes l C₀ ` fill-holes r C₁
+fill-holes (l Σ, r) (C₀ ꞉ C₁) = fill-holes l C₀ ꞉ fill-holes r C₁
 
 -- open import Proposition.Empty
 -- import Data.List as L
@@ -178,7 +178,7 @@ open import Relation.Binary
 all-related : (R : RelOnExpr 𝒵)(t : Holes) → BinRel 𝒵 (all-types t)
 all-related R ◻ es es' = Lift𝒰ᵖ ⊤ 
 all-related R [ x ] e₀ e₁ = R e₀ e₁
-all-related R (l /\ r) (es₀-l Σ., es₀-r) (es₁-l Σ., es₁-r) =
+all-related R (l /\ r) (es₀-l Σ, es₀-r) (es₁-l Σ, es₁-r) =
   all-related R l es₀-l es₁-l ∧ all-related R r es₀-r es₁-r
 
 Reflexive-all-related :
@@ -201,8 +201,8 @@ Symmetric-all-related :
   Symmetric (all-related R t)
 
 refl ⦃ Reflexive-all-related {t = ◻} ⦄ _ = ↑prop ⋆ₚ
-refl ⦃ Reflexive-all-related ⦃ r ⦄ {[ tag Σ., n ]} ⦄ = refl ⦃ r ⦄
-refl ⦃ Reflexive-all-related {t = l /\ r} ⦄ (es₀ Σ., es₁) =
+refl ⦃ Reflexive-all-related ⦃ r ⦄ {[ tag Σ, n ]} ⦄ = refl ⦃ r ⦄
+refl ⦃ Reflexive-all-related {t = l /\ r} ⦄ (es₀ Σ, es₁) =
   refl ⦃ Reflexive-all-related {t = l} ⦄ es₀ ,
   refl ⦃ Reflexive-all-related {t = r} ⦄ es₁
 
@@ -218,14 +218,14 @@ sym ⦃ Symmetric-all-related {t = l /\ r} ⦄ (p₀ , p₁) =
   sym ⦃ Symmetric-all-related {t = l} ⦄ p₀ ,
   sym ⦃ Symmetric-all-related {t = r} ⦄ p₁
 
-record ContextClosed (R : RelOnExpr 𝒵) : 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒵 ᵖ where
+record ContextClosed (Rel : RelOnExpr 𝒵) : 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒵 ᵖ where
   field
     ctx-closed : ∀
       {t tag n}
       (C : Context t tag n)
       {es es' : all-types t}
-      (p : all-related R t es es')
+      (p : all-related Rel t es es')
       → -------------------------------------------------------------
-      R (fill-holes es C) (fill-holes es' C)
+      Rel (fill-holes es C) (fill-holes es' C)
 
 open ContextClosed ⦃ … ⦄ public

@@ -9,3 +9,4 @@ module Syntax
 
 open import Syntax.Definition ⦃ rig ⦄ ⦃ wfs ⦄ public
 open import Syntax.Property ⦃ rig ⦄ ⦃ wfs ⦄ public
+open import Syntax.Function ⦃ rig ⦄ ⦃ wfs ⦄ public

@@ -65,12 +65,12 @@ renTerm-id~id (⋆ i) = Het.refl (⋆ i)
 renTerm-id~id ([ ρ x: S ]→ T) = Id.ap2 ([ ρ x:_]→_)
   (subrel {_P_ = _==_} $ renTerm-id~id S) (
   proof renTerm (lift id) T
-    ===   renTerm id T :by: ap (λ — → renTerm — T) lift-id==id
+    ===   renTerm id T :by: ap (λ — → renTerm — T) lift-id==id [: _==_ ]
     het== T            :by: renTerm-id~id T
   qed)
 renTerm-id~id (λx, t) = ap λx,_ (
   proof renTerm (lift id) t 
-    === renTerm id t        :by: ap (λ — → renTerm — t) lift-id==id
+    === renTerm id t        :by: ap (λ — → renTerm — t) lift-id==id [: _==_ ]
     het== t                 :by: renTerm-id~id t
   qed)
 renTerm-id~id ⌊ e ⌋ = ap ⌊_⌋ $ renElim-id~id e
@@ -97,14 +97,14 @@ renTerm-∘ π ρ ([ ν x: S ]→ T) = Id.ap2 [ ν x:_]→_
   (subrel {_P_ = _==_} $ renTerm-∘ π ρ S)
   (proof renTerm (lift (π ∘ ρ)) T
      === renTerm (lift π ∘ lift ρ) T
-       :by: ap (λ — → renTerm — T) (lift-∘ π ρ)
+       :by: ap (λ — → renTerm — T) (lift-∘ π ρ) [: _==_ ]
      het== renTerm (lift π) (renTerm (lift ρ) T)
        :by: renTerm-∘ (lift π) (lift ρ) T
    qed)
 renTerm-∘ π ρ (λx, t) = ap λx,_ (
   proof renTerm (lift (π ∘ ρ)) t
     === renTerm (lift π ∘ lift ρ) t
-      :by: ap (λ — → renTerm — t) (lift-∘ π ρ)
+      :by: ap (λ — → renTerm — t) (lift-∘ π ρ) [: _==_ ]
     het== renTerm (lift π) (renTerm (lift ρ) t)
       :by: renTerm-∘ (lift π) (lift ρ) t
   qed)

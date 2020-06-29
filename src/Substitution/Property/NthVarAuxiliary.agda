@@ -172,15 +172,15 @@ delVar== (k +1) (old v) new p q with lemma k v
           lift-by (k +1) old (old v) ,
           subrel {_R_ = Het._==_}{_P_ = _==_} $ sym $
           lift-lift-by~ (k +1) old (old (old v))
-delVar== (k +1) (old v) new p q | v' , p'
-  with proof new
-         het== lift-by (k +1) old (old v)
-           :by: p
-         === old v'
-           :by: p'
-       qed
-delVar== {m}(k +1) (old v) new p q | v' , p' | new==old-v' =
-  ⊥-recursion _ $ new≠old _ v' (sym $ +-suc k m) new==old-v'
+delVar== {m}(k +1)(old v) new p q | v' , p' =
+  ⊥-recursion _ $ new≠old _ v' (sym $ +-suc k m) p″
+  where p″ : new Het.== old v'
+        p″ = proof new
+               het== lift-by (k +1) old (old v) :by: p
+                 === old v'                       :by: p'
+               qed
+-- delVar== {m}(k +1) (old v) new p q | v' , p' | new==old-v' =
+--   ? -- 
 delVar== {m}(k +1) new (old v') p q =
   ⊥-recursion _ $ new≠old _ v' (+-suc k m) (isym p)
 delVar== {m}(k +1) (old v) (old v') p q =
@@ -216,13 +216,12 @@ del-k-shift~id {m}{term} k (⋆ i) q =
       :by: subrel {_P_ = _==_} $
            del-nth== (Id.refl term)(Id.refl (k + m))(Id.refl k)
              (proof coe (ap Term $ +-suc k m) (⋆ i)
+                het== ⋆ i :by: coe-eval (ap Term $ +-suc k m) (⋆ i)
                 het== ⋆ i
-                  :by: coe-eval (ap Term $ +-suc k m) (⋆ i)
-                het== ⋆ i
-                  :by: ap (λ — → ⋆ {n = —} i) $ +-suc k m
+                  :by: ap (λ — → ⋆ {n = —} i) ⦃ Relating-all-==-het== ⦄ $
+                       +-suc k m
               qed)
-    === ⋆ i
-      :by: Id.refl _
+    === ⋆ i :by: Id.refl _
   qed
 del-k-shift~id {m}{term} k ([ π x: S ]→ T) q =
   proof del-nth k (coe coer ([ π x: ren k S ]→ rename (lift (lift-by k old)) T))
@@ -348,7 +347,7 @@ del-k-shift~id {m}{term} k (λx, t) q =
               (old==old→== (+-suc k m) (
                  proof old v
                    === old (nth-var k (k+1≤k+m+1 k m))
-                     :by: old-v==nth-k+1
+                     :by: old-v==nth-k+1 [: _==_ ]
                    het== old (nth-var k (postfix (_+ m) (k +1)))
                      :by: nth-var== (k+1≤k+m+1 (k +1) m)
                                     (+-suc (k +1) m)

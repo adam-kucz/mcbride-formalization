@@ -10,100 +10,15 @@ module Subtyping.Definition
 -- Definition 17 (subtyping)
 
 open import Data.Nat hiding (_⊔_)
+open import Proof
+
 open import Syntax
 open import Computation
-
-infix 36 _~_
-data _~_ {n} : ∀ {tag} (s t : expr-of-type tag n) → 𝒰 ⁺ ⊔ 𝒱 ᵖ where
-  ~annot : ∀{s s'}(S S' : Term n)
-    (p : s ~ s')
-    -- (p' : (q : ∃ λ t → s == λx, t) →
-    --       ∃ λ S₀ → ∃ λ T₀ →
-    --       ∃ λ S₁ → ∃ λ T₁ →
-    --       S ↠ [ π x: ])
-    → -------------
-    s ꞉ S ~ s' ꞉ S'
-
-  ⋆ : ∀ i → ⋆ i ~ ⋆ i
-
-  var : ∀ v → var v ~ var v
-
-  [_x:_]→_ : ∀ π {S S' T T'}
-    (S▷S' : S ~ S')
-    (T▷T' : T ~ T')
-    → ---------------
-    [ π x: S ]→ T ~ [ π x: S' ]→ T'
-
-  λx,_ : ∀{t t'}
-    (t▷t' : t ~ t')
-    → ------------------------------------
-    λx, t ~ λx, t'
-
-  _`_ : ∀{f f' s s'}
-    (f▷f' : f ~ f')
-    (s▷s' : s ~ s')
-    → ------------------------------------
-    f ` s ~ f' ` s'
-
-  ⌊_⌋ : ∀{e e'}
-    (e▷e' : e ~ e')
-    → --------------------
-    ⌊ e ⌋ ~ ⌊ e' ⌋
-
-
-open import Syntax.Context.Arbitrary
 
 open import Relation.Binary
   hiding (_~_; Reflexive~; Transitive~; Symmetric~)
 
-instance
-  Reflexive~ : Reflexive (_~_ {n = n}{tag})
-  Transitive~ : Transitive (_~_ {n = n}{tag})
-  Symmetric~ : Symmetric (_~_ {n = n}{tag})
-  ContextClosed~ : ContextClosed _~_
-
-open import Proof
-
-refl ⦃ Reflexive~ {tag = term} ⦄ (⋆ i) = ⋆ i
-refl ⦃ Reflexive~ {tag = term} ⦄ ([ π x: S ]→ T) =
-  [ π x: refl S ]→ refl T
-refl ⦃ Reflexive~ {tag = term} ⦄ (λx, t) = λx, refl t
-refl ⦃ Reflexive~ {tag = term} ⦄ ⌊ e ⌋ = ⌊ refl e ⌋
-refl ⦃ Reflexive~ {tag = elim} ⦄ (var x) = var x
-refl ⦃ Reflexive~ {tag = elim} ⦄ (f ` s) = refl f ` refl s
-refl ⦃ Reflexive~ {tag = elim} ⦄ (s ꞉ S) = ~annot S S $ refl s
-
-trans ⦃ Transitive~ ⦄ (~annot S _ p)(~annot _ S″ q) =
-  ~annot S S″ $ trans p q
-trans ⦃ Transitive~ ⦄ (⋆ _) q = q
-trans ⦃ Transitive~ ⦄ (var _) q = q
-trans ⦃ Transitive~ ⦄ ([ π x: p₀ ]→ p₁)([ π x: q₀ ]→ q₁) =
-  [ π x: trans p₀ q₀ ]→ trans p₁ q₁
-trans ⦃ Transitive~ ⦄ (λx, p)(λx, q) = λx, trans p q
-trans ⦃ Transitive~ ⦄ (p₀ ` p₁)(q₀ ` q₁) = trans p₀ q₀ ` trans p₁ q₁
-trans ⦃ Transitive~ ⦄ ⌊ p ⌋ ⌊ q ⌋ = ⌊ trans p q ⌋
-
-sym ⦃ Symmetric~ ⦄ (~annot S S' p) = ~annot S' S $ sym p
-sym ⦃ Symmetric~ ⦄ (⋆ i) = ⋆ i
-sym ⦃ Symmetric~ ⦄ (var x) = var x
-sym ⦃ Symmetric~ ⦄ ([ π x: p₀ ]→ p₁) = [ π x: sym p₀ ]→ sym p₁
-sym ⦃ Symmetric~ ⦄ (λx, p) = λx, sym p
-sym ⦃ Symmetric~ ⦄ (p₀ ` p₁) = sym p₀ ` sym p₁
-sym ⦃ Symmetric~ ⦄ ⌊ p ⌋ = ⌊ sym p ⌋
-
-open import Logic
-
-ctx-closed ⦃ ContextClosed~ ⦄ (term t) _ = refl t
-ctx-closed ⦃ ContextClosed~ ⦄ (elim e) _ = refl e
-ctx-closed ⦃ ContextClosed~ ⦄ — p = p
-ctx-closed ⦃ ContextClosed~ ⦄ ([ π x: C₀ ]→ C₁)(p₀ , p₁) =
-  [ π x: ctx-closed C₀ p₀ ]→ ctx-closed C₁ p₁
-ctx-closed ⦃ ContextClosed~ ⦄ (λx, C) p = λx, ctx-closed C p
-ctx-closed ⦃ ContextClosed~ ⦄ ⌊ C ⌋ p = ⌊ ctx-closed C p ⌋
-ctx-closed ⦃ ContextClosed~ ⦄ (C₀ ` C₁)(p₀ , p₁) =
-  ctx-closed C₀ p₀ ` ctx-closed C₁ p₁
-ctx-closed ⦃ ContextClosed~ ⦄ (C₀ ꞉ C₁)(p₀ , p₁) =
-  ~annot _ _ $ ctx-closed C₀ p₀
+open import Subtyping.Similarity
 
 data _≼_ : RelOnExpr (𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲) where
   similar : {S T : expr-of-type tag n}

@@ -9,3 +9,4 @@ module ParallelReduction
 
 open import ParallelReduction.Definition ⦃ rig ⦄ ⦃ wfs ⦄ public
 open import ParallelReduction.Property ⦃ rig ⦄ ⦃ wfs ⦄ public
+open import ParallelReduction.Property.VectorizedSubstitution ⦃ rig ⦄ ⦃ wfs ⦄ public

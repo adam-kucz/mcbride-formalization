@@ -51,7 +51,8 @@ lift-by-lift~ {m = m}{n}(k +1) σ new =
     === default {m = k + n +1}
       :by: Id.refl _
     het== default {m = k + (n +1)}
-      :by: ap (λ — → default {m = —}) $ sym $ +-suc k n
+      :by: ap (λ — → default {m = —}) ⦃ Relating-all-==-het== ⦄ $
+           sym $ +-suc k n
     === lift-by (k +1) (lift σ) (coe coer new)
       :by: ap (lift-by (k +1) (lift σ)) new==new
   qed
@@ -60,7 +61,8 @@ lift-by-lift~ {m = m}{n}(k +1) σ new =
         new==new = subrel {_R_ = Het._==_} (
           proof new {n = k + (m +1)}
             het== new {n = k + m +1}
-              :by: ap (λ — → new {n = —}) $ +-suc k m
+              :by: ap (λ — → new {n = —}) ⦃ Relating-all-==-het== ⦄ $
+                   +-suc k m
             het== coe coer new
               :by: isym $ coe-eval coer new
           qed)
@@ -106,7 +108,7 @@ lift-by-lift~ {m = m}{n}(k +1){F} σ (old v) =
                      (+-suc k m)
                      (index==→var==
                        (+-suc k m)
-                       (index-nth-var (index v) p'))
+                       (index-nth-var (index v) p')) [: Het._==_ ]
             het== coe (coer (k +1)) (old v)
               :by: isym $ coe-eval (coer (k +1)) (old v)
           qed)

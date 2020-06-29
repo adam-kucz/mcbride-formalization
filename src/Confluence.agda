@@ -22,8 +22,6 @@ open import Liftable
 open import Computation hiding (v)
 open import ParallelReduction
 
-open import Confluence.VectorizedSubstitution
-
 -- Lemma 15 (parallel reduction diamond)
 
 open import Syntax.Context
@@ -36,11 +34,6 @@ open import Logic
 open import Proof
 open import Function.Proof
 open import Relation.Binary.Pointwise
-
-instance
-  newSub▷ : ∀ {n} → Relating (newSub {n = n}) _▷_ (Pointwise _▷_)
-rel-preserv ⦃ newSub▷ ⦄ a▷b new = a▷b
-rel-preserv ⦃ newSub▷ ⦄ _ (old x) = refl (var x)
 
 diamond-▷ : ∀{n tag} → diamond (_▷_ {n = n}{tag})
 diamond-▷ (⋆ i)(⋆ i) = ⋆ i , (⋆ i , ⋆ i)

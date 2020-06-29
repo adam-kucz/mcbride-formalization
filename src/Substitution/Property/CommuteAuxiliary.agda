@@ -43,7 +43,7 @@ aux-nthSub-inner {k = k +1} {m +1} x f p (old v) =
   subrel {_R_ = Het._==_} (
   proof [ f + id ] ([ id + shift ] e₀)
     het== [ f + shift ] e₀
-      :by: [ f + id ]∘[ id + shift ] e₀
+      :by: [ f + id ]∘[ id + shift ] e₀ [: Het._==_ ]
     het== [ id + shift ] ([ f + id ] e₀)
       :by: sym {R = Het._==_} $ [ id + shift ]∘[ f + id ] e₀
     === [ id + shift ] e₁
@@ -102,7 +102,7 @@ nthSub-neutral : ∀ {k m}
   sub (nthSub k p f) e == del-nth k e p q
 nthSub-neutral f {term} (⋆ i) p q = Id.refl (⋆ i)
 nthSub-neutral {k} f {term} ([ ρ x: S ]→ T) p q =
-  ap2 [ ρ x:_]→_
+  ap2 [ ρ x:_]→_ {r₀ = _==_}{r₁ = _==_}
     (nthSub-neutral f S p λ q' → q $ ⟵ (++-prop {l' = l'}) $ ∨left q')
     (proof sub (lift (nthSub k p f)) T
        === sub (nthSub (k +1) (ap suc p) (shift f)) T
@@ -155,52 +155,53 @@ nthSub-neutral {k} f {elim} (var v) p q =
           where q' : nth-var k p ≠ v
                 q' nth-var==v = q $ ap old nth-var==v
 
+sub-newSub-aux :
+  (σ : Sub m n)
+  (f : Elim m)
+  (v : Var m)
+  → ---------------------------------------------
+  sub (newSub (sub σ f)) (shift (σ v)) == σ v
+sub-newSub-aux {m}{n} σ f v =
+  proof sub (newSub (sub σ f)) (shift' (σ v))
+    === del-nth 0 (shift (σ v)) (z≤ n) (nth-var∉shift 0 (σ v))
+      :by: nthSub-neutral (sub σ f) (shift' (σ v)) (z≤ n) _
+    === del-nth 0 (coe (Id.refl _) (rename (lift-by 0 old) (σ v)))(z≤ n) q
+      :by: subrel {_P_ = _==_} $
+           del-nth== (Id.refl elim)(Id.refl n)(Id.refl 0)
+             (proof shift (σ v)
+                het== rename (lift-by 0 old) (σ v)
+                  :by: ==→~ ren-lift-0-old (σ v)
+                het== coe (Id.refl _) (rename (lift-by 0 old) (σ v))
+                  :by: isym $ coe-eval (Id.refl _)(rename (lift-by 0 old) (σ v))
+              qed)
+    === σ v :by: del-k-shift~id 0 (σ v) q
+  qed
+  where shift' = shift ⦃ ren = RenameableExpr ⦄
+        e : Elim (n +1)
+        e = rename (lift-by 0 old) (σ v)
+        q : new ∉ fv (coe (Id.refl _) e)
+        q p = nth-var∉shift 0 (σ v) $
+          Id.coe (ap (λ — → new ∈ fv —) $
+                  subrel {_P_ = _==_} $
+                  coe-eval (Id.refl _) e) p
+        rename' = rename ⦃ r = RenameableElim ⦄
+        ren-lift-0-old : ∀ {m : ℕ} →
+          shift ⦃ ren = RenameableElim ⦄
+          ==
+          rename' (lift-by {m = m} 0 old)
+        ren-lift-0-old =
+          proof shift ⦃ ren = RenameableElim ⦄
+            === rename' (rename id ∘ old)
+              :by: ap (λ — → rename' (— ∘ old)) $ sym {R = _==_} rename-id
+            === rename' (lift-by 0 old)
+              :by: Id.refl _
+          qed
+
 sub-newSub :
   (σ : Sub m n)
   (f : Elim m)
   → ----------------------------------------------------------------------
   σ ⍟ newSub f == newSub (sub σ f) ⍟ lift σ
-sub-newSub {m}{n} σ f = subrel {_R_ = Het._==_} $ fun-ext
-  λ { new → Het.refl (sub σ f)
-    ; (old v) →
-      proof (σ ⍟ newSub f) (old v)
-        het== σ v
-          :by: Het.refl (σ v)
-        === del-nth
-              0
-              (coe (Id.refl _) (rename (lift-by 0 old) (σ v)))
-              (z≤ n)
-              (q v)
-          :by: sym {R = _==_} $ del-k-shift~id 0 (σ v) (q v)
-        === del-nth 0 (shift (σ v)) (z≤ n) (nth-var∉shift 0 (σ v))
-          :by: subrel {_P_ = _==_} $
-               del-nth== (Id.refl elim)(Id.refl n)(Id.refl 0)
-                 (proof coe (Id.refl _) (rename (lift-by 0 old) (σ v))
-                    het== rename (lift-by 0 old) (σ v)
-                      :by: coe-eval (Id.refl _) (rename (lift-by 0 old) (σ v))
-                    het== shift (σ v)
-                      :by: ==→~ ren-lift-0-old (σ v)
-                  qed)
-        === sub (newSub (sub σ f)) (shift (σ v))
-          :by: sym {𝒰 = 𝒰 ⁺ ⊔ 𝒱} $
-               nthSub-neutral (sub σ f) (shift (σ v)) (z≤ n) _
-        === (newSub (sub σ f) ⍟ lift σ) (old v)
-          :by: Id.refl _
-      qed}
-  where e' : ∀ v → Elim (n +1)
-        e' v = rename (lift-by 0 old) (σ v)
-        ren-lift-0-old : ∀ {m : ℕ} →
-          rename ⦃ r = RenameableElim ⦄ (lift-by {m = m} 0 old) == shift
-        ren-lift-0-old =
-          proof rename (lift-by 0 old)
-            === rename (rename id ∘ old)
-              :by: Id.refl _
-            === shift
-              :by: ap (λ — → rename (— ∘ old)) rename-id
-          qed
-        q : ∀ v → new ∉ fv (coe (Id.refl _) (e' v))
-        q v p = nth-var∉shift 0 (σ v) $
-          Id.coe (ap (λ — → new ∈ fv —) $
-                  subrel {_P_ = _==_} $
-                  coe-eval (Id.refl _) (e' v)) p
-
+sub-newSub {m}{n} σ f = subrel {_R_ = Het._==_} $ fun-ext λ
+  { new → Het.refl (sub σ f)
+  ; (old v) → subrel $ sym $ sub-newSub-aux σ f v }

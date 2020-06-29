@@ -11,7 +11,7 @@ open import Syntax.Context.OneHole.Definition
 open import Syntax.Context.Arbitrary
 open import Syntax
 
-open import Type.Sum hiding (_,_) renaming (_×_ to _χ_)
+open import Type.Sum renaming (_,_ to _Σ,_; _×_ to _χ_)
 open import Data.Nat
 open import Data.Tree.Binary
 open import Function hiding (_$_)
@@ -26,7 +26,7 @@ hole-loc : ∀{hole m result n}
   (C[—] : OneHoleContext hole m result n)
   → ---------------------------------------
   Holes
-hole-loc {hole}{m} — = [ hole Σ., 0 ]
+hole-loc {hole}{m} — = [ hole Σ, 0 ]
 hole-loc [ _ x: _ ]→ C[—] ↓ = ◻ /\ fmap [ id × suc ] (hole-loc C[—])
 hole-loc ([ _ x: C[—] ↓]→ _) = hole-loc C[—] /\ ◻
 hole-loc (λx, C[—]) = fmap [ id × suc ] (hole-loc C[—])
@@ -101,7 +101,7 @@ empty-holes [ _ ] = ⊥
 empty-holes (l /\ r) = empty-holes l ∧ empty-holes r
 
 data one-hole tag m : Holes → 𝒰₀ ˙ where
-  leaf : one-hole tag m [ tag Σ., m ]
+  leaf : one-hole tag m [ tag Σ, m ]
   left : ∀{l r}
     (p : one-hole tag m l)
     (q : empty-holes r)
@@ -198,7 +198,7 @@ hole-loc-as-one-hole : ∀{hole n t tag m}
   hole-loc (as-one-hole p C) == t
 hole-loc-as-one-hole p (λx, C) = hole-loc-as-one-hole p C
 hole-loc-as-one-hole p ⌊ C ⌋ = hole-loc-as-one-hole p C
-hole-loc-as-one-hole leaf — = Id.refl [ _ Σ., _ ]
+hole-loc-as-one-hole leaf — = Id.refl [ _ Σ, _ ]
 hole-loc-as-one-hole (left p q)([ _ x: C₀ ]→ C₁) =
   ap2 _/\_ (hole-loc-as-one-hole p C₀) {!!}
 hole-loc-as-one-hole (right p q)([ _ x: C₀ ]→ C₁) = {!!}
@@ -232,14 +232,14 @@ open import Type.Unit
 --   all-types (fmap [ id × _+ n ] (hole-loc C[—]))
 {-
 as-filling — e = e
-as-filling [ _ x: _ ]→ C[—] ↓ e = ↑type ⋆ Σ., as-filling C[—] e
-as-filling ([ _ x: C[—] ↓]→ _) e = as-filling C[—] e Σ., ↑type ⋆
+as-filling [ _ x: _ ]→ C[—] ↓ e = ↑type ⋆ Σ, as-filling C[—] e
+as-filling ([ _ x: C[—] ↓]→ _) e = as-filling C[—] e Σ, ↑type ⋆
 as-filling (λx, C[—]) e = as-filling C[—] e
 as-filling ⌊ C[—] ⌋ e = as-filling C[—] e
-as-filling (_ ` C[—] ↓) e = ↑type ⋆ Σ., as-filling C[—] e
-as-filling (C[—] ↓` _) e = as-filling C[—] e Σ., ↑type ⋆
-as-filling (_ ꞉ C[—] ↓) e = ↑type ⋆ Σ., as-filling C[—] e
-as-filling (C[—] ↓꞉ _) e = as-filling C[—] e Σ., ↑type ⋆
+as-filling (_ ` C[—] ↓) e = ↑type ⋆ Σ, as-filling C[—] e
+as-filling (C[—] ↓` _) e = as-filling C[—] e Σ, ↑type ⋆
+as-filling (_ ꞉ C[—] ↓) e = ↑type ⋆ Σ, as-filling C[—] e
+as-filling (C[—] ↓꞉ _) e = as-filling C[—] e Σ, ↑type ⋆
 -}
 
 -- context-equivalence : ∀{m n tag₀ tag₁}
@@ -285,33 +285,33 @@ rel-preserv ⦃ OneCtxClosed-of-CtxClosed {R = R}{C = C} ⦄ {a}{b} rab =
         go p — = p
         go p [ π x: S ]→ C ↓ =
           ctx-closed ([ π x: term S ]→ —)
-            {es = ↑type ⋆ Σ., _}
-            {es' = ↑type ⋆ Σ., _}
+            {es = ↑type ⋆ Σ, _}
+            {es' = ↑type ⋆ Σ, _}
             (↑prop ⋆ₚ , go p C)
         go p ([ π x: C ↓]→ T) =
           ctx-closed ([ π x: — ]→ term T)
-            {es = _ Σ., ↑type ⋆}
-            {es' = _ Σ., ↑type ⋆}
+            {es = _ Σ, ↑type ⋆}
+            {es' = _ Σ, ↑type ⋆}
             (go p C , ↑prop ⋆ₚ)
         go p (λx, C) = ctx-closed (λx, —) (go p C)
         go p ⌊ C ⌋ = ctx-closed ⌊ — ⌋ (go p C)
         go p (f ` C ↓) =
           ctx-closed (elim f ` —)
-            {es = ↑type ⋆ Σ., _}
-            {es' = ↑type ⋆ Σ., _}
+            {es = ↑type ⋆ Σ, _}
+            {es' = ↑type ⋆ Σ, _}
             (↑prop ⋆ₚ , go p C)
         go p (C ↓` s) =
           ctx-closed (— ` term s)
-            {es =  _ Σ., ↑type ⋆}
-            {es' = _ Σ., ↑type ⋆}
+            {es =  _ Σ, ↑type ⋆}
+            {es' = _ Σ, ↑type ⋆}
             (go p C , ↑prop ⋆ₚ)
         go p (s ꞉ C ↓) =
           ctx-closed (term s ꞉ —)
-            {es = ↑type ⋆ Σ., _}
-            {es' = ↑type ⋆ Σ., _}
+            {es = ↑type ⋆ Σ, _}
+            {es' = ↑type ⋆ Σ, _}
             (↑prop ⋆ₚ , go p C)
         go p (C ↓꞉ S) = 
           ctx-closed (— ꞉ term S)
-            {es =  _ Σ., ↑type ⋆}
-            {es' = _ Σ., ↑type ⋆}
+            {es =  _ Σ, ↑type ⋆}
+            {es' = _ Σ, ↑type ⋆}
             (go p C , ↑prop ⋆ₚ)

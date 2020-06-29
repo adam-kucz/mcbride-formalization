@@ -18,6 +18,7 @@ open import Relation.Binary hiding (_~_)
 open import Function hiding (_$_)
 open import Logic
 open import Proof
+open import Function.Proof
 
 open import Syntax ⦃ rig ⦄ ⦃ wfs ⦄
 open import Liftable
@@ -34,6 +35,17 @@ open Tag
 
 open import Substitution.Instance
 open import Substitution.Basic
+
+open import Relation.Binary.Pointwise
+
+instance
+  Relating-newSub-refl :
+    {Rel : BinRel 𝒳 (Elim n)}
+    ⦃ refl-Rel : Reflexive Rel ⦄
+    → ---------------------------------------------
+    Relating (newSub {n = n}) Rel (Pointwise Rel)
+rel-preserv ⦃ Relating-newSub-refl ⦄ a▷b new = a▷b
+rel-preserv ⦃ Relating-newSub-refl ⦄ _ (old x) = refl (var x)
 
 rename-[-/new] : ∀{tag}
   (ρ : Ren m n)
@@ -90,18 +102,19 @@ private
     Het.==
     [ id , id ] (aux-nthSub (shift f) (n +1) (ap suc q) (old x))
 aux-lift-nth f n q x =
-  proof shift ([ id , id ] x')
-    het== [ shift , shift ] x'
-      :by: (shift ∘[ id , id ]) x'
-    het== [ id , shift ] ([ shift + id ] x')
-      :by: sym {R = Het._==_} $ [ id , shift ]∘[ shift + id ] x'
-    het== [ id , shift ] x″
-      :by: ap [ id , shift ] $ [ shift +id]∘aux-nthSub f q x
-    het== [ id , id ] ([ id + shift ] x″)
-      :by: sym {R = Het._==_} $ [ id , id ]∘[ id + shift ] x″
+  proof shift' ([ id , id ] x')
+    het== [ shift' , shift' ] x'
+      :by: (shift' ∘[ id , id ]) x'
+    het== [ id , shift' ] ([ shift' + id ] x')
+      :by: isym $ [ id , shift' ]∘[ shift' + id ] x'
+    het== [ id , shift' ] x″
+      :by: ap [ id , shift' ] $ [ shift' +id]∘aux-nthSub f q x
+    het== [ id , id ] ([ id + shift' ] x″)
+      :by: isym $ [ id , id ]∘[ id + shift' ] x″
   qed
   where x' = aux-nthSub f n q x
         x″ = aux-nthSub (shift f) n q x
+        shift' = shift ⦃ ren = RenameableExpr ⦄
 
 
 lift-nth : (f : Elim m)(q : n ≤ m)

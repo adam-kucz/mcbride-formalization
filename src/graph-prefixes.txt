@@ -1,0 +1,22 @@
+MODE del
+
+McBrideGraph
+Agda
+Universes
+PropUniverses
+Collection
+Structure
+Type
+Relation
+Operation
+Function
+Proof
+Logic
+Proposition
+Data
+
+MODE save
+
+Proposition.Identity.Coercion
+
+

@@ -2,14 +2,14 @@
 open import PropUniverses
 open import Basic using (Rig; wfs)
 
-module Syntax.Context.Substitutable
+module Syntax.Context.Property.Substitutable
   {R : 𝒰 ˙} ⦃ rig : Rig R ⦄
   {S : 𝒱 ˙} ⦃ wfs : wfs 𝒲 𝒯 S ⦄
   where
 
 open import Syntax.Context.Arbitrary renaming ([_] to [[_]])
 
-open import Type.Sum hiding (_,_)
+open import Type.Sum renaming (_,_ to _Σ,_)
 open import Data.Nat hiding (-comm)
 open import Data.Maybe hiding (dmap)
 open import Data.Tree.Binary hiding (dmap)
@@ -45,7 +45,7 @@ open import Function.Proof
 context-inhabited : ∀{tag n}{t : Holes}
   (C : Context t tag n)
   → --------------------------------------------------
-  ∀{tag : ExprTag}{k : ℕ}(p : just (tag Σ., k) ∈ t) → n ≤ k
+  ∀{tag : ExprTag}{k : ℕ}(p : just (tag Σ, k) ∈ t) → n ≤ k
 context-inhabited — (_ ∈leaf) = refl _
 context-inhabited ([ π x: C₀ ]→ C₁) (_ ∈left p /\ r) =
   context-inhabited C₀ p
@@ -80,10 +80,10 @@ module Auxiliary where
 
   f m n = [ id × (λ l → n + l - m) ]
 
-  f-id m = subrel $ fun-ext λ { (tag Σ., l) →
+  f-id m = subrel $ fun-ext λ { (tag Σ, l) →
     subrel $ Σ== (Id.refl tag) (
       proof m + l - m
-        === l + m - m :by: ap (_- m) $ comm m l
+        === l + m - m :by: ap (_- m) $ comm m l [: _==_ ]
         het== l       :by: left-inverse-of (_+ m) l
       qed)}
 
@@ -101,8 +101,8 @@ sub-context : ∀{m n}
 sub-context σ (term t) = term (sub σ t)
 sub-context σ (elim e) = elim (sub σ e)
 sub-context {m}{n} σ {tag = tag} — =
-  coe (ap (λ k → Context [[ tag Σ., k ]] tag n)
-          (sym $ subrel $ left-inverse-of (_+ m) n))
+  coe (ap (λ k → Context [[ tag Σ, k ]] tag n)
+          (sym $ subrel {_P_ = _==_} $ left-inverse-of (_+ m) n))
       —
 sub-context σ ([ π x: C₀ ]→ C₁) =
   [ π x: sub-context σ C₀ ]→ sub-context (lift σ) C₁
@@ -114,11 +114,11 @@ sub-context σ (C₀ ꞉ C₁) = sub-context σ C₀ ꞉ sub-context σ C₁
 private
   fmap-aux : ∀ m n l
     (t : Holes)
-    (p : ∀{tag : ExprTag}{k : ℕ}(q : just (tag Σ., k) ∈ t) → m ≤ k)
+    (p : ∀{tag : ExprTag}{k : ℕ}(q : just (tag Σ, k) ∈ t) → m ≤ k)
     → ------------------------------
     fmap (f n l) (fmap (f m n) t) == fmap (f m l) t
 fmap-aux m n l ◻ p = Id.refl ◻
-fmap-aux m n l [[ tag Σ., k ]] p = ap (λ x → [[ tag Σ., x ]]) (
+fmap-aux m n l [[ tag Σ, k ]] p = ap (λ x → [[ tag Σ, x ]]){r = _==_}(
   proof l + (n + k - m) - n
     === n + k - m + l - n
       :by: ap (_- n) $ comm l _
@@ -129,7 +129,7 @@ fmap-aux m n l [[ tag Σ., k ]] p = ap (λ x → [[ tag Σ., x ]]) (
     === n + k + l - m - n
       :by: ap (_- n) $ sym $ unsafe-is-safe {n + k + l}{m} _
     === l + k + n - m - n
-      :by: ap (λ — → — - m - n) (
+      :by: ap (λ — → — - m - n){r = _==_}(
            proof n + k + l
              === k + n + l   :by: ap (_+ l) $ comm n k
              === l + (k + n) :by: comm (k + n) l
@@ -143,7 +143,7 @@ fmap-aux m n l [[ tag Σ., k ]] p = ap (λ x → [[ tag Σ., x ]]) (
   qed)
   where p' : m ≤ n + k
         p' = proof m
-               〉 _≤_ 〉 k     :by: p $ (just (tag Σ., k)) ∈leaf
+               〉 _≤_ 〉 k     :by: p $ (just (tag Σ, k)) ∈leaf
                〉 _≤_ 〉 n + k :by: postfix (n +_) k
              qed
 fmap-aux m n l (l' /\ r') p =
@@ -187,7 +187,7 @@ sub-context-id {m}{l /\ r} ([ π x: C₀ ]→ C₁) =
 sub-context-id {m}{t} (λx, C) =
   proof λx, sub-context (lift var) C
     === λx, sub-context var C
-      :by: ap (λ — → λx, sub-context — C) lift-var
+      :by: ap (λ — → λx, sub-context — C) lift-var [: _==_ ]
     het== λx, C
       :by: Id.ap2 {K = λ t _ → Context t term m}
                   (λ t (C : Context t term (m +1)) → λx, C)
@@ -240,7 +240,7 @@ sub-context-∘ σ τ (elim e) = subrel $ ap (λ — → elim (— e)) $ sub-∘
 sub-context-∘ {m}{n}{l} σ τ {tag = tag} — =
   proof sub-context σ (coe (coer m n) —)
     het== coe (coer n l) —
-      :by: Het.ap2 (λ k (C : Context [[ tag Σ., k ]] tag n) → sub-context σ C)
+      :by: Het.ap2 (λ k (C : Context [[ tag Σ, k ]] tag n) → sub-context σ C)
              (left-inverse-of (_+ m) n)
              (coe-eval (coer m n) —)
     het== —
@@ -248,8 +248,9 @@ sub-context-∘ {m}{n}{l} σ τ {tag = tag} — =
     het== coe (coer m l) —
       :by: isym $ coe-eval (coer m l) —
   qed
-  where coer = λ m n → ap (λ k → Context [[ tag Σ., k ]] tag n)
-                          (sym $ subrel $ left-inverse-of (_+ m) n)
+  where coer = λ m n →
+          ap (λ k → Context [[ tag Σ, k ]] tag n){r = _==_}
+             (sym $ subrel $ left-inverse-of (_+ m) n)
 sub-context-∘ {m}{n}{l} σ τ {l' /\ r'} ([ π x: C₀ ]→ C₁) =
   proof [ π x: sub-context σ (sub-context τ C₀) ]→
                sub-context (lift σ) (sub-context (lift τ) C₁)
@@ -335,9 +336,9 @@ SubstitutableContext {t}{tag} =
           :by: coe-eval (coer k C') (sub-context σ C') 
         het== sub-context σ (sub-context τ C)
           :by: Het.ap2 {K = λ t _ → Context (fmap (f n k) t) tag k}
-                      (λ _ C → sub-context σ C)
-                      (sym go t)
-                      (coe-eval (coer n C) (sub-context τ C))
+                 (λ _ C → sub-context σ C)
+                 (sym go t)
+                 (coe-eval (coer n C) (sub-context τ C))
         het== sub-context (σ ⍟ τ) C
           :by: sub-context-∘ σ τ C
         het== coe (coer k C) (sub-context (σ ⍟ τ) C)
@@ -346,10 +347,10 @@ SubstitutableContext {t}{tag} =
   where go : ∀{m n} →
           fmap (f m n) ∘ fmap [ id × _+ m ] ~ fmap [ id × _+ n ]
         go ◻ = Het.refl ◻
-        go {m}{n} [[ tag Σ., k ]] =
-          ap (λ — → [[ tag Σ., — ]]) (
+        go {m}{n} [[ tag Σ, k ]] =
+          ap (λ — → [[ tag Σ, — ]]){r = Het._==_}(
           proof n + (k + m) - m
-            === n + k + m - m   :by: ap (_- m) $ assoc n k m
+            === n + k + m - m   :by: ap (_- m) $ assoc n k m [: _==_ ]
             het== n + k         :by: left-inverse-of (_+ m) (n + k)
             === k + n           :by: comm n k
           qed)
