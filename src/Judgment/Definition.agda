@@ -2,7 +2,7 @@
 open import Basic using (Rig; wfs; _≻_)
 open import PropUniverses
 
-module Judgment
+module Judgment.Definition
   {R : 𝒰 ˙} ⦃ r : Rig R ⦄
   {𝑆 : 𝒱 ˙} ⦃ 𝑤𝑓𝑠 : wfs 𝒲 𝒯 𝑆 ⦄
   where
@@ -71,8 +71,8 @@ infix 36 _~_
 data _~_ {n} : ∀{tag}(s t : expr-of-type tag n) → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ᵖ where
   ~annot : {s s' S S' : Term n}
     (p : s ~ s')
-    (q : ∃ λ Γ → ∃ λ π → Γ ⊢ π , s ∋ S)
-    (q' : ∃ λ Γ' → ∃ λ π' → Γ' ⊢ π' , s ∋ S')
+    (q : (∃ λ Γ → ∃ λ π → Γ ⊢ π , s ∋ S) ↔
+         (∃ λ Γ' → ∃ λ π' → Γ' ⊢ π' , s ∋ S'))
     → ------------------------------------------
     _~_ {n}{elim}(s ꞉ S)(s' ꞉ S')
 
