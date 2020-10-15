@@ -1,4 +1,4 @@
-{-# OPTIONS --exact-split --prop #-}
+{-# OPTIONS --exact-split #-}
 open import Basic
 open import Universes
 
@@ -25,12 +25,12 @@ open import Axiom.FunctionExtensionality
 
 rename ⦃ RenameableFun ⦄ ρ σ = rename ρ ∘ σ
 rename-id ⦃ RenameableFun {𝒴}{𝒳} ⦃ r ⦄ ⦄ =
-  subrel {_P_ = _==_} $
+  subrel $
   fun-ext λ σ →
-  subrel {𝒰 = 𝒳 ⊔ 𝒴}{_R_ = _==_} $
+  subrel $
   ap (_∘ σ) rename-id
 rename-∘ ⦃ RenameableFun {𝒴}{𝒳} ⦄ π ρ =
-  subrel {_P_ = _==_} $
+  subrel $
   fun-ext λ σ →
-  subrel {𝒰 = 𝒳 ⊔ 𝒴}{_R_ = _==_} $
+  subrel $
   ap (_∘ σ) $ rename-∘ π ρ 

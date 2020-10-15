@@ -1,4 +1,4 @@
-{-# OPTIONS --exact-split --prop #-}
+{-# OPTIONS --exact-split #-}
 open import Basic
 open import Universes
 
@@ -14,17 +14,15 @@ open import Syntax ⦃ rig ⦄ ⦃ wfs ⦄
 open import Liftable ⦃ rig ⦄ ⦃ wfs ⦄
 
 open import Data.Nat
-open import Proposition.Identity hiding (refl)
-open import Proposition.Identity.Coercion
 open import Function hiding (_$_)
 open import Proof
 
 old×-old : ∀ k → old× k ∘ old {n = m} ~ old× (k +1)
 old×-old zero = refl old
 old×-old {m} (k +1) v =
-  Id.ap2 (λ i v' → old {n = i} v')
-         (+-suc k m)
-         (old×-old k v)
+  Het.ap2 (λ i v' → old {n = i} v')
+          (subrel $ +-suc k m)
+          (old×-old k v)
 
 open import Collection
 open import Data.List hiding (_++_)

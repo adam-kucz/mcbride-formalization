@@ -1,6 +1,6 @@
-{-# OPTIONS --exact-split --prop #-}
+{-# OPTIONS --exact-split #-}
 open import Basic using (Rig; wfs)
-open import PropUniverses
+open import Universes
 
 module Substitution.Instance
   {R : 𝒰 ˙} ⦃ rig : Rig R ⦄
@@ -44,6 +44,6 @@ sub-∘ ⦃ SubstitutableFun ⦃ s = s ⦄ ⦄ σ τ =
       :by: ap (λ — → λ f x → — (f x)) (sub-∘ ⦃ subst = s ⦄ σ τ)
   qed
 rename-as-sub ⦃ SubstitutableFun ⦃ s = s ⦄ ⦄ ρ =
-  subrel {_P_ = _==_} $ fun-ext λ σ → fun-ext λ x →
+  subrel $ fun-ext λ σ → fun-ext λ x →
   ==→~ (rename-as-sub ⦃ subst = s ⦄ ρ) (σ x)
 

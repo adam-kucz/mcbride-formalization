@@ -1,6 +1,6 @@
-{-# OPTIONS --exact-split --prop #-}
+{-# OPTIONS --exact-split #-}
 open import Basic using (Rig; wfs)
-open import PropUniverses
+open import Universes
 
 module Syntax.Property
   {R : 𝒰 ˙} ⦃ rig : Rig R ⦄
@@ -55,15 +55,15 @@ renElim ρ (var v) = var (rename ρ v)
 renElim ρ (f ` s) = renElim ρ f ` renTerm ρ s
 renElim ρ (s ꞉ S) = renTerm ρ s ꞉ renTerm ρ S
 
-open import Proposition.Identity hiding (refl)
+open import Type.Identity hiding (refl)
 
 private
   renTerm-id~id : ∀ {m} → renTerm (𝑖𝑑 (Var m)) ~ id
   renElim-id~id : ∀ {m} → renElim (𝑖𝑑 (Var m)) ~ id
 
 renTerm-id~id (⋆ i) = Het.refl (⋆ i)
-renTerm-id~id ([ ρ x: S ]→ T) = Id.ap2 ([ ρ x:_]→_)
-  (subrel {_P_ = _==_} $ renTerm-id~id S) (
+renTerm-id~id ([ ρ x: S ]→ T) = ap2 ([ ρ x:_]→_)
+  (renTerm-id~id S) (
   proof renTerm (lift id) T
     ===   renTerm id T :by: ap (λ — → renTerm — T) lift-id==id [: _==_ ]
     het== T            :by: renTerm-id~id T
@@ -77,9 +77,9 @@ renTerm-id~id ⌊ e ⌋ = ap ⌊_⌋ $ renElim-id~id e
 
 renElim-id~id (var v) = refl (var v)
 renElim-id~id (f ` s) =
-  Id.ap2 _`_ (subrel {_P_ = _==_} $ renElim-id~id f) (renTerm-id~id s)
+  ap2 _`_ (renElim-id~id f) (renTerm-id~id s)
 renElim-id~id (s ꞉ S) =
-  Id.ap2 _꞉_ (subrel {_P_ = _==_} $ renTerm-id~id s) (renTerm-id~id S)
+  ap2 _꞉_ (renTerm-id~id s) (renTerm-id~id S)
 
 renTerm-∘ : ∀ {m n k}
     (π : Ren n k)
@@ -93,8 +93,8 @@ renElim-∘ : ∀ {m n k}
     renElim (π ∘ ρ) ~ renElim π ∘ renElim ρ
 
 renTerm-∘ π ρ (⋆ i) = refl (⋆ i)
-renTerm-∘ π ρ ([ ν x: S ]→ T) = Id.ap2 [ ν x:_]→_
-  (subrel {_P_ = _==_} $ renTerm-∘ π ρ S)
+renTerm-∘ π ρ ([ ν x: S ]→ T) = ap2 [ ν x:_]→_
+  (renTerm-∘ π ρ S)
   (proof renTerm (lift (π ∘ ρ)) T
      === renTerm (lift π ∘ lift ρ) T
        :by: ap (λ — → renTerm — T) (lift-∘ π ρ) [: _==_ ]
@@ -110,11 +110,11 @@ renTerm-∘ π ρ (λx, t) = ap λx,_ (
   qed)
 renTerm-∘ π ρ ⌊ e ⌋ = ap ⌊_⌋ (renElim-∘ π ρ e)
 
-renElim-∘ π ρ (var v) = Het.refl (var (π (ρ v)))
+renElim-∘ π ρ (var v) = refl (var (π (ρ v)))
 renElim-∘ π ρ (f ` s) =
-  Id.ap2 _`_ (subrel {_P_ = _==_} $ renElim-∘ π ρ f) (renTerm-∘ π ρ s)
+  ap2 _`_ (renElim-∘ π ρ f) (renTerm-∘ π ρ s)
 renElim-∘ π ρ (s ꞉ S) =
-  Id.ap2 _꞉_ (subrel {_P_ = _==_}  $ renTerm-∘ π ρ s) (renTerm-∘ π ρ S)
+  ap2 _꞉_ (renTerm-∘ π ρ s) (renTerm-∘ π ρ S)
 
 instance
   RenameableExpr : ∀ {tag} → Renameable (expr-of-type tag)
@@ -123,15 +123,15 @@ RenameableElim : Renameable Elim
 
 rename ⦃ RenameableExpr {term} ⦄ = renTerm
 rename-id ⦃ RenameableExpr {term} ⦄ =
-  subrel {_P_ = _==_} $ fun-ext renTerm-id~id
+  subrel $ fun-ext renTerm-id~id
 rename-∘ ⦃ RenameableExpr {term} ⦄ π ρ =
-  subrel {_P_ = _==_} $ fun-ext $ renTerm-∘ π ρ
+  subrel $ fun-ext $ renTerm-∘ π ρ
 
 rename ⦃ RenameableExpr {elim} ⦄ = renElim
 rename-id ⦃ RenameableExpr {elim} ⦄ =
-  subrel {_P_ = _==_} $ fun-ext renElim-id~id
+  subrel $ fun-ext renElim-id~id
 rename-∘ ⦃ RenameableExpr {elim} ⦄ π ρ =
-  subrel {_P_ = _==_} $ fun-ext $ renElim-∘ π ρ
+  subrel $ fun-ext $ renElim-∘ π ρ
 
 RenameableTerm = RenameableExpr {term}
 RenameableElim = RenameableExpr {elim}
@@ -148,8 +148,8 @@ nth-var== : ∀ {m m' n n'}
   → ------------------
   nth-var {m = m} n p
   Het.==
-  nth-var {m = m'} n' (Id.coe (ap2 (λ m n → m +1 ≤ n) q' q) p)
-nth-var== _ (Id.refl m) (Id.refl n) = Het.refl (nth-var {m = m} n _)
+  nth-var {m = m'} n' (coe (ap2 (λ m n → m +1 ≤ n) q' q) p)
+nth-var== _ (Id.refl m) (Id.refl n) = refl (nth-var {m = m} n _)
 
 open import Logic
 

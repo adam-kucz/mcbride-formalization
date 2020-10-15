@@ -1,5 +1,5 @@
-{-# OPTIONS --exact-split --prop #-}
-open import PropUniverses
+{-# OPTIONS --exact-split #-}
+open import Universes
 open import Basic using (Rig; wfs)
 
 module Computation

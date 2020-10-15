@@ -1,6 +1,6 @@
-{-# OPTIONS --exact-split --prop #-}
+{-# OPTIONS --exact-split #-}
 open import Basic
-open import PropUniverses
+open import Universes
 
 module Subtyping.Definition
   {R : 𝒰 ˙} ⦃ rig : Rig R ⦄

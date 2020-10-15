@@ -1,5 +1,5 @@
-{-# OPTIONS --exact-split --prop #-}
-open import PropUniverses
+{-# OPTIONS --exact-split #-}
+open import Universes
 open import Basic using (Rig; wfs)
 
 module Computation.Definition
@@ -9,8 +9,8 @@ module Computation.Definition
 
 open import Syntax
 
-open import Proposition.Identity hiding (refl)
-open import Proposition.Function using (_$_)
+open import Type.Identity hiding (refl)
+open import Function using (_$_)
 open import Relation.Binary
 open import Operation.Binary.Property
 open import Data.Nat hiding (_⊔_)

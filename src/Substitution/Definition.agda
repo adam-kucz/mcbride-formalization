@@ -1,6 +1,6 @@
-{-# OPTIONS --exact-split --prop #-}
+{-# OPTIONS --exact-split #-}
 open import Basic using (Rig; wfs)
-open import PropUniverses
+open import Universes
 
 module Substitution.Definition
   {R : 𝒰 ˙} ⦃ rig : Rig R ⦄
@@ -28,18 +28,17 @@ record Substitutable (F : (m : ℕ) → 𝒮 ˙) : 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒮 ˙
       → ------------------------------------
       sub σ ∘ sub τ == sub (σ ⍟ τ)
 
-  infix 180 _[_/new] _[_/_[_]]
+  infix 180 _[_/new] _[_/_]
   _[_/new] : (e : F (n +1))(f : Elim n) → F n
   e [ f /new] = sub (newSub f) e
   
-  _[_/_[_]] :
+  _[_/_] :
     (e : F (n +1))
     (f : Elim n)
     (m : ℕ)
-    (p : m ≤ n)
     → -------------------------------------------------------------
     F n
-  e [ f / m [ p ]] = sub (nthSub m p f) e
+  e [ f / m ] = sub (nthSub m f) e
 
 module WithInstanceArgs {F : ℕ → 𝒮 ˙} ⦃ subst : Substitutable F ⦄ where
   open Substitutable subst hiding (ren) public
@@ -63,8 +62,7 @@ rename-id ⦃ Substitutable.ren (DirectSubstitutable sub sub-id sub-∘) ⦄ = s
 rename-∘ ⦃ Substitutable.ren (DirectSubstitutable sub sub-id sub-∘) ⦄ π ρ =
   proof sub (var ∘ (π ∘ ρ))
     === sub ((var ∘ π) ⍟ (var ∘ ρ))
-      :by: ap sub (subrel {_P_ = _==_} $ fun-ext $ λ v →
-           Het.refl (var (π (ρ v))))
+      :by: ap sub (subrel $ fun-ext $ λ v → Het.refl (var (π (ρ v))))
     === sub (var ∘ π) ∘ sub (var ∘ ρ)
       :by: sym $ sub-∘ (var ∘ π) (var ∘ ρ)
   qed

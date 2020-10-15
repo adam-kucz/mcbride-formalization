@@ -1,7 +1,7 @@
-{-# OPTIONS --exact-split --safe --prop  #-}
+{-# OPTIONS --exact-split --safe  #-}
 module Basic where
 
-open import PropUniverses
+open import Universes
 open import Structure.Hemiring
 open import Data.Nat.Definition hiding (zero)
 import Data.Nat.Syntax
@@ -9,7 +9,7 @@ open import Data.FinNat.Definition hiding (zero)
 
 -- Definition 1 (rig)
 
-open import Proposition.Identity using (_==_; refl)
+open import Type.Identity using (_==_; refl)
 
 Rig : (X : 𝒰 ˙) → 𝒰 ˙
 Rig = Hemiring
@@ -27,11 +27,11 @@ open import Relation.Binary
 
 record WellFoundedSorts (𝒰 𝒱 : Universe) (S : 𝒲 ˙) : (𝒰 ⊔ 𝒱) ⁺ ⊔ 𝒲 ˙ where
   field
-    _≻_ : (i j : S) → 𝒰 ᵖ
+    _≻_ : (i j : S) → 𝒰 ˙
 
     ⦃ Transitive≻ ⦄ : Transitive _≻_ 
     
-    wf : ∀ {P : S → 𝒱 ᵖ}
+    wf : ∀ {P : S → 𝒱 ˙}
       (p : ∀ {j}(all≺ : ∀ {i}(j≻i : j ≻ i) → P i) → P j)
       → --------------------------------------------------
       ∀ k → P k

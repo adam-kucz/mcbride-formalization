@@ -1,6 +1,6 @@
-{-# OPTIONS --exact-split --prop --safe  #-}
+{-# OPTIONS --exact-split  #-}
 open import Basic
-open import PropUniverses
+open import Universes
 
 module Syntax.Function
   {R : 𝒰 ˙} ⦃ rig : Rig R ⦄
@@ -10,7 +10,7 @@ module Syntax.Function
 open import Syntax.Definition
 open import Logic
 
-is-pi-type : ∀{n}(S : Term n) → 𝒰₀ ᵖ
+is-pi-type : ∀{n}(S : Term n) → 𝒰₀ ˙
 is-pi-type (⋆ _) = ⊥
 is-pi-type ([ _ x: _ ]→ _) = ⊤
 is-pi-type (λx, _) = ⊥

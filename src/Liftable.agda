@@ -1,4 +1,4 @@
-{-# OPTIONS --exact-split --prop #-}
+{-# OPTIONS --exact-split #-}
 open import Basic
 open import Universes
 

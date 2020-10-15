@@ -1,4 +1,4 @@
-{-# OPTIONS --exact-split --prop --safe  #-}
+{-# OPTIONS --exact-split --safe  #-}
 open import Basic
 open import Universes
 
@@ -19,13 +19,12 @@ index : ∀ {m} (v : Var m) → ℕ
 index new = 0
 index (old v) = index v +1
 
-open import Proposition.Empty
-open import Logic hiding (⊥-recursion)
+open import Logic
 open import Proof
 
 index< : ∀ {m} (v : Var m) → index v +1 ≤ m
-index< {m +1} new = ap suc $ z≤ m
-index< (old v) = ap suc (index< v)
+index< {m +1} new = ap suc ⦃ Relating-+-left-≤ ⦄ (z≤ m)
+index< (old v) = ap suc ⦃ Relating-+-left-≤ ⦄ (index< v)
 
 open import Function using (inj)
 open import Relation.Binary
@@ -39,14 +38,14 @@ Var== : ∀ {m} {u v : Var m}
 
 nth-var : ∀ {m} (n : ℕ) (p : n +1 ≤ m) → Var m
 nth-var {m +1} zero _ = new
-nth-var {m +1} (n +1) p = old (nth-var n (ap pred p))
+nth-var {m +1} (n +1) (s≤s p) = old (nth-var n p)
 
 index-nth-var : ∀ {m} n
   (p : n +1 ≤ m)
   → ----------------------
   index (nth-var n p) == n
 index-nth-var {m +1} zero p = refl 0
-index-nth-var {m +1} (n +1) p = ap suc (index-nth-var n (ap pred p))
+index-nth-var {m +1}(n +1)(s≤s p) = ap suc (index-nth-var n p)
 
 contract : ∀ {m n} (v : Var m) (p : index v < n) → Var n
 contract {m +1}{zero} new p = ⊥-recursion (Var 0) (irrefl 0 p)
@@ -90,8 +89,7 @@ type-of-expr (tag Σ, _) = tag
 RelOnExpr : (𝒲 : Universe) → 𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲 ⁺ ˙
 RelOnExpr 𝒲 = ∀ {n} {tag} → BinRel 𝒲 (expr-of-type tag n)
 
-open import Proposition.Identity hiding (refl)
-open import Proposition.Decidable
+open import Type.Decidable
 open import Function hiding (_$_)
 
 instance

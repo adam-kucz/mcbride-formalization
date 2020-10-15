@@ -1,6 +1,6 @@
-{-# OPTIONS --exact-split --prop #-}
+{-# OPTIONS --exact-split #-}
 open import Basic using (Rig; wfs)
-open import PropUniverses
+open import Universes
 
 module Renaming.Syntax
   {𝑅 : 𝒰 ˙} ⦃ rig : Rig 𝑅 ⦄
@@ -38,9 +38,7 @@ fv {tag = elim} (var v) = [ v ]
 fv {tag = elim} (f ` s) = fv f ++ fv s
 fv {tag = elim} (s ꞉ S) = fv s ++ fv S
 
-open import Proposition.Empty
-open import Proposition.Identity hiding (refl)
-open import Logic hiding (⊥-recursion)
+open import Logic
 open import Proof
 
 -- shift-var : ∀ k {m} (v : Var m) →
@@ -53,82 +51,59 @@ open import Proof
 -- shift-star zero i = refl (⋆ i)
 -- shift-star (k +1) i = ap shift $ shift-star k i
 
-del-nth : ∀ {m} n {tag}
+private
+  ap-suc = ap suc ⦃ Relating-+-left-≤ ⦄
+
+open import Data.Maybe
+open import Data.Maybe.Functor
+
+-- (p : n ≤ m)
+-- (q : nth-var n (ap-suc p) ∉ fv e)
+del-nth : ∀{m}(n : ℕ){tag}
   (e : expr-of-type tag (m +1))
-  (p : n ≤ m)
-  (q : nth-var n (ap suc p) ∉ fv e)
   → ------------------------------
-  expr-of-type tag m
+  Maybe (expr-of-type tag m)
 
 open import Data.Functor
 
-del-nth-aux :
-  ∀ {m n p} {l : List (Var (m +2))}
-  (q : old (nth-var n p) ∈ l)
-  → ---------------------------------------------------
-  nth-var n p ∈ (l >>= prevSafe)
-del-nth-aux (x∈x∷ _) = x∈x∷ _
-del-nth-aux {m}{n}{p}(x∈tail new q) = del-nth-aux {n = n}{p} q
-del-nth-aux {m}{n}{p}(x∈tail (old h) q) =
-  x∈tail h (del-nth-aux {n = n}{p} q)
+-- del-nth-aux :
+--   ∀ {m n p} {l : List (Var (m +2))}
+--   (q : old (nth-var n p) ∈ l)
+--   → ---------------------------------------------------
+--   nth-var n p ∈ (l >>= prevSafe)
+-- del-nth-aux (x∈x∷ _) = x∈x∷ _
+-- del-nth-aux {m}{n}{p}(x∈tail new q) = del-nth-aux {n = n}{p} q
+-- del-nth-aux {m}{n}{p}(x∈tail (old h) q) =
+--   x∈tail h (del-nth-aux {n = n}{p} q)
 
-open import Proposition.Comparable
-open import Data.Nat.Proof
 delVar : ∀ {m}
   (n : ℕ)
   (v : Var (m +1))
-  (p : n ≤ m)
-  (q : nth-var n (ap suc p) ≠ v)
   → --------------------
-  Var m
-delVar zero new p q = ⊥-recursion _ (q (Id.refl new))
-delVar zero (old v) p q = v
-delVar {m +1}(n +1) new p q = new
-delVar {m +1}(n +1) (old v) p q =
-  old (delVar n v (ap pred p) λ x → q $ ap old x)
+  Maybe (Var m)
+delVar zero new = nothing
+delVar zero (old v) = just v
+delVar {zero}(n +1) new = nothing
+delVar {m +1}(n +1) new = just new
+delVar {m +1}(n +1) (old v) = old <$> delVar n v
 
-del-nth n {term} (⋆ i) p q = ⋆ i
-del-nth n {term} ([ ρ x: S ]→ T) p q =
-  [ ρ x:
-  del-nth n S p (λ q' → q $ ⟵ (++-prop {l' = lₜ}) $ ∨left q') ]→
-  del-nth (n +1) T (ap suc p)
-    (λ q' → q $ ⟵ (++-prop {l = fv S}) $ ∨right $
-            del-nth-aux {n = n}{ap suc p} q')
-  where lₜ = fv T >>= prevSafe
-del-nth n {term} (λx, t) p q =
-  λx, del-nth (n +1) t (ap suc p)
-    λ q' → q $ del-nth-aux {n = n}{ap suc p} q'
-del-nth n {term} ⌊ e ⌋ p q = ⌊ del-nth n e p q ⌋
-del-nth n {elim} (f ` s) p q =
-  del-nth n f p (λ q' → q $ ⟵ (++-prop {l' = fv s}) $ ∨left q') `
-  del-nth n s p (λ q' → q $ ⟵ (++-prop {l = fv f}) $ ∨right q')
-del-nth n {elim} (s ꞉ S) p q =
-  del-nth n s p (λ q' → q $ ⟵ (++-prop {l' = fv S}) $ ∨left q') ꞉
-  del-nth n S p (λ q' → q $ ⟵ (++-prop {l = fv s}) $ ∨right q')
-del-nth n {elim} (var v) p q =
-  var (delVar n v p λ nth==v → q $ Id.subst (_∈ [ v ]) (sym nth==v) $ x∈x∷ [])
+open import Data.Applicative
+
+del-nth n {term} (⋆ i) = just $ ⋆ i
+del-nth n {term} ([ ρ x: S ]→ T) = [ ρ x:_]→_ <$> del-nth n S ⍟ del-nth (n +1) T
+del-nth n {term} (λx, t) = λx,_ <$> del-nth (n +1) t
+del-nth n {term} ⌊ e ⌋ = ⌊_⌋ <$> del-nth n e
+del-nth n {elim} (f ` s) = _`_ <$> del-nth n f ⍟ del-nth n s
+del-nth n {elim} (s ꞉ S) = _꞉_ <$> del-nth n s ⍟ del-nth n S
+del-nth n {elim} (var v) = var <$> delVar n v
 
 del-nth== : ∀ {tag tag' m m' n n'}
   {e : expr-of-type tag (m +1)}
   {e' : expr-of-type tag' (m' +1)}
-  {p : n ≤ m}{q}
   (eq₀ : tag == tag')
   (eq₁ : m == m')
   (eq₂ : n == n')
   (eq₃ : e Het.== e')
   → ------------------------------
-  let p' = Id.coe (ap2 _≤_ eq₂ eq₁) p
-      q' :
-        (eq₀ : tag == tag')
-        (eq₁ : m == m')
-        (eq₂ : n == n')
-        (eq₃ : e Het.== e')
-        → --------------------
-        nth-var n' (ap suc p') ∉ fv e'
-      q' = λ {(Id.refl tag)(Id.refl m)(Id.refl n)(Het.refl e) → q}
-  in
-  del-nth n e p q
-  Het.==
-  del-nth n' e' p' (q' eq₀ eq₁ eq₂ eq₃)
-del-nth== (Id.refl tag)(Id.refl m)(Id.refl n)(Het.refl e) =
-  Het.refl (del-nth n e _ _)
+  del-nth n e Het.== del-nth n' e'
+del-nth== (Id.refl tag)(Id.refl m)(Id.refl n)(Het.refl e) = refl (del-nth n e)

@@ -1,4 +1,4 @@
-{-# OPTIONS --exact-split --prop #-}
+{-# OPTIONS --exact-split #-}
 open import Basic
 open import Universes
 
@@ -13,9 +13,8 @@ open import Syntax.Definition
 
 open import Type.BinarySum renaming (_+_ to _⊎_)
 open import Data.Nat
-open import Proposition.Identity hiding (refl)
-open import Proposition.Identity.Coercion
-open import Function renaming (_$_ to _$'_)
+open import Type.Identity hiding (refl)
+open import Function
 open import Proof
 open import Relation.Binary hiding (_~_)
 open import Operation.Binary
@@ -39,13 +38,13 @@ lift-by-lift~ : ∀ {m n} k
 
 open import Logic
 
-lift-lift-by~ zero σ v = Het.refl (lift σ v)
-lift-lift-by~ (k +1) σ new = Het.refl default
-lift-lift-by~ (k +1) σ (old v) = Het.refl (shift (lift-by (k +1) σ v))
+lift-lift-by~ zero σ v = refl (lift σ v)
+lift-lift-by~ (k +1) σ new = refl default
+lift-lift-by~ (k +1) σ (old v) = refl (shift (lift-by (k +1) σ v))
 
 import Data.Nat.Proof
 
-lift-by-lift~ zero σ v = ap (lift σ) $ sym $ coe-eval (Id.refl _) v
+lift-by-lift~ zero σ v = refl (lift σ v)
 lift-by-lift~ {m = m}{n}(k +1) σ new =
   proof lift-by (k +2) σ new
     === default {m = k + n +1}
@@ -58,28 +57,28 @@ lift-by-lift~ {m = m}{n}(k +1) σ new =
   qed
   where coer = ap Var $ sym $ +-suc (k +1) m
         new==new : new {n = k + (m +1)} == coe coer new
-        new==new = subrel {_R_ = Het._==_} (
+        new==new = subrel (
           proof new {n = k + (m +1)}
             het== new {n = k + m +1}
               :by: ap (λ — → new {n = —}) ⦃ Relating-all-==-het== ⦄ $
                    +-suc k m
             het== coe coer new
-              :by: isym $ coe-eval coer new
+              :by: isym $ coe-eval coer new id
           qed)
 lift-by-lift~ {m = m}{n}(k +1){F} σ (old v) =
   proof lift-by (k +2) σ (old v)
     === shift (lift-by (k +1) σ v)
       :by: Id.refl _
     het== shift (lift-by k (lift σ) (coe (coer k) v))
-      :by: Id.ap2 (λ i (e : F i) → shift {m = i} e)
-             (sym $ +-suc k n)
+      :by: Het.ap2 (λ i (e : F i) → shift {m = i} e)
+             (subrel $ sym $ +-suc k n)
              (lift-by-lift~ k σ v)
     === shift (lift-by k (lift σ) v')
       :by: ap (λ — → shift (lift-by k (lift σ) —)) $
-           subrel {_R_ = Het._==_}{_P_ = _==_} (
+           subrel (
            proof coe (coer k) v
              het== v
-               :by: coe-eval (coer k) v
+               :by: coe-eval (coer k) v id
              het== v'
                :by: index==→var==
                       (sym $ +-suc k m)
@@ -104,11 +103,11 @@ lift-by-lift~ {m = m}{n}(k +1){F} σ (old v) =
         coe==old = subrel (
           proof old v'
             het== old v
-              :by: Id.ap2 (λ i (v : Var i) → old v)
-                     (+-suc k m)
+              :by: Het.ap2 (λ i (v : Var i) → old v)
+                     (subrel $ +-suc k m)
                      (index==→var==
                        (+-suc k m)
                        (index-nth-var (index v) p')) [: Het._==_ ]
             het== coe (coer (k +1)) (old v)
-              :by: isym $ coe-eval (coer (k +1)) (old v)
+              :by: isym $ coe-eval (coer (k +1)) (old v) id
           qed)

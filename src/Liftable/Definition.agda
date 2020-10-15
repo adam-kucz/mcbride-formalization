@@ -1,4 +1,4 @@
-{-# OPTIONS --exact-split --prop #-}
+{-# OPTIONS --exact-split --safe #-}
 open import Basic
 open import Universes
 
@@ -13,7 +13,7 @@ open import Syntax.Definition
 open import Function
 
 open import Data.Nat
-open import Proposition.Identity
+open import Type.Identity
 
 record Liftable (F : (m : ℕ) → 𝒳 ˙) : 𝒳 ˙ where
   field

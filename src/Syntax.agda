@@ -1,6 +1,6 @@
-{-# OPTIONS --exact-split --prop  #-}
+{-# OPTIONS --exact-split  #-}
 open import Basic using (Rig; wfs)
-open import PropUniverses
+open import Universes
 
 module Syntax
   {R : 𝒰 ˙} ⦃ rig : Rig R ⦄

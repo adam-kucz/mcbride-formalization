@@ -1,6 +1,6 @@
-{-# OPTIONS --exact-split --prop #-}
+{-# OPTIONS --exact-split #-}
 open import Basic using (Rig; wfs)
-open import PropUniverses
+open import Universes
 
 module Substitution.Syntax
   {R : 𝒰 ˙} ⦃ rig : Rig R ⦄
@@ -36,7 +36,7 @@ subElim-var~id (s ꞉ S) = ap2 _꞉_ (subTerm-var~id s) (subTerm-var~id S)
 open import Liftable
 
 lift-var : lift {m = m} var == var
-lift-var = subrel {_P_ = _==_} $ fun-ext λ
+lift-var = subrel $ fun-ext λ
   { new → Het.refl (var new)
   ; (old v) → Het.refl (var (old v))}
 
@@ -66,8 +66,6 @@ private
     subTerm σ ∘ subTerm τ ~ subTerm (σ ⍟ τ)
 
 open import Renaming
-
-open import Proposition.Identity.Coercion
 
 private
   renElim = rename ⦃ r = RenameableElim ⦄
@@ -124,22 +122,22 @@ lift-⍟-aux-Elim k {m}{n} σ (var v) =
   qed
   where coer = ap Elim $ +-suc k m
         v' = coe (ap Var $ +-suc k m) (renv k v)
-        move-coe = subrel {_P_ = _==_} (
+        move-coe = subrel (
           proof coe coer (rene k (var v))
             het== rene k (var v)
-              :by: coe-eval coer (rene k (var v))
+              :by: coe-eval' coer (rene k (var v))
             === var (renv k v)
               :by: Id.refl _
             het== var v'
-              :by: Id.ap2 (λ i (v : Var i) → var v)
-                     (+-suc k m)
-                     (isym $ coe-eval (ap Var $ +-suc k m) (renv k v))
+              :by: Het.ap2 (λ i (v : Var i) → var v)
+                     (subrel $ +-suc k m)
+                     (isym $ coe-eval' (ap Var $ +-suc k m) (renv k v))
           qed)
         aux : ∀ k v →
           lift-by (k +1) σ (coe (ap Var $ +-suc k m) (renv k v))
           Het.==
           rene k (lift-by k σ v)
-        aux zero v = ap (lift σ) $ coe-eval (Id.refl _) (old v)
+        aux zero v = refl (lift σ $ old v)
         aux (k +1) new =
           proof lift-by (k +2) σ (coe coer' (renv (k +1) new))
             === lift-by (k +2) σ (coe coer' new)
@@ -156,7 +154,7 @@ lift-⍟-aux-Elim k {m}{n} σ (var v) =
                 move-coe' = 
                   proof coe coer' new
                     het== new {n = k + (m +1)}
-                      :by: coe-eval coer' new
+                      :by: coe-eval' coer' new
                     het== new {n = k + m +1}
                       :by: ap (λ i → new {n = i}) ⦃ Relating-all-==-het== ⦄ $
                            +-suc k m
@@ -169,8 +167,8 @@ lift-⍟-aux-Elim k {m}{n} σ (var v) =
             het== shift (lift-by (k +1) σ v″)
               :by: lift-shift σ (k +1) v″
             het== shift (rene k (lift-by k σ v))
-              :by: Id.ap2 (λ i (e : Elim i) → shift e)
-                     (sym $ +-suc k n)
+              :by: Het.ap2 (λ i (e : Elim i) → shift e)
+                     (subrel $ sym $ +-suc k n)
                      (aux k v)
             === renElim (old ∘ lift-by k old) (lift-by k σ v)
               :by: ap (λ — → — (lift-by k σ v)) $ sym {R = _==_} $
@@ -185,11 +183,11 @@ lift-⍟-aux-Elim k {m}{n} σ (var v) =
                 move-coe' =
                   proof coe (ap Var $ +-suc (k +1) m) (shift (renv k v))
                     het== old (renv k v)
-                      :by: coe-eval (ap Var $ +-suc (k +1) m) (shift (renv k v))
+                      :by: coe-eval' (ap Var $ +-suc (k +1) m) (shift (renv k v))
                     het== old (coe (ap Var $ +-suc k m) (renv k v))
-                      :by: Id.ap2 (λ i (v : Var i) → old v)
-                             (+-suc k m)
-                             (isym $ coe-eval (ap Var $ +-suc k m) (renv k v))
+                      :by: het-ap2 (λ i (v : Var i) → old v)
+                             (subrel $ +-suc k m)
+                             (isym $ coe-eval' (ap Var $ +-suc k m) (renv k v))
                   qed
 lift-⍟-aux-Elim k {m}{n} σ (f ` s) =
   proof subElim (lift-by (k +1) σ) (coe (ap Elim $ +-suc k m) (rene k f ` rent k s))
@@ -197,26 +195,27 @@ lift-⍟-aux-Elim k {m}{n} σ (f ` s) =
         subTerm (lift-by (k +1) σ) (coe (ap Term $ +-suc k m) (rent k s))
       :by: ap (subElim (lift-by (k +1) σ)) move-coe [: _==_ ]
     het== rene k (subElim (lift-by k σ) f) ` rent k (subTerm (lift-by k σ) s)
-      :by: Het.ap3 (λ i (f : Elim i) (s : Term i) → f ` s)
-             (sym $ +-suc k n)
-             (lift-⍟-aux-Elim k σ f)
-             (lift-⍟-aux-Term k σ s)
+      :by: ? -- Het.ap3 (λ i (f : Elim i) (s : Term i) → f ` s)
+           --   (sym $ +-suc k n)
+           --   (lift-⍟-aux-Elim k σ f)
+           --   (lift-⍟-aux-Term k σ s)
   qed
   where move-coe :
           coe (ap Elim $ +-suc k m) (rene k f ` rent k s)
           ==
           coe (ap Elim $ +-suc k m) (rene k f) `
           coe (ap Term $ +-suc k m) (rent k s)
-        move-coe = subrel {_P_ = _==_} (
+        move-coe = subrel (
           proof coe (ap Elim $ +-suc k m) (rene k f ` rent k s)
             het== rene k f ` rent k s
-              :by: coe-eval (ap Elim $ +-suc k m) (rene k f ` rent k s)
+              :by: coe-eval' (ap Elim $ +-suc k m) (rene k f ` rent k s)
             het== coe (ap Elim $ +-suc k m) (rene k f) `
                   coe (ap Term $ +-suc k m) (rent k s)
-              :by: Het.ap3 (λ i (f : Elim i)(s : Term i) → f ` s)
-                           (+-suc k m)
-                           (isym $ coe-eval (ap Elim $ +-suc k m) (rene k f))
-                           (isym $ coe-eval (ap Term $ +-suc k m) (rent k s))
+              :by: ?
+                   -- Het.ap3 (λ i (f : Elim i)(s : Term i) → f ` s)
+                   --         (+-suc k m)
+                   --         (isym $ coe-eval' (ap Elim $ +-suc k m) (rene k f))
+                   --         (isym $ coe-eval' (ap Term $ +-suc k m) (rent k s))
           qed)
 lift-⍟-aux-Elim k {m}{n} σ (s ꞉ S) =
   proof subElim (lift-by (k +1) σ) (coe (ap Elim $ +-suc k m) (rent k s ꞉ rent k S))
@@ -224,41 +223,41 @@ lift-⍟-aux-Elim k {m}{n} σ (s ꞉ S) =
         subTerm (lift-by (k +1) σ) (coe (ap Term $ +-suc k m) (rent k S))
       :by: ap (subElim (lift-by (k +1) σ)) move-coe [: _==_ ]
     het== rent k (subTerm (lift-by k σ) s) ꞉ rent k (subTerm (lift-by k σ) S)
-      :by: Het.ap3 (λ i (s S : Term i) → s ꞉ S)
-             (sym $ +-suc k n)
-             (lift-⍟-aux-Term k σ s)
-             (lift-⍟-aux-Term k σ S)
+      :by: ? -- Het.ap3 (λ i (s S : Term i) → s ꞉ S)
+           --   (sym $ +-suc k n)
+           --   (lift-⍟-aux-Term k σ s)
+           --   (lift-⍟-aux-Term k σ S)
   qed
   where move-coe :
           coe (ap Elim $ +-suc k m) (rent k s ꞉ rent k S)
           ==
           coe (ap Term $ +-suc k m) (rent k s) ꞉
           coe (ap Term $ +-suc k m) (rent k S)
-        move-coe = subrel {_P_ = _==_} (
+        move-coe = subrel (
           proof coe (ap Elim $ +-suc k m) (rent k s ꞉ rent k S)
             het== rent k s ꞉ rent k S
-              :by: coe-eval (ap Elim $ +-suc k m) (rent k s ꞉ rent k S)
+              :by: coe-eval' (ap Elim $ +-suc k m) (rent k s ꞉ rent k S)
             het== coe (ap Term $ +-suc k m) (rent k s) ꞉
                   coe (ap Term $ +-suc k m) (rent k S)
-              :by: Het.ap3 (λ i (s S : Term i) → s ꞉ S)
-                           (+-suc k m)
-                           (isym $ coe-eval (ap Term $ +-suc k m) (rent k s))
-                           (isym $ coe-eval (ap Term $ +-suc k m) (rent k S))
+              :by: ? -- Het.ap3 (λ i (s S : Term i) → s ꞉ S)
+                   --         (+-suc k m)
+                   --         (isym $ coe-eval' (ap Term $ +-suc k m) (rent k s))
+                   --         (isym $ coe-eval' (ap Term $ +-suc k m) (rent k S))
           qed)
 
-lift-⍟-aux-Term k {m}{n} σ (⋆ i) =
-  aux (coe (ap Term $ +-suc k m) (⋆ i))
-      (+-suc k m)
-      (coe-eval (ap Term $ +-suc k m) (⋆ i) )
-  where aux : {l : ℕ}
-          (t : Term (k + m +1))
-          (p : l == k + m +1)
-          (q : t Het.== ⋆ {n = l} i)
-          → --------------------------------
-          subTerm (lift-by (k +1) σ) t Het.== ⋆ {n = k + (n +1)} i
-        aux (⋆ i) (Id.refl _) (Het.refl (⋆ i)) =
-          ap (λ l → ⋆ {n = l} i) ⦃ Relating-all-==-het== ⦄ $
-          sym $ +-suc k n
+lift-⍟-aux-Term k {m}{n} σ (⋆ i) = ?
+  -- aux (coe (ap Term $ +-suc k m) (⋆ i))
+  --     (+-suc k m)
+  --     (coe-eval' (ap Term $ +-suc k m) (⋆ i) )
+  -- where aux : {l : ℕ}
+  --         (t : Term (k + m +1))
+  --         (p : l == k + m +1)
+  --         (q : t Het.== ⋆ {n = l} i)
+  --         → --------------------------------
+  --         subTerm (lift-by (k +1) σ) t Het.== ⋆ {n = k + (n +1)} i
+  --       aux (⋆ i) (Id.refl _) (Het.refl (⋆ i)) =
+  --         ap (λ l → ⋆ {n = l} i) ⦃ Relating-all-==-het== ⦄ $
+  --         sym $ +-suc k n
 lift-⍟-aux-Term k {m}{n} σ ([ π x: S ]→ T) =
   proof subTerm (lift-by (k +1) σ) (
           coe (ap Term $ +-suc k m) (rent k ([ π x: S ]→ T)))
@@ -276,21 +275,21 @@ lift-⍟-aux-Term k {m}{n} σ ([ π x: S ]→ T) =
                    coe (ap Term $ +-suc k m) (rent k S))]→
                  subTerm — (coe (ap Term $ +-suc (k +1) m) (
                    rent (k +1) T))) $
-              subrel {_P_ = _==_} $ fun-ext $ lift-lift-by~ (k +1) σ
+              subrel $ fun-ext $ lift-lift-by~ (k +1) σ
            [: _==_ ]
     het== [ π x: rent k (subTerm (lift-by k σ) S) ]→
               rent (k +1) (subTerm (lift-by (k +1) σ) T)
-      :by: Het.ap3 (λ i (S : Term i)(T : Term (i +1)) → [ π x: S ]→ T)
-                   (sym $ +-suc k n)
-                   (lift-⍟-aux-Term k σ S)
-                   (lift-⍟-aux-Term (k +1) σ T)
+      :by: ? -- Het.ap3 (λ i (S : Term i)(T : Term (i +1)) → [ π x: S ]→ T)
+           --         (sym $ +-suc k n)
+           --         (lift-⍟-aux-Term k σ S)
+           --         (lift-⍟-aux-Term (k +1) σ T)
     === rent k ([ π x: subTerm (lift-by k σ) S ]→
                     subTerm (lift (lift-by k σ)) T)
       :by: ap2 (λ —₀ —₁ → [ π x: rent k (subTerm (lift-by k σ) S) ]→
                           renTerm —₀ (subTerm —₁ T))
-              (subrel {_P_ = _==_} $ fun-ext $ sym $
+              (subrel $ fun-ext $ sym $
                lift-lift-by~ k old)
-              (subrel {_P_ = _==_} $ fun-ext $ sym $
+              (subrel $ fun-ext $ sym $
                lift-lift-by~ k σ)
   qed
   where move-coe :
@@ -298,19 +297,19 @@ lift-⍟-aux-Term k {m}{n} σ ([ π x: S ]→ T) =
           ==
           [ π x: coe (ap Term $ +-suc k m) (rent k S) ]→
                  coe (ap Term $ +-suc (k +1) m) (rent (k +1) T)
-        move-coe = subrel {_P_ = _==_} (
+        move-coe = subrel (
           proof coe (ap Term $ +-suc k m) (rent k ([ π x: S ]→ T))
             het== rent k ([ π x: S ]→ T)
-              :by: coe-eval (ap Term $ +-suc k m) (rent k ([ π x: S ]→ T))
+              :by: coe-eval' (ap Term $ +-suc k m) (rent k ([ π x: S ]→ T))
             === [ π x: rent k S ]→ rent (k +1) T
               :by: ap (λ — → [ π x: rent k S ]→ renTerm — T)
-                      (subrel {_P_ = _==_} $ fun-ext $ lift-lift-by~ k old)
+                      (subrel $ fun-ext $ lift-lift-by~ k old)
             het== [ π x: coe (ap Term $ +-suc k m) (rent k S) ]→
                     coe (ap Term $ +-suc (k +1) m) (rent (k +1) T)
-              :by: Het.ap3 (λ i (S : Term i) (T : Term (i +1)) → [ π x: S ]→ T)
-                     (+-suc k m)
-                     (isym $ coe-eval (ap Term $ +-suc k m) (rent k S))
-                     (isym $ coe-eval (ap Term $ +-suc (k +1) m) (rent (k +1) T))
+              :by: ? -- Het.ap3 (λ i (S : Term i) (T : Term (i +1)) → [ π x: S ]→ T)
+                   --   (+-suc k m)
+                   --   (isym $ coe-eval' (ap Term $ +-suc k m) (rent k S))
+                   --   (isym $ coe-eval' (ap Term $ +-suc (k +1) m) (rent (k +1) T))
           qed)
 lift-⍟-aux-Term k {m}{n} σ (λx, t) =
   proof subTerm (lift-by (k +1) σ) (
@@ -319,7 +318,7 @@ lift-⍟-aux-Term k {m}{n} σ (λx, t) =
           coe (ap Term $ +-suc k m) (λx, rent (k +1) t))
       :by: ap (λ — → subTerm (lift-by (k +1) σ)
                        (coe (ap Term $ +-suc k m) (λx, renTerm — t)))
-              (subrel {_P_ = _==_} $ fun-ext $ lift-lift-by~ k old)
+              (subrel $ fun-ext $ lift-lift-by~ k old)
     === λx, subTerm (lift (lift-by (k +1) σ)) (
             coe (ap Term $ +-suc (k +1) m) (rent (k +1) t))
       :by: ap (subTerm (lift-by (k +1) σ)) move-coe
@@ -327,32 +326,32 @@ lift-⍟-aux-Term k {m}{n} σ (λx, t) =
             coe (ap Term $ +-suc (k +1) m) (rent (k +1) t))
       :by: ap (λ — → λx, subTerm — (coe
                      (ap Term $ +-suc (k +1) m) (rent (k +1) t))) $
-              subrel {_P_ = _==_} $ fun-ext $ lift-lift-by~ (k +1) σ
+              subrel $ fun-ext $ lift-lift-by~ (k +1) σ
            [: _==_ ]
     het== λx, rent (k +1) (subTerm (lift-by (k +1) σ) t)
-      :by: Id.ap2 (λ i (t : Term (i +1)) → λx, t)
-                  (sym $ +-suc k n)
-                  (lift-⍟-aux-Term (k +1) σ t)
+      :by: Het.ap2 (λ i (t : Term (i +1)) → λx, t)
+                   (subrel $ sym $ +-suc k n)
+                   (lift-⍟-aux-Term (k +1) σ t)
     === λx, renTerm (lift (lift-by k old)) (subTerm (lift (lift-by k σ)) t)
       :by: ap2 (λ ρ σ → λx, renTerm ρ (subTerm σ t))
-               (subrel {_P_ = _==_} $ fun-ext $ sym $
+               (subrel $ fun-ext $ sym $
                 lift-lift-by~ k old)
-               (subrel {_P_ = _==_} $ fun-ext $ sym $
+               (subrel $ fun-ext $ sym $
                 lift-lift-by~ k σ)
   qed
   where move-coe :
           coe (ap Term $ +-suc k m) (λx, rent (k +1) t)
           ==
           λx, coe (ap Term $ +-suc (k +1) m) (rent (k +1) t)
-        move-coe = subrel {_P_ = _==_} (
+        move-coe = subrel (
           proof coe (ap Term $ +-suc k m)
                     (λx, rent (k +1) t)
             het== λx, rent (k +1) t
-              :by: coe-eval (ap Term $ +-suc k m) (λx, rent (k +1) t)
+              :by: coe-eval' (ap Term $ +-suc k m) (λx, rent (k +1) t)
             het== λx, coe (ap Term $ +-suc (k +1) m) (rent (k +1) t)
-              :by: Id.ap2 (λ i (t : Term (i +1)) → λx, t)
-                          (+-suc k m)
-                          (isym $ coe-eval (ap Term $ +-suc (k +1) m)
+              :by: Het.ap2 (λ i (t : Term (i +1)) → λx, t)
+                          (subrel $ +-suc k m)
+                          (isym $ coe-eval' (ap Term $ +-suc (k +1) m)
                                            (rent (k +1) t))
           qed)
 lift-⍟-aux-Term k {m}{n} σ ⌊ e ⌋ =
@@ -360,22 +359,22 @@ lift-⍟-aux-Term k {m}{n} σ ⌊ e ⌋ =
     === ⌊ subElim (lift-by (k +1) σ) (coe (ap Elim $ +-suc k m) (rene k e)) ⌋
       :by: ap (subTerm (lift-by (k +1) σ)) move-coe [: _==_ ]
     het== ⌊ rene k (subElim (lift-by k σ) e) ⌋
-      :by: Id.ap2 (λ i (e : Elim i) → ⌊ e ⌋)
-                  (sym $ +-suc k n)
-                  (lift-⍟-aux-Elim k σ e)
+      :by: Het.ap2 (λ i (e : Elim i) → ⌊ e ⌋)
+                   (subrel $ sym $ +-suc k n)
+                   (lift-⍟-aux-Elim k σ e)
   qed
   where move-coe :
           coe (ap Term $ +-suc k m) (⌊ rene k e ⌋)
           ==
           ⌊ coe (ap Elim $ +-suc k m) (rene k e) ⌋
-        move-coe = subrel {_P_ = _==_} (
+        move-coe = subrel (
           proof coe (ap Term $ +-suc k m) (⌊ rene k e ⌋)
             het== ⌊ rene k e ⌋
-              :by: coe-eval (ap Term $ +-suc k m) (⌊ rene k e ⌋)
+              :by: coe-eval' (ap Term $ +-suc k m) (⌊ rene k e ⌋)
             het== ⌊ coe (ap Elim $ +-suc k m) (rene k e) ⌋
-              :by: Id.ap2 (λ i (e : Elim i) → ⌊ e ⌋)
-                     (+-suc k m)
-                     (isym $ coe-eval (ap Elim $ +-suc k m) (rene k e))
+              :by: Het.ap2 (λ i (e : Elim i) → ⌊ e ⌋)
+                           (subrel $ +-suc k m)
+                           (isym $ coe-eval' (ap Elim $ +-suc k m) (rene k e))
           qed)
 
 lift-⍟ :
@@ -383,15 +382,15 @@ lift-⍟ :
   (τ : Sub m n)
   → ---------------------------------------
   lift σ ⍟ lift τ == lift (σ ⍟ τ)
-lift-⍟ σ τ = subrel {_P_ = _==_} $ fun-ext λ
+lift-⍟ σ τ = subrel $ fun-ext λ
   { new → Het.refl (var new)
   ; (old v) →
     proof (lift σ ⍟ lift τ) (old v)
       === subElim (lift σ) (shift (τ v))
         :by: Id.refl _ [: _==_ ]
       === subElim (lift σ) (coe (Id.refl _) (shift (τ v)))
-        :by: ap (subElim (lift σ)) $ sym $
-             coe-eval-hom (shift (τ v)) [: _==_ ]
+        :by: ? -- ap (subElim (lift σ)) $ sym $
+             -- coe-eval-hom (shift (τ v)) [: _==_ ]
       het== shift (subElim σ (τ v))
         :by: lift-⍟-aux-Elim 0 σ (τ v)
       === lift (σ ⍟ τ) (old v)
@@ -438,7 +437,7 @@ lift-var∘ : (ρ : Ren m n)
   → ----------------------------------------
   var ∘ lift ρ == lift (var ∘ ρ)
 
-lift-var∘ ρ = subrel {_P_ = _==_} $ fun-ext λ
+lift-var∘ ρ = subrel $ fun-ext λ
   { new → Het.refl (var new)
   ; (old v) → Het.refl (var (old (ρ v)))}
 
@@ -463,19 +462,19 @@ term-ren~sub ρ ⌊ e ⌋ = ap ⌊_⌋ $ elim-ren~sub ρ e
 Substitutable.ren SubstitutableExpr = RenameableExpr
 sub ⦃ SubstitutableExpr {term} ⦄ = subTerm
 sub-id ⦃ SubstitutableExpr {term} ⦄ =
-  subrel {_P_ = _==_} $ fun-ext subTerm-var~id
+  subrel $ fun-ext subTerm-var~id
 sub-∘ ⦃ SubstitutableExpr {term} ⦄ σ τ =
-  subrel {_P_ = _==_} $ fun-ext $ subTerm-⍟~id σ τ
+  subrel $ fun-ext $ subTerm-⍟~id σ τ
 rename-as-sub ⦃ SubstitutableExpr {term} ⦄ ρ =
-  subrel {_P_ = _==_} $ fun-ext $ term-ren~sub ρ
+  subrel $ fun-ext $ term-ren~sub ρ
 
 sub ⦃ SubstitutableExpr {elim} ⦄ = subElim
 sub-id ⦃ SubstitutableExpr {elim} ⦄ =
-  subrel {_P_ = _==_} $ fun-ext subElim-var~id
+  subrel $ fun-ext subElim-var~id
 sub-∘ ⦃ SubstitutableExpr {elim} ⦄ σ τ =
-  subrel {_P_ = _==_} $ fun-ext $ subElim-⍟~id σ τ
+  subrel $ fun-ext $ subElim-⍟~id σ τ
 rename-as-sub ⦃ SubstitutableExpr {elim} ⦄ ρ =
-  subrel {_P_ = _==_} $ fun-ext $ elim-ren~sub ρ
+  subrel $ fun-ext $ elim-ren~sub ρ
 
 SubstitutableTerm = SubstitutableExpr {term}
 SubstitutableElim = SubstitutableExpr {elim}

@@ -1,6 +1,6 @@
-{-# OPTIONS --exact-split --prop #-} -- TODO: add --safe
+{-# OPTIONS --exact-split #-} -- TODO: add --safe, problem: Syntax.Property
 open import Basic using (Rig; wfs)
-open import PropUniverses
+open import Universes
 
 module Substitution.Property
   {R : 𝒰 ˙} ⦃ rig : Rig R ⦄

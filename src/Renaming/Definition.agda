@@ -1,4 +1,4 @@
-{-# OPTIONS --exact-split --prop #-}
+{-# OPTIONS --exact-split --safe #-}
 open import Basic
 open import Universes
 
@@ -10,7 +10,7 @@ module Renaming.Definition
 open import Data.Nat
 open import Syntax.Definition using (Var; new; old)
 
-open import Proposition.Identity
+open import Type.Identity
 open import Function
 
 Ren : (m n : ℕ) → 𝒰₀ ˙
@@ -44,7 +44,6 @@ old× : (k : ℕ) → Ren m (k + m)
 old× zero   v = v
 old× (k +1) v = old (old× k v)
 
-open import Proposition.Identity.Coercion
 open import Operation.Binary
 
 shift-by :
