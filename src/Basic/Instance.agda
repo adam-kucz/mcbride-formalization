@@ -15,7 +15,7 @@ open import Data.Nat.Proof
 open import Function.Proof
 
 _≻_ ⦃ WellFoundedSortsℕ ⦄ = _>_
-trans ⦃ Transitive≻ ⦃ WellFoundedSortsℕ ⦄ ⦄ p q = trans q p
+trans ⦃ Transitive≻ ⦃ WellFoundedSortsℕ ⦄ ⦄ p q = trans ⦃ Transitive< ⦄ q p
 wf ⦃ WellFoundedSortsℕ ⦄ {P} p k = go (k +1) k $ postfix suc k
   where P0 = p λ {i} i<0 → ⊥-recursion _ $ ¬-<0 i i<0
         go : ∀ j i (q : i < j) → P i

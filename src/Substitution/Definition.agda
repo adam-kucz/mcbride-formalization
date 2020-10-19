@@ -63,7 +63,7 @@ rename-id ⦃ Substitutable.ren (DirectSubstitutable sub sub-id sub-∘) ⦄ = s
 rename-∘ ⦃ Substitutable.ren (DirectSubstitutable sub sub-id sub-∘) ⦄ π ρ =
   proof sub (var ∘ (π ∘ ρ))
     === sub ((var ∘ π) ⍟ (var ∘ ρ))
-      :by: ap sub (subrel {_P_ = _==_} $ fun-ext $ λ v →
+      :by: ap sub (subrel {sup = _==_} $ fun-ext $ λ v →
            Het.refl (var (π (ρ v))))
     === sub (var ∘ π) ∘ sub (var ∘ ρ)
       :by: sym $ sub-∘ (var ∘ π) (var ∘ ρ)

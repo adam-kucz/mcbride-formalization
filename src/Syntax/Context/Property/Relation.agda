@@ -198,7 +198,7 @@ sub-relating-holes : ∀{tag}{m n}
 sub-relating-holes {tag = term} _ _ _ p (⋆ i) = ↑prop ⋆ₚ
 sub-relating-holes {tag = term} Rel σ σ' p e@([ _ x: S ]→ T) =
   Id.coe (ap (all-related Rel (pr₁ (elem c₀)) (pr₂ (pr₂ (elem c₀)))) $
-          subrel {_R_ = Het._==_}{_P_ = _==_} (
+          subrel {sup = _==_}{sub = Het._==_} (
           proof coe coer₀ (pr₂ (pr₂ (elem c₀')))
             het== pr₂ (pr₂ (elem c₀'))
               :by: coe-eval coer₀ (pr₂ (pr₂ (elem c₀')))
@@ -211,7 +211,7 @@ sub-relating-holes {tag = term} Rel σ σ' p e@([ _ x: S ]→ T) =
           qed)) $
   sub-relating-holes Rel σ σ' p S ,
   Id.coe (ap (all-related Rel (pr₁ (elem c₁)) (pr₂ (pr₂ (elem c₁)))) $
-          subrel {_R_ = Het._==_}{_P_ = _==_} (
+          subrel {sup = _==_}{sub = Het._==_} (
           proof coe coer₁ (pr₂ (pr₂ (elem c₁')))
             het== pr₂ (pr₂ (elem c₁'))
               :by: coe-eval coer₁ (pr₂ (pr₂ (elem c₁')))
@@ -241,7 +241,7 @@ sub-relating-holes {tag = elim} Rel σ σ' p (var v) =
   Id.coe (ap (Rel (σ v)) $ sym $ coe-eval-hom (σ' v)) $ p v
 sub-relating-holes {tag = elim} Rel σ σ' p e@(f ` s) =
   Id.coe (ap (all-related Rel (pr₁ (elem c₀)) (pr₂ (pr₂ (elem c₀)))) $
-          subrel {_R_ = Het._==_}{_P_ = _==_} (
+          subrel {sup = _==_}{sub = Het._==_} (
           proof coe coer₀ (pr₂ (pr₂ (elem c₀')))
             het== pr₂ (pr₂ (elem c₀'))
               :by: coe-eval coer₀ (pr₂ (pr₂ (elem c₀')))
@@ -254,7 +254,7 @@ sub-relating-holes {tag = elim} Rel σ σ' p e@(f ` s) =
           qed)) $
   sub-relating-holes Rel σ σ' p f ,
   Id.coe (ap (all-related Rel (pr₁ (elem c₁)) (pr₂ (pr₂ (elem c₁)))) $
-          subrel {_R_ = Het._==_}{_P_ = _==_} (
+          subrel {sup = _==_}{sub = Het._==_} (
           proof coe coer₁ (pr₂ (pr₂ (elem c₁')))
             het== pr₂ (pr₂ (elem c₁'))
               :by: coe-eval coer₁ (pr₂ (pr₂ (elem c₁')))
@@ -277,7 +277,7 @@ sub-relating-holes {tag = elim} Rel σ σ' p e@(f ` s) =
         coer₁ = ap all-types $ sym $ holes-indep-of-sub σ σ' s
 sub-relating-holes {tag = elim} Rel σ σ' p e@(s ꞉ S) =
   Id.coe (ap (all-related Rel (pr₁ (elem c₀)) (pr₂ (pr₂ (elem c₀)))) $
-          subrel {_R_ = Het._==_}{_P_ = _==_} (
+          subrel {sup = _==_}{sub = Het._==_} (
           proof coe coer₀ (pr₂ (pr₂ (elem c₀')))
             het== pr₂ (pr₂ (elem c₀'))
               :by: coe-eval coer₀ (pr₂ (pr₂ (elem c₀')))
@@ -290,7 +290,7 @@ sub-relating-holes {tag = elim} Rel σ σ' p e@(s ꞉ S) =
           qed)) $
   sub-relating-holes Rel σ σ' p s ,
   Id.coe (ap (all-related Rel (pr₁ (elem c₁)) (pr₂ (pr₂ (elem c₁)))) $
-          subrel {_R_ = Het._==_}{_P_ = _==_} (
+          subrel {sup = _==_}{sub = Het._==_} (
           proof coe coer₁ (pr₂ (pr₂ (elem c₁')))
             het== pr₂ (pr₂ (elem c₁'))
               :by: coe-eval coer₁ (pr₂ (pr₂ (elem c₁')))

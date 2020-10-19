@@ -9,7 +9,7 @@ module Syntax.Context.Property.Substitutable
 
 open import Syntax.Context.Arbitrary renaming ([_] to [[_]])
 
-open import Type.Sum renaming (_,_ to _Σ,_)
+open import Type.Sum renaming (_,_ to _Σ,_; 〈_×_〉 to [_×_])
 open import Data.Nat hiding (-comm)
 open import Data.Maybe hiding (dmap)
 open import Data.Tree.Binary hiding (dmap)
@@ -102,7 +102,7 @@ sub-context σ (term t) = term (sub σ t)
 sub-context σ (elim e) = elim (sub σ e)
 sub-context {m}{n} σ {tag = tag} — =
   coe (ap (λ k → Context [[ tag Σ, k ]] tag n)
-          (sym $ subrel {_P_ = _==_} $ left-inverse-of (_+ m) n))
+          (sym $ subrel {sup = _==_} $ left-inverse-of (_+ m) n))
       —
 sub-context σ ([ π x: C₀ ]→ C₁) =
   [ π x: sub-context σ C₀ ]→ sub-context (lift σ) C₁
@@ -324,12 +324,12 @@ sub-context-∘ {m}{n}{l} σ τ {l' /\ r'} (C₀ ꞉ C₁) =
 SubstitutableContext {t}{tag} =
   DirectSubstitutable
     (λ {_}{n} σ C → coe (coer n C) (sub-context σ C))
-    (λ {m} → subrel {_P_ = _==_} $ fun-ext λ C →
+    (λ {m} → subrel {sup = _==_} $ fun-ext λ C →
        proof coe (coer m C) (sub-context var C)
          het== sub-context var C :by: coe-eval (coer m C) (sub-context var C) 
          het== C                 :by: sub-context-id C
        qed)
-    (λ {m}{n}{k} σ τ → subrel {_P_ = _==_} $ fun-ext λ C →
+    (λ {m}{n}{k} σ τ → subrel {sup = _==_} $ fun-ext λ C →
       let C' = coe (coer n C) (sub-context τ C) in
       proof coe (coer k C') (sub-context σ C')
         het== sub-context σ C'

@@ -46,6 +46,9 @@ infix 35 _<ₜ_ -- Foundation.Data.Nat.Order
 infix 35 _<ₛ_ -- Foundation.Data.FinNat.Order
 infix 35 _≤ₛ_ -- Foundation.Data.FinNat.Order
 
+infixl 35 _≼_ -- Subtyping.Definition
+infixl 35 _≼_ -- Subtyping.Subsumption
+
 infix 21 _≤ₛ_ -- Foundation.Data.Relation.Property
 
 -- Descriptive properties (20)

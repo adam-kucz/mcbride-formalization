@@ -1,3 +1,3 @@
 name:  mcbride-formalization
-depend: stdlib-adam-kucz
+depend: prop-stdlib-adam-kucz
 include: src

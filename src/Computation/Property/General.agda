@@ -65,14 +65,14 @@ instance
   [:-]⇝⊆⇝ : (λ e e' → ∃ λ k → [: k ] e ⇝ e') ⊆ _⇝_ {n = n}{tag}
   ⇝⊆[:-]⇝ : _⇝_ {n = n}{tag} ⊆ (λ e e' → ∃ λ k → [: k ] e ⇝ e')
 
-subrel ⦃ [:-]⇝⊆⇝ ⦄ (0 , β π s S t T) = β π s S t T
-subrel ⦃ [:-]⇝⊆⇝ ⦄ (0 , v t T) = v t T
-subrel ⦃ [:-]⇝⊆⇝ ⦄ (k +1 , hole C[—] p) = hole C[—] (subrel (k , p))
+subrel⊆ [:-]⇝⊆⇝ (0 , β π s S t T) = β π s S t T
+subrel⊆ [:-]⇝⊆⇝ (0 , v t T) = v t T
+subrel⊆ [:-]⇝⊆⇝ (k +1 , hole C[—] p) = hole C[—] (subrel (k , p))
 
-subrel ⦃ ⇝⊆[:-]⇝ ⦄ (β π s S t T) = 0 , β π s S t T
-subrel ⦃ ⇝⊆[:-]⇝ ⦄ (v t T) = 0 , v t T
-subrel ⦃ ⇝⊆[:-]⇝ ⦄ (hole C[—] p) with subrel ⦃ ⇝⊆[:-]⇝ ⦄ p
-subrel ⦃ ⇝⊆[:-]⇝ ⦄ (hole C[—] p) | k , p' = k +1 , hole C[—] p'
+subrel⊆ ⇝⊆[:-]⇝ (β π s S t T) = 0 , β π s S t T
+subrel⊆ ⇝⊆[:-]⇝ (v t T) = 0 , v t T
+subrel⊆ ⇝⊆[:-]⇝ (hole C[—] p) with subrel⊆ ⇝⊆[:-]⇝ p
+subrel⊆ ⇝⊆[:-]⇝ (hole C[—] p) | k , p' = k +1 , hole C[—] p'
 
 sub-compute-aux : ∀ k {m n tag}
   (σ : Sub m n)

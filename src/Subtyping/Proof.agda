@@ -11,7 +11,7 @@ open import Subtyping.Definition ⦃ rig ⦄ ⦃ wfs ⦄
 
 open import Proof
 
-module comp-~ {m}{tag} where
-  open MakeTransComposable (_~_ {m}{tag}) public
+-- module comp-~ {m}{tag} where
+--   open MakeTransComposable (_~_ {m}{tag}) public
 module comp-≼ {m}{tag} where
   open MakeTransComposable (_≼_ {m}{tag}) public

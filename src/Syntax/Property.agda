@@ -63,7 +63,7 @@ private
 
 renTerm-id~id (⋆ i) = Het.refl (⋆ i)
 renTerm-id~id ([ ρ x: S ]→ T) = Id.ap2 ([ ρ x:_]→_)
-  (subrel {_P_ = _==_} $ renTerm-id~id S) (
+  (subrel {sup = _==_} $ renTerm-id~id S) (
   proof renTerm (lift id) T
     ===   renTerm id T :by: ap (λ — → renTerm — T) lift-id==id [: _==_ ]
     het== T            :by: renTerm-id~id T
@@ -77,9 +77,9 @@ renTerm-id~id ⌊ e ⌋ = ap ⌊_⌋ $ renElim-id~id e
 
 renElim-id~id (var v) = refl (var v)
 renElim-id~id (f ` s) =
-  Id.ap2 _`_ (subrel {_P_ = _==_} $ renElim-id~id f) (renTerm-id~id s)
+  Id.ap2 _`_ (subrel {sup = _==_} $ renElim-id~id f) (renTerm-id~id s)
 renElim-id~id (s ꞉ S) =
-  Id.ap2 _꞉_ (subrel {_P_ = _==_} $ renTerm-id~id s) (renTerm-id~id S)
+  Id.ap2 _꞉_ (subrel {sup = _==_} $ renTerm-id~id s) (renTerm-id~id S)
 
 renTerm-∘ : ∀ {m n k}
     (π : Ren n k)
@@ -94,7 +94,7 @@ renElim-∘ : ∀ {m n k}
 
 renTerm-∘ π ρ (⋆ i) = refl (⋆ i)
 renTerm-∘ π ρ ([ ν x: S ]→ T) = Id.ap2 [ ν x:_]→_
-  (subrel {_P_ = _==_} $ renTerm-∘ π ρ S)
+  (subrel {sup = _==_} $ renTerm-∘ π ρ S)
   (proof renTerm (lift (π ∘ ρ)) T
      === renTerm (lift π ∘ lift ρ) T
        :by: ap (λ — → renTerm — T) (lift-∘ π ρ) [: _==_ ]
@@ -112,9 +112,9 @@ renTerm-∘ π ρ ⌊ e ⌋ = ap ⌊_⌋ (renElim-∘ π ρ e)
 
 renElim-∘ π ρ (var v) = Het.refl (var (π (ρ v)))
 renElim-∘ π ρ (f ` s) =
-  Id.ap2 _`_ (subrel {_P_ = _==_} $ renElim-∘ π ρ f) (renTerm-∘ π ρ s)
+  Id.ap2 _`_ (subrel {sup = _==_} $ renElim-∘ π ρ f) (renTerm-∘ π ρ s)
 renElim-∘ π ρ (s ꞉ S) =
-  Id.ap2 _꞉_ (subrel {_P_ = _==_}  $ renTerm-∘ π ρ s) (renTerm-∘ π ρ S)
+  Id.ap2 _꞉_ (subrel {sup = _==_}  $ renTerm-∘ π ρ s) (renTerm-∘ π ρ S)
 
 instance
   RenameableExpr : ∀ {tag} → Renameable (expr-of-type tag)
@@ -123,15 +123,15 @@ RenameableElim : Renameable Elim
 
 rename ⦃ RenameableExpr {term} ⦄ = renTerm
 rename-id ⦃ RenameableExpr {term} ⦄ =
-  subrel {_P_ = _==_} $ fun-ext renTerm-id~id
+  subrel {sup = _==_} $ fun-ext renTerm-id~id
 rename-∘ ⦃ RenameableExpr {term} ⦄ π ρ =
-  subrel {_P_ = _==_} $ fun-ext $ renTerm-∘ π ρ
+  subrel {sup = _==_} $ fun-ext $ renTerm-∘ π ρ
 
 rename ⦃ RenameableExpr {elim} ⦄ = renElim
 rename-id ⦃ RenameableExpr {elim} ⦄ =
-  subrel {_P_ = _==_} $ fun-ext renElim-id~id
+  subrel {sup = _==_} $ fun-ext renElim-id~id
 rename-∘ ⦃ RenameableExpr {elim} ⦄ π ρ =
-  subrel {_P_ = _==_} $ fun-ext $ renElim-∘ π ρ
+  subrel {sup = _==_} $ fun-ext $ renElim-∘ π ρ
 
 RenameableTerm = RenameableExpr {term}
 RenameableElim = RenameableExpr {elim}

@@ -2,7 +2,8 @@
 module Basic where
 
 open import PropUniverses
-open import Structure.Hemiring
+import Structure.Hemiring
+open Structure.Hemiring
 open import Data.Nat.Definition hiding (zero)
 import Data.Nat.Syntax
 open import Data.FinNat.Definition hiding (zero)
@@ -13,6 +14,9 @@ open import Proposition.Identity using (_==_; refl)
 
 Rig : (X : 𝒰 ˙) → 𝒰 ˙
 Rig = Hemiring
+
+module Rig where
+  open Structure.Hemiring public
 
 -- Definition 2 (none-one-tons)
 None-one-tons : 𝒰₀ ˙

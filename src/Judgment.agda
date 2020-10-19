@@ -143,7 +143,7 @@ data _⊢_,_∈_ where
 
   -- modified compared to the paper to make the formulation simpler
   -- achieves the same result when weakening is added
-  var : ∀ {n} {ρ : R} {Γ : Precontext n} {S : Term n}
+  var : (Γ : Precontext n)(ρ : R)(S : Term n)
     → ----------------------------------------------------
     ctx Γ zero ∥ ρ ,x: S ⊢ ρ , var (nth-var n (refl (n +1))) ∈ extend S
 

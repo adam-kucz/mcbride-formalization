@@ -58,7 +58,7 @@ lift-by-lift~ {m = m}{n}(k +1) σ new =
   qed
   where coer = ap Var $ sym $ +-suc (k +1) m
         new==new : new {n = k + (m +1)} == coe coer new
-        new==new = subrel {_R_ = Het._==_} (
+        new==new = subrel {sub = Het._==_} (
           proof new {n = k + (m +1)}
             het== new {n = k + m +1}
               :by: ap (λ — → new {n = —}) ⦃ Relating-all-==-het== ⦄ $
@@ -76,7 +76,7 @@ lift-by-lift~ {m = m}{n}(k +1){F} σ (old v) =
              (lift-by-lift~ k σ v)
     === shift (lift-by k (lift σ) v')
       :by: ap (λ — → shift (lift-by k (lift σ) —)) $
-           subrel {_R_ = Het._==_}{_P_ = _==_} (
+           subrel {sup = _==_}{sub = Het._==_} (
            proof coe (coer k) v
              het== v
                :by: coe-eval (coer k) v

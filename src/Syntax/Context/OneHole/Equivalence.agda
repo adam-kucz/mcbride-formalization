@@ -11,7 +11,7 @@ open import Syntax.Context.OneHole.Definition
 open import Syntax.Context.Arbitrary
 open import Syntax
 
-open import Type.Sum renaming (_,_ to _Σ,_; _×_ to _χ_)
+open import Type.Sum renaming (_,_ to _Σ,_; _×_ to _χ_; 〈_×_〉 to [_×_])
 open import Data.Nat
 open import Data.Tree.Binary
 open import Function hiding (_$_)
