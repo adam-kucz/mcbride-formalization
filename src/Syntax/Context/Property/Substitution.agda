@@ -46,14 +46,14 @@ instance
 sub-all : ∀{m n}
   (σ : Sub m n)
   (t : Holes)
-  (es : all-types (fmap [ id × _+ m ] t))
+  (es : all-types (fmap 〈 id × _+ m 〉 t))
   → -------------------------------------
-  all-types (fmap [ id × _+ n ] t)
+  all-types (fmap 〈 id × _+ n 〉 t)
 sub-all σ ◻ es = es
 sub-all σ [[ tag Σ, k ]] es = subst (lift-by k σ) es
 sub-all σ (l /\ r) (es-l Σ, es-r) = sub-all σ l es-l Σ, sub-all σ r es-r
 
-open import Data.Nat.Arithmetic.Subtraction.Unsafe
+open import Data.Nat.Arithmetic.Subtraction.Unsafe hiding (-+)
 open import Data.Maybe
 open import Collection hiding (_~_; _-_)
 open import Operation.Binary
@@ -75,8 +75,7 @@ sub-all' {m}{n} σ [[ tag Σ, k ]] p es =
   coe (ap (expr-of-type tag) q) (
     subst (lift-by (k - m) σ) (
       coe (ap (expr-of-type tag) $
-           unsafe-prop-from-safe (λ l → k == l + m) p₀ $
-           sym $ -+ p₀)
+           unsafe-prop-from-safe (λ l → k == l + m) p₀ $ sym $ -+ p₀)
           es))
   where p₀ : m ≤ k
         p₀ = p $ _ ∈leaf
@@ -214,7 +213,7 @@ sub-all'-lift {m}{n} σ [[ tag Σ, k +1 ]] q es =
             het== lift-by (k - m) (lift σ) ∘ coe (sym p″)
               :by: het-fun-ext p″ (λ x →
                    ap (lift-by (k - m) (lift σ)) $
-                   subrel {_P_ = Het._==_} $ sym {R = _==_} $
+                   subrel {sup = Het._==_} $ sym {R = _==_} $
                    coe-2-eval (sym p″) x)
             het== lift-by (k - m +1) σ
               :by: isym $ fun-ext $ lift-by-lift~ (k - m) σ
@@ -255,7 +254,7 @@ sub-ctx-aux {m}{n} σ {_}{tag} — es =
       :by: Id.refl _
     === fill-holes (coe coer₂ (subst (lift-by (m - m) σ) (coe coer₁ es)))
                    (coe coer₀ —)
-      :by: subrel {_R_ = Het._==_}{_P_ = _==_} $
+      :by: subrel {sup = _==_}{sub = Het._==_} $
            Het.ap3
              (λ k (e : all-types [[ tag Σ, k ]])
                   (C : Context [[ tag Σ, k ]] tag n) → fill-holes e C)
@@ -265,9 +264,9 @@ sub-ctx-aux {m}{n} σ {_}{tag} — es =
                   :by: Het.ap3
                          (λ k (σ : Sub (k + m)(k + n))
                               (e : expr-of-type tag (k + m)) → subst σ e)
-                         (sym $ m -self==)
+                         (sym $ m -self==0)
                          (ap (flip lift-by σ) ⦃ Relating-all-==-het== ⦄ $
-                          sym $ m -self==)
+                          sym $ m -self==0)
                          (isym $ coe-eval coer₁ es)
                 het== coe coer₂ (subst (lift-by (m - m) σ) (coe coer₁ es))
                   :by: isym $ coe-eval coer₂ _
@@ -276,10 +275,10 @@ sub-ctx-aux {m}{n} σ {_}{tag} — es =
   qed
   where n==n+m-m = sym {R = _==_} $ subrel $ left-inverse-of (_+ m) n
         coer₀ = ap (λ — → Context [[ tag Σ, — ]] tag n) n==n+m-m
-        coer₁ = ap (λ — → expr-of-type tag (— + m)) $ sym $ m -self==
+        coer₁ = ap (λ — → expr-of-type tag (— + m)) $ sym $ m -self==0
         coer₂ = ap (expr-of-type tag){r = _==_}(
           proof m - m + n
-            === n         :by: ap (_+ n) $ m -self==
+            === n         :by: ap (_+ n) $ m -self==0
             === n + m - m
               :by: sym {R = _==_} $ subrel $ left-inverse-of (_+ m) n
           qed)
@@ -292,7 +291,7 @@ sub-ctx-aux σ {l /\ r}([ π x: C₀ ]→ C₁)(es₀ Σ, es₁) =
       :by: sub-ctx-aux (lift σ) C₁ es₁
     === fill-holes (sub-all' σ r p es₁) (sub-context (lift σ) C₁)
       :by: ap (λ — → fill-holes — (sub-context (lift σ) C₁)) $
-           subrel {_P_ = _==_} $
+           subrel {sup = _==_} $
            sub-all'-lift σ r (context-inhabited C₁) es₁
   qed)
   where p = context-inhabited (λx, C₁)
@@ -304,7 +303,7 @@ sub-ctx-aux σ {t} (λx, C) es = ap λx,_ {r = _==_}(
       :by: sub-ctx-aux (lift σ) C es
     === fill-holes (sub-all' σ t p es) (sub-context (lift σ) C)
       :by: ap (λ — → fill-holes — (sub-context (lift σ) C)) $
-           subrel {_P_ = _==_} $
+           subrel {sup = _==_} $
            sub-all'-lift σ t (context-inhabited C) es
   qed)
   where p = context-inhabited (λx, C)
@@ -388,10 +387,10 @@ sub-all== {m}{n} σ {l /\ r} p
   {es-l Σ, es-r}{es-l' Σ, es-r'}(Id.refl _) es==es' =
   het-Σ== (sub-all== σ (λ q → p $ _ ∈left q /\ _)(Id.refl _) $
                      subrel $ ∧left $ from-Σ== $
-                     subrel {_P_ = _==_} es==es')
+                     subrel {sup = _==_} es==es')
           (sub-all== σ (λ q → p $ _ ∈right _ /\ q)(Id.refl _) $
                      ∧right $ from-Σ== $
-                     subrel {_P_ = _==_} es==es')
+                     subrel {sup = _==_} es==es')
 -}
 
 {-

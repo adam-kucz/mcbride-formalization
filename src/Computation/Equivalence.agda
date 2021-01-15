@@ -83,39 +83,39 @@ instance
   ⇝'⊆⇝ : (_⇝'_ {n = n}{tag}) ⊆ _⇝_
   ⇝⊆⇝' : (_⇝_ {n = n}{tag}) ⊆ _⇝'_
 
-subrel ⦃ ⇝'⊆⇝ ⦄ (β π s S t T) = β π s S t T
-subrel ⦃ ⇝'⊆⇝ ⦄ (v t T) = v t T
-subrel ⦃ ⇝'⊆⇝ ⦄ (λx, t⇝'t') =
-  1-ctx-closed (subrel ⦃ ⇝'⊆⇝ ⦄ t⇝'t') (λx, —)
-subrel ⦃ ⇝'⊆⇝ ⦄ ⌊ e⇝'e' ⌋ =
-  1-ctx-closed (subrel ⦃ ⇝'⊆⇝ ⦄ e⇝'e') ⌊ — ⌋
-subrel ⦃ ⇝'⊆⇝ ⦄ [ π x: S ]→ T⇝'T' ↓ =
-  1-ctx-closed (subrel ⦃ ⇝'⊆⇝ ⦄ T⇝'T') ([ π x: S ]→ — ↓)
-subrel ⦃ ⇝'⊆⇝ ⦄ ([ π x: S⇝'S' ↓]→ T) =
-  1-ctx-closed (subrel ⦃ ⇝'⊆⇝ ⦄ S⇝'S') ([ π x: — ↓]→ T)
-subrel ⦃ ⇝'⊆⇝ ⦄ (f ` s⇝'s' ↓) =
-  1-ctx-closed (subrel ⦃ ⇝'⊆⇝ ⦄ s⇝'s') (f ` — ↓)
-subrel ⦃ ⇝'⊆⇝ ⦄ (f⇝'f' ↓` s) =
-  1-ctx-closed (subrel ⦃ ⇝'⊆⇝ ⦄ f⇝'f') (— ↓` s)
-subrel ⦃ ⇝'⊆⇝ ⦄ (s ꞉ S⇝'S' ↓) =
-  1-ctx-closed (subrel ⦃ ⇝'⊆⇝ ⦄ S⇝'S') (s ꞉ — ↓)
-subrel ⦃ ⇝'⊆⇝ ⦄ (s⇝'s' ↓꞉ S) =
-  1-ctx-closed (subrel ⦃ ⇝'⊆⇝ ⦄ s⇝'s') (— ↓꞉ S)
+subrel⊆ ⇝'⊆⇝ (β π s S t T) = β π s S t T
+subrel⊆ ⇝'⊆⇝ (v t T) = v t T
+subrel⊆ ⇝'⊆⇝ (λx, t⇝'t') =
+  1-ctx-closed (subrel⊆ ⇝'⊆⇝ t⇝'t') (λx, —)
+subrel⊆ ⇝'⊆⇝ ⌊ e⇝'e' ⌋ =
+  1-ctx-closed (subrel⊆ ⇝'⊆⇝ e⇝'e') ⌊ — ⌋
+subrel⊆ ⇝'⊆⇝ [ π x: S ]→ T⇝'T' ↓ =
+  1-ctx-closed (subrel⊆ ⇝'⊆⇝ T⇝'T') ([ π x: S ]→ — ↓)
+subrel⊆ ⇝'⊆⇝ ([ π x: S⇝'S' ↓]→ T) =
+  1-ctx-closed (subrel⊆ ⇝'⊆⇝ S⇝'S') ([ π x: — ↓]→ T)
+subrel⊆ ⇝'⊆⇝ (f ` s⇝'s' ↓) =
+  1-ctx-closed (subrel⊆ ⇝'⊆⇝ s⇝'s') (f ` — ↓)
+subrel⊆ ⇝'⊆⇝ (f⇝'f' ↓` s) =
+  1-ctx-closed (subrel⊆ ⇝'⊆⇝ f⇝'f') (— ↓` s)
+subrel⊆ ⇝'⊆⇝ (s ꞉ S⇝'S' ↓) =
+  1-ctx-closed (subrel⊆ ⇝'⊆⇝ S⇝'S') (s ꞉ — ↓)
+subrel⊆ ⇝'⊆⇝ (s⇝'s' ↓꞉ S) =
+  1-ctx-closed (subrel⊆ ⇝'⊆⇝ s⇝'s') (— ↓꞉ S)
 
-subrel ⦃ ⇝⊆⇝' ⦄ (β π s S t T) = β π s S t T
-subrel ⦃ ⇝⊆⇝' ⦄ (v t T) = v t T
-subrel ⦃ ⇝⊆⇝' ⦄ (hole — s⇝t) = subrel s⇝t
-subrel ⦃ ⇝⊆⇝' ⦄ (hole (λx, C[—]) s⇝t) = λx, subrel (hole C[—] s⇝t)
-subrel ⦃ ⇝⊆⇝' ⦄ (hole ⌊ C[—] ⌋ s⇝t) = ⌊ subrel (hole C[—] s⇝t) ⌋
-subrel ⦃ ⇝⊆⇝' ⦄ (hole [ π x: S ]→ C[—] ↓ s⇝t) =
+subrel⊆ ⇝⊆⇝' (β π s S t T) = β π s S t T
+subrel⊆ ⇝⊆⇝' (v t T) = v t T
+subrel⊆ ⇝⊆⇝' (hole — s⇝t) = subrel s⇝t
+subrel⊆ ⇝⊆⇝' (hole (λx, C[—]) s⇝t) = λx, subrel (hole C[—] s⇝t)
+subrel⊆ ⇝⊆⇝' (hole ⌊ C[—] ⌋ s⇝t) = ⌊ subrel (hole C[—] s⇝t) ⌋
+subrel⊆ ⇝⊆⇝' (hole [ π x: S ]→ C[—] ↓ s⇝t) =
   [ π x: S ]→ subrel (hole C[—] s⇝t) ↓
-subrel ⦃ ⇝⊆⇝' ⦄ (hole ([ π x: C[—] ↓]→ T) s⇝t) =
+subrel⊆ ⇝⊆⇝' (hole ([ π x: C[—] ↓]→ T) s⇝t) =
   [ π x: subrel (hole C[—] s⇝t) ↓]→  T
-subrel ⦃ ⇝⊆⇝' ⦄ (hole (f ` C[—] ↓) s⇝t) =
+subrel⊆ ⇝⊆⇝' (hole (f ` C[—] ↓) s⇝t) =
   f ` subrel (hole C[—] s⇝t) ↓
-subrel ⦃ ⇝⊆⇝' ⦄ (hole (C[—] ↓` s) s⇝t) =
+subrel⊆ ⇝⊆⇝' (hole (C[—] ↓` s) s⇝t) =
   subrel (hole C[—] s⇝t) ↓` s
-subrel ⦃ ⇝⊆⇝' ⦄ (hole (s ꞉ C[—] ↓) s⇝t) =
+subrel⊆ ⇝⊆⇝' (hole (s ꞉ C[—] ↓) s⇝t) =
   s ꞉ subrel (hole C[—] s⇝t) ↓
-subrel ⦃ ⇝⊆⇝' ⦄ (hole (C[—] ↓꞉ S) s⇝t) =
+subrel⊆ ⇝⊆⇝' (hole (C[—] ↓꞉ S) s⇝t) =
   subrel (hole C[—] s⇝t) ↓꞉ S

@@ -178,10 +178,10 @@ open import Data.Nat
 instance
   ⇝-⊆-▷ : (_⇝_ {n = n}{tag}) ⊆ (_▷_ {n = n}{tag})
 
-subrel ⦃ ⇝-⊆-▷ ⦄ (β π s S t T) =
+subrel⊆ ⇝-⊆-▷ (β π s S t T) =
   lam-comp π (refl t) (refl S) (refl T) (refl s)
-subrel ⦃ ⇝-⊆-▷ ⦄ (v t T) = elim-comp T (refl t)
-subrel ⦃ ⇝-⊆-▷ ⦄ (hole C[—] x⇝y) = 1-ctx-closed (subrel ⦃ ⇝-⊆-▷ ⦄ x⇝y) C[—]
+subrel⊆ ⇝-⊆-▷ (v t T) = elim-comp T (refl t)
+subrel⊆ ⇝-⊆-▷ (hole C[—] x⇝y) = 1-ctx-closed (subrel⊆ ⇝-⊆-▷ x⇝y) C[—]
 
 open import Proof
 open import Computation.Proof
@@ -189,12 +189,12 @@ open import Computation.Proof
 instance
   ▷-⊆-↠ : (_▷_ {n = n}{tag}) ⊆ (_↠_ {n = n}{tag})
 
-subrel ⦃ ▷-⊆-↠ ⦄ (elim-comp {t}{t'} T t▷t') =
+subrel⊆ ▷-⊆-↠ (elim-comp {t}{t'} T t▷t') =
   proof ⌊ t ꞉ T ⌋
     〉 _⇝_ 〉 t  :by: v t T
     〉 _↠_ 〉 t' :by: subrel t▷t'
   qed
-subrel ⦃ ▷-⊆-↠ ⦄
+subrel⊆ ▷-⊆-↠
   (lam-comp π {t}{t'}{S}{S'}{T}{T'}{s}{s'} t▷t' S▷S' T▷T' s▷s') =
   proof (λx, t ꞉ [ π x: S ]→ T) ` s
     〉 _↠_ 〉 (λx, t' ꞉ [ π x: S' ]→ T') ` s'
@@ -204,16 +204,16 @@ subrel ⦃ ▷-⊆-↠ ⦄
     〉 _⇝_ 〉 (t' ꞉ T') [ s' ꞉ S' /new]
       :by: β π s' S' t' T'
   qed
-subrel ⦃ ▷-⊆-↠ ⦄ (⋆ i) = refl (⋆ i)
-subrel ⦃ ▷-⊆-↠ ⦄ (var x) = refl (var x)
-subrel ⦃ ▷-⊆-↠ ⦄ ([ π x: S▷S' ]→ T▷T') =
+subrel⊆ ▷-⊆-↠ (⋆ i) = refl (⋆ i)
+subrel⊆ ▷-⊆-↠ (var x) = refl (var x)
+subrel⊆ ▷-⊆-↠ ([ π x: S▷S' ]→ T▷T') =
   ctx-closed ([ π x: — ]→ —)
-    (subrel {_P_ = _↠_} S▷S' , subrel {_P_ = _↠_} T▷T')
-subrel ⦃ ▷-⊆-↠ ⦄ (λx, t▷t') =
-  ctx-closed (λx, —) $ subrel {_P_ = _↠_} t▷t'
-subrel ⦃ ▷-⊆-↠ ⦄ (f▷f' ` s▷s') =
-  ctx-closed (— ` —) (subrel {_P_ = _↠_} f▷f' , subrel {_P_ = _↠_} s▷s')
-subrel ⦃ ▷-⊆-↠ ⦄ (s▷s' ꞉ S▷S') =
-  ctx-closed (— ꞉ —) (subrel {_P_ = _↠_} s▷s' , subrel {_P_ = _↠_} S▷S')
-subrel ⦃ ▷-⊆-↠ ⦄ ⌊ e▷e' ⌋ =
-  ctx-closed ⌊ — ⌋ $ subrel {_P_ = _↠_} e▷e'
+    (subrel {sup = _↠_} S▷S' , subrel {sup = _↠_} T▷T')
+subrel⊆ ▷-⊆-↠ (λx, t▷t') =
+  ctx-closed (λx, —) $ subrel {sup = _↠_} t▷t'
+subrel⊆ ▷-⊆-↠ (f▷f' ` s▷s') =
+  ctx-closed (— ` —) (subrel {sup = _↠_} f▷f' , subrel {sup = _↠_} s▷s')
+subrel⊆ ▷-⊆-↠ (s▷s' ꞉ S▷S') =
+  ctx-closed (— ꞉ —) (subrel {sup = _↠_} s▷s' , subrel {sup = _↠_} S▷S')
+subrel⊆ ▷-⊆-↠ ⌊ e▷e' ⌋ =
+  ctx-closed ⌊ — ⌋ $ subrel {sup = _↠_} e▷e'

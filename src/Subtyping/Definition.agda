@@ -18,13 +18,10 @@ open import Computation
 open import Relation.Binary
   hiding (_~_; Reflexive~; Transitive~; Symmetric~)
 
-open import Subtyping.Similarity
-
 data _≼_ : RelOnExpr (𝒰 ⁺ ⊔ 𝒱 ⊔ 𝒲) where
-  similar : {S T : expr-of-type tag n}
-    (p : S ~ T)
-    → ----------
-    S ≼ T
+  reflexive : (S : expr-of-type tag n)
+    → -------------------------------
+    S ≼ S
 
   sort : ∀{i j}
     (p : j ≻ i)
@@ -43,15 +40,13 @@ instance
   Reflexive≼ : Reflexive (_≼_ {n = n}{tag})
   Transitive≼ : Transitive (_≼_ {n = n}{tag})
 
-refl ⦃ Reflexive≼ ⦄ t = similar (refl t)
+refl ⦃ Reflexive≼ ⦄ = reflexive
 
-trans ⦃ Transitive≼ ⦄ (similar p)(similar q) = similar $ trans p q
-trans ⦃ Transitive≼ ⦄ (similar (⋆ i))(sort q) = sort q
-trans ⦃ Transitive≼ ⦄ (similar ([ π x: p₀ ]→ p₁))([ π x: q₀ ]→ q₁) =
-  [ π x: trans q₀ (similar (sym p₀)) ]→ trans (similar p₁) q₁
-trans ⦃ Transitive≼ ⦄ (sort p)(similar (⋆ i)) = sort p
-trans ⦃ Transitive≼ ⦄ (sort p)(sort q) = sort (trans q p)
-trans ⦃ Transitive≼ ⦄ ([ π x: p₀ ]→ p₁)(similar ([ π x: q₀ ]→ q₁)) =
-  [ π x: trans (similar (sym q₀)) p₀ ]→ trans p₁ (similar q₁)
-trans ⦃ Transitive≼ ⦄ ([ π x: p₀ ]→ p₁)([ π x: q₀ ]→ q₁) =
-  [ π x: trans q₀ p₀ ]→ trans p₁ q₁
+trans ⦃ Transitive≼ ⦄ = go
+  where go : {S T U : expr-of-type tag n}(S≼T : S ≼ T)(T≼U : T ≼ U) → S ≼ U
+        go (reflexive S) S≼U = S≼U
+        go S≼T@(sort _)(reflexive _) = S≼T
+        go (sort p₀) (sort p₁) = sort $ trans p₁ p₀
+        go S≼T@([ _ x: _ ]→ _)(reflexive _) = S≼T
+        go ([ π x: S₀≼T₀ ]→ S₁≼T₁) ([ π x: T₀≼U₀ ]→ T₁≼U₁) =
+          [ π x: go T₀≼U₀ S₀≼T₀ ]→ go S₁≼T₁ T₁≼U₁

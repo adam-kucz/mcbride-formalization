@@ -25,12 +25,12 @@ open import Axiom.FunctionExtensionality
 
 rename ⦃ RenameableFun ⦄ ρ σ = rename ρ ∘ σ
 rename-id ⦃ RenameableFun {𝒴}{𝒳} ⦃ r ⦄ ⦄ =
-  subrel {_P_ = _==_} $
+  subrel {sup = _==_} $
   fun-ext λ σ →
-  subrel {𝒰 = 𝒳 ⊔ 𝒴}{_R_ = _==_} $
+  subrel {𝒰 = 𝒳 ⊔ 𝒴}{sub = _==_} $
   ap (_∘ σ) rename-id
 rename-∘ ⦃ RenameableFun {𝒴}{𝒳} ⦄ π ρ =
-  subrel {_P_ = _==_} $
+  subrel {sup = _==_} $
   fun-ext λ σ →
-  subrel {𝒰 = 𝒳 ⊔ 𝒴}{_R_ = _==_} $
+  subrel {𝒰 = 𝒳 ⊔ 𝒴}{sub = _==_} $
   ap (_∘ σ) $ rename-∘ π ρ 

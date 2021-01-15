@@ -27,9 +27,9 @@ hole-loc : ∀{hole m result n}
   → ---------------------------------------
   Holes
 hole-loc {hole}{m} — = [ hole Σ, 0 ]
-hole-loc [ _ x: _ ]→ C[—] ↓ = ◻ /\ fmap [ id × suc ] (hole-loc C[—])
+hole-loc [ _ x: _ ]→ C[—] ↓ = ◻ /\ fmap 〈 id × suc 〉 (hole-loc C[—])
 hole-loc ([ _ x: C[—] ↓]→ _) = hole-loc C[—] /\ ◻
-hole-loc (λx, C[—]) = fmap [ id × suc ] (hole-loc C[—])
+hole-loc (λx, C[—]) = fmap 〈 id × suc 〉 (hole-loc C[—])
 hole-loc ⌊ C[—] ⌋ = hole-loc C[—]
 hole-loc (_ ` C[—] ↓) = ◻ /\ hole-loc C[—]
 hole-loc (C[—] ↓` _) = hole-loc C[—] /\ ◻

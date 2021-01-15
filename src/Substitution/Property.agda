@@ -58,21 +58,21 @@ rename-[-/new] : ∀{tag}
 rename-[-/new] ρ e f =
   proof rename ⦃ r = ren ⦄ ρ (e [ f /new])
     === (sub (var ∘ ρ) ∘ sub (newSub f)) e
-      :by: subrel {_P_ = _==_} $ ==→~ (rename-as-sub ρ) (e [ f /new]) 
+      :by: subrel {sup = _==_} $ ==→~ (rename-as-sub ρ) (e [ f /new]) 
     === sub ((var ∘ ρ) ⍟ newSub f) e
-      :by: subrel {_P_ = _==_} $ ==→~ (sub-∘ (var ∘ ρ) (newSub f)) e
+      :by: subrel {sup = _==_} $ ==→~ (sub-∘ (var ∘ ρ) (newSub f)) e
     === sub (newSub (sub (var ∘ ρ) f) ⍟ (lift (var ∘ ρ))) e
       :by: ap (λ — → sub — e) $ sub-newSub (var ∘ ρ) f
     === sub (newSub (rename ρ f) ⍟ (var ∘ lift ρ)) e
       :by: ap2 (λ f' ρ' → sub (newSub f' ⍟ ρ') e)
-             (subrel {_P_ = _==_} $ (sym $ ==→~ $ rename-as-sub ρ) f)
+             (subrel {sup = _==_} $ (sym $ ==→~ $ rename-as-sub ρ) f)
              (sym {R = _==_} $ lift-var∘ ρ)
     === (sub (newSub (rename ρ f)) ∘ sub (var ∘ lift ρ)) e
-      :by: subrel {_P_ = _==_} $ isym $
+      :by: subrel {sup = _==_} $ isym $
            ==→~ (sub-∘ (newSub (rename ρ f)) (var ∘ lift ρ)) e
     === rename (lift ρ) e [ rename ρ f /new]
       :by: ap (_[ rename ρ f /new]) $
-           subrel {_P_ = _==_} $ isym $
+           subrel {sup = _==_} $ isym $
            ==→~ (rename-as-sub (lift ρ)) e
   qed
 

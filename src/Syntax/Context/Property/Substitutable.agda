@@ -36,7 +36,7 @@ open Functor
 instance
   SubstitutableContext : ∀{t : Holes}{tag} →
     Substitutable (
-      λ n → Context (fmap [ id × _+ n ] t) tag n)
+      λ n → Context (fmap 〈 id × _+ n 〉 t) tag n)
 
 open import Collection hiding (_-_; _~_)
 open import Proof
@@ -78,7 +78,7 @@ module Auxiliary where
     ExprTag × ℕ
   f-id : ∀ m → f m m == id
 
-  f m n = [ id × (λ l → n + l - m) ]
+  f m n = 〈 id × (λ l → n + l - m) 〉
 
   f-id m = subrel $ fun-ext λ { (tag Σ, l) →
     subrel $ Σ== (Id.refl tag) (
@@ -102,7 +102,7 @@ sub-context σ (term t) = term (sub σ t)
 sub-context σ (elim e) = elim (sub σ e)
 sub-context {m}{n} σ {tag = tag} — =
   coe (ap (λ k → Context [[ tag Σ, k ]] tag n)
-          (sym $ subrel {_P_ = _==_} $ left-inverse-of (_+ m) n))
+          (sym $ subrel {sup = _==_} $ left-inverse-of (_+ m) n))
       —
 sub-context σ ([ π x: C₀ ]→ C₁) =
   [ π x: sub-context σ C₀ ]→ sub-context (lift σ) C₁
@@ -324,12 +324,12 @@ sub-context-∘ {m}{n}{l} σ τ {l' /\ r'} (C₀ ꞉ C₁) =
 SubstitutableContext {t}{tag} =
   DirectSubstitutable
     (λ {_}{n} σ C → coe (coer n C) (sub-context σ C))
-    (λ {m} → subrel {_P_ = _==_} $ fun-ext λ C →
+    (λ {m} → subrel {sup = _==_} $ fun-ext λ C →
        proof coe (coer m C) (sub-context var C)
          het== sub-context var C :by: coe-eval (coer m C) (sub-context var C) 
          het== C                 :by: sub-context-id C
        qed)
-    (λ {m}{n}{k} σ τ → subrel {_P_ = _==_} $ fun-ext λ C →
+    (λ {m}{n}{k} σ τ → subrel {sup = _==_} $ fun-ext λ C →
       let C' = coe (coer n C) (sub-context τ C) in
       proof coe (coer k C') (sub-context σ C')
         het== sub-context σ C'
@@ -345,7 +345,7 @@ SubstitutableContext {t}{tag} =
           :by: isym $ coe-eval (coer k C) (sub-context (σ ⍟ τ) C)
       qed)
   where go : ∀{m n} →
-          fmap (f m n) ∘ fmap [ id × _+ m ] ~ fmap [ id × _+ n ]
+          fmap (f m n) ∘ fmap 〈 id × _+ m 〉 ~ fmap 〈 id × _+ n 〉
         go ◻ = Het.refl ◻
         go {m}{n} [[ tag Σ, k ]] =
           ap (λ — → [[ tag Σ, — ]]){r = Het._==_}(
@@ -355,5 +355,5 @@ SubstitutableContext {t}{tag} =
             === k + n           :by: comm n k
           qed)
         go (l /\ r) = ap2 _/\_ (go l) (go r)
-        coer = λ {m} n (C : Context (fmap [ id × _+ m ] t) tag m) →
+        coer = λ {m} n (C : Context (fmap 〈 id × _+ m 〉 t) tag m) →
           ap (λ f → Context (f t) tag n) $ subrel $ fun-ext go

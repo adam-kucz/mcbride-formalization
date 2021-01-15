@@ -31,7 +31,7 @@ liftSub-to-↠ : ∀{m n}{tag}
   → ------------------------------
   sub σ t ↠ sub σ' t'
 liftSub-to-↠ σ σ' t↠t' e↠e' =
-  go σ σ' (subrel {_P_ = rtc _▷_} t↠t') e↠e'
+  go σ σ' (subrel {sup = rtc _▷_} t↠t') e↠e'
   where go : ∀{m n}{tag}
              (σ σ' : Sub m n)
              {t t' : expr-of-type tag m}
@@ -43,7 +43,7 @@ liftSub-to-↠ σ σ' t↠t' e↠e' =
         go σ σ' (step {t}{t'}{t″} t▷t' t'▷*t″) e↠e' =
           proof sub σ t
             〉 _↠_ 〉 sub σ t'
-              :by: subrel {_R_ = _▷_} $ ap (sub σ) ⦃ Relating-sub-▷ ⦄ t▷t'
+              :by: subrel {sub = _▷_} $ ap (sub σ) ⦃ Relating-sub-▷ ⦄ t▷t'
                    [: _↠_ ]
             〉 _↠_ 〉 sub σ' t″ :by: go σ σ' t'▷*t″ e↠e'
           qed

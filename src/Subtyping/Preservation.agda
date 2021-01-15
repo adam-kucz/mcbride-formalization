@@ -8,9 +8,9 @@ module Subtyping.Preservation
   where
 
 open import Subtyping.Definition
-open import Subtyping.Similarity
+-- open import Subtyping.Similarity
 
--- Lemma 19 (similarity preservation)
+-- Lemma 19 (similarity preservation) - similarity is unsupported
 
 open import Syntax
 open import Syntax.Context
@@ -77,46 +77,46 @@ step-▷-preserves-~ ⌊ p ⌋ ⌊ q ⌋
 
 open import Computation.Property.VectorizedSubstitution
 
-⇝-~-to-↠ : {S S' T : expr-of-type tag m}
-  (p : S ⇝ S')
-  (q : S ~ T)
-  → -------------------------
-  ∃ λ T' → S' ~ T' ∧ T ↠ T'
-⇝-~-to-↠ (β π s S t T)(
-  _`_ {s' = s'} (~annot ([ π x: S ]→ T)([ π' x: S' ]→ T')
-                        (λx,_ {t' = t'} t~t') (S~S' , T~T')) s~s') =
-  (t' ꞉ T') [ s' ꞉ S' /new] , (
-  liftSub-to-~ (newSub (s ꞉ S))(newSub (s' ꞉ S'))
-    (ctx-closed (— ꞉ —) (t~t' , T~T'))
-    (ap newSub $ ctx-closed (— ꞉ —) (s~s' , S~S')) ,
-  subrel $ β π' s' S' t' T')
-⇝-~-to-↠ (v _ T) ⌊ ~annot {s' = s'} T S' q q₁ ⌋ =
-  s' , (q , subrel $ v s' S')
-⇝-~-to-↠ (hole — p) q = ⇝-~-to-↠ p q
-⇝-~-to-↠ (hole [ π x: S ]→ C[—] ↓ p)([_x:_]→_ π {S' = S'} S~S' C[s]~T″)
-  with T' , (C[t]~T' , T″↠T') ← ⇝-~-to-↠ (hole C[—] p) C[s]~T″ =
-  [ π x: S' ]→ T' , (
-  [ π x: S~S' ]→ C[t]~T' ,
-  ctx-closed ([ π x: term S' ]→ —)(↑prop ⋆ₚ , T″↠T')) 
-⇝-~-to-↠ (hole ([ π x: C[—] ↓]→ T) p)([_x:_]→_ π {T' = T'} C[s]~S″ T~T')
-  with S' , (C[t]~S' , S″↠S') ← ⇝-~-to-↠ (hole C[—] p) C[s]~S″ =
-  [ π x: S' ]→ T' , (
-  [ π x: C[t]~S' ]→ T~T' ,
-  ctx-closed ([ π x: — ]→ term T')(S″↠S' , ↑prop ⋆ₚ))
-⇝-~-to-↠ (hole (λx, C[—]) p)(λx, C[s]~t')
-  with t″ , (C[t]~t″ , t'↠t″) ← ⇝-~-to-↠ (hole C[—] p) C[s]~t' =
-  λx, t″ , (λx, C[t]~t″ , ctx-closed (λx, —) t'↠t″)
-⇝-~-to-↠ (hole ⌊ C[—] ⌋ p) ⌊ q ⌋
-  with e″ , (C[t]~e″ , e'↠e″) ← ⇝-~-to-↠ (hole C[—] p) q =
-  ⌊ e″ ⌋ , (⌊ C[t]~e″ ⌋ , ctx-closed ⌊ — ⌋ e'↠e″)
-⇝-~-to-↠ (hole (f ` C[—] ↓) p)(q₀ ` q₁) = {!!}
-⇝-~-to-↠ (hole (C[—] ↓` s) p)(q₀ ` q₁) = {!!}
-⇝-~-to-↠ (hole (s ꞉ C[—] ↓) p)(~annot _ S' q₀ q₁) = {!!}
-⇝-~-to-↠ (hole (C[—] ↓꞉ S) p)(~annot S S' q₀ q₁)
-  with s″ , (C[t]~s″ , s'↠s″) ← ⇝-~-to-↠ (hole C[—] p) q₀ =
-  s″ ꞉ S' , (
-  ~annot S S' C[t]~s″ q₁ ,
-  ctx-closed (— ꞉ term S') (s'↠s″ , ↑prop ⋆ₚ))
+-- ⇝-~-to-↠ : {S S' T : expr-of-type tag m}
+--   (p : S ⇝ S')
+--   (q : S ~ T)
+--   → -------------------------
+--   ∃ λ T' → S' ~ T' ∧ T ↠ T'
+-- ⇝-~-to-↠ (β π s S t T)(
+--   _`_ {s' = s'} (~annot ([ π x: S ]→ T)([ π' x: S' ]→ T')
+--                         (λx,_ {t' = t'} t~t') (S~S' , T~T')) s~s') =
+--   (t' ꞉ T') [ s' ꞉ S' /new] , (
+--   liftSub-to-~ (newSub (s ꞉ S))(newSub (s' ꞉ S'))
+--     (ctx-closed (— ꞉ —) (t~t' , T~T'))
+--     (ap newSub $ ctx-closed (— ꞉ —) (s~s' , S~S')) ,
+--   subrel $ β π' s' S' t' T')
+-- ⇝-~-to-↠ (v _ T) ⌊ ~annot {s' = s'} T S' q q₁ ⌋ =
+--   s' , (q , subrel $ v s' S')
+-- ⇝-~-to-↠ (hole — p) q = ⇝-~-to-↠ p q
+-- ⇝-~-to-↠ (hole [ π x: S ]→ C[—] ↓ p)([_x:_]→_ π {S' = S'} S~S' C[s]~T″)
+--   with T' , (C[t]~T' , T″↠T') ← ⇝-~-to-↠ (hole C[—] p) C[s]~T″ =
+--   [ π x: S' ]→ T' , (
+--   [ π x: S~S' ]→ C[t]~T' ,
+--   ctx-closed ([ π x: term S' ]→ —)(↑prop ⋆ₚ , T″↠T')) 
+-- ⇝-~-to-↠ (hole ([ π x: C[—] ↓]→ T) p)([_x:_]→_ π {T' = T'} C[s]~S″ T~T')
+--   with S' , (C[t]~S' , S″↠S') ← ⇝-~-to-↠ (hole C[—] p) C[s]~S″ =
+--   [ π x: S' ]→ T' , (
+--   [ π x: C[t]~S' ]→ T~T' ,
+--   ctx-closed ([ π x: — ]→ term T')(S″↠S' , ↑prop ⋆ₚ))
+-- ⇝-~-to-↠ (hole (λx, C[—]) p)(λx, C[s]~t')
+--   with t″ , (C[t]~t″ , t'↠t″) ← ⇝-~-to-↠ (hole C[—] p) C[s]~t' =
+--   λx, t″ , (λx, C[t]~t″ , ctx-closed (λx, —) t'↠t″)
+-- ⇝-~-to-↠ (hole ⌊ C[—] ⌋ p) ⌊ q ⌋
+--   with e″ , (C[t]~e″ , e'↠e″) ← ⇝-~-to-↠ (hole C[—] p) q =
+--   ⌊ e″ ⌋ , (⌊ C[t]~e″ ⌋ , ctx-closed ⌊ — ⌋ e'↠e″)
+-- ⇝-~-to-↠ (hole (f ` C[—] ↓) p)(q₀ ` q₁) = {!!}
+-- ⇝-~-to-↠ (hole (C[—] ↓` s) p)(q₀ ` q₁) = {!!}
+-- ⇝-~-to-↠ (hole (s ꞉ C[—] ↓) p)(~annot _ S' q₀ q₁) = {!!}
+-- ⇝-~-to-↠ (hole (C[—] ↓꞉ S) p)(~annot S S' q₀ q₁)
+--   with s″ , (C[t]~s″ , s'↠s″) ← ⇝-~-to-↠ (hole C[—] p) q₀ =
+--   s″ ꞉ S' , (
+--   ~annot S S' C[t]~s″ q₁ ,
+--   ctx-closed (— ꞉ term S') (s'↠s″ , ↑prop ⋆ₚ))
 
 {-
 step-↠-preserves-~ : {S S' T : expr-of-type tag m}
@@ -176,16 +176,15 @@ step-↠-preserves-~ (step (hole (C[—] ↓꞉ S) s⇝t) p) q =
 --   ∃ λ T' → S' ~ T' ∧ T ↠ T'
 -- step-↠-preserves-~ p q = {!!}
 
--- TODO: figure out if the `proof` in the paper really doesn't work
-postulate
-  steps-↠-confluent-~ : {S S' T T' : expr-of-type tag m}
-    (p : S ~ T)
-    (q : S ↠ S')
-    (q' : T ↠ T')
-    → -------------------------
-    ∃ λ S″ →
-    ∃ λ T″ →
-    S″ ~ T″ ∧ S' ↠ S″ ∧ T' ↠ T″
+-- postulate
+--   steps-↠-confluent-~ : {S S' T T' : expr-of-type tag m}
+--     (p : S ~ T)
+--     (q : S ↠ S')
+--     (q' : T ↠ T')
+--     → -------------------------
+--     ∃ λ S″ →
+--     ∃ λ T″ →
+--     S″ ~ T″ ∧ S' ↠ S″ ∧ T' ↠ T″
 -- steps-↠-confluent-~ {tag = tag}{m = m}{S = S}{S'}{T}{T'} p q q'
 --   with steps-▷*-confluent-~ p q₁ q₁'
 --   where _▷*_ = rtc (_▷_ {n = m}{tag})
@@ -220,15 +219,20 @@ postulate
 -- Lemma 20 (subtyping preservation)
 
 step-↠-preserves-≼ : {S S' T : expr-of-type tag m}
-  (p : S ≼ T)
-  (q : S ↠ S')
+  (S≼T : S ≼ T)
+  (S↠S' : S ↠ S')
   → -------------------------
   ∃ λ T' → S' ≼ T' ∧ T ↠ T'
 step-↠-preserves-≽ : {S T T' : expr-of-type tag m}
-  (p : S ≼ T)
-  (q : T ↠ T')
+  (S≼T : S ≼ T)
+  (T↠T' : T ↠ T')
   → -------------------------
-  ∃ λ S' → S' ≼ T' ∧ S ↠ S'
+  -- ∃ λ S' → S' ≼ T' ∧ S ↠ S'
+  S ↠ T'
+
+step-↠-preserves-≼ {S' = S'}(reflexive S) S↠S' = S' , (refl S' , S↠S')
+step-↠-preserves-≼ (sort p) S↠S' = {!!}
+step-↠-preserves-≼ ([ π x: S≼T ]→ S≼T₁) S↠S' = {!!}
 
 -- step-↠-preserves-≼ (similar p) q with step-↠-preserves-~ p q
 -- step-↠-preserves-≼ (similar p) q | T' , (S'~T' , T↠T') =
